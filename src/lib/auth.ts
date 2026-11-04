@@ -8,7 +8,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { and, eq, gt } from 'drizzle-orm';
 import { db } from '@/db';
 import { loginTokens, profiles, type Profile } from '@/db/schema';
-import { ensureMembership } from '@/lib/household';
+import { ensureMembership, resolveHomes } from '@/lib/household';
 
 export const hashToken = (t: string) => createHash('sha256').update(t).digest('hex');
 
@@ -115,9 +115,9 @@ export async function requireAdmin(): Promise<Profile> {
   return user;
 }
 
-/** Signed-in user plus their active household and role. */
+/** Signed-in user plus their active home, role, and all homes they belong to. */
 export const requireHousehold = cache(async () => {
   const user = await requireUser();
-  const m = await ensureMembership(user.id, user.fullName);
-  return { user, household: m.household, role: m.role ?? 'member' };
+  const { all, active } = await resolveHomes(user.id, user.fullName);
+  return { user, household: active.household, role: active.role ?? 'member', homes: all.map((m) => ({ id: m.household.id, name: m.household.name, role: m.role ?? 'member' })) };
 });

@@ -18,6 +18,8 @@ export const CATEGORIES = [
   'Garage Door',
   'Water Softener',
   'Smoke & CO Detector',
+  'TV & Electronics',
+  'Outdoor & Garden',
   'Other',
 ] as const;
 

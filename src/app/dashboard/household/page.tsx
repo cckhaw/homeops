@@ -37,6 +37,7 @@ export default async function HouseholdPage() {
     <>
       <PageHeader title="Household" subtitle={`${household.name} · ${members.length} member${members.length === 1 ? '' : 's'}`} />
 
+      <div className="grid items-start gap-x-8 xl:grid-cols-2">
       <section className="mb-8">
         <h2 className="mb-2 px-1 text-[22px] font-bold">Members</h2>
         <GlassCard className="py-2">
@@ -97,6 +98,7 @@ export default async function HouseholdPage() {
           </GlassCard>
         </section>
       )}
+      </div>
     </>
   );
 }

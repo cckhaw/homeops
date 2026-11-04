@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { and, count, eq, gt, ne } from 'drizzle-orm';
 import { db } from '@/db';
@@ -15,7 +16,7 @@ import {
   serviceRecords,
 } from '@/db/schema';
 import { hashToken, requireAdmin, requireHousehold, requireUser } from '@/lib/auth';
-import { isMember, newToken } from '@/lib/household';
+import { HOME_COOKIE, createHousehold, isMember, listMemberships, newToken } from '@/lib/household';
 import { getLimits, setSetting } from '@/lib/settings';
 import { uploadFile } from '@/lib/storage';
 import {
@@ -69,7 +70,8 @@ export async function createAsset(_: FormState, fd: FormData): Promise<FormState
       householdId: household.id,
       name,
       category,
-      makeModel: optStr(fd, 'makeModel', 120),
+      make: optStr(fd, 'make', 80),
+      model: optStr(fd, 'model', 120),
       serialNumber: optStr(fd, 'serialNumber', 120),
       installDate: isoDate(fd, 'installDate'),
       warrantyExpiry: isoDate(fd, 'warrantyExpiry'),
@@ -105,7 +107,8 @@ export async function updateAsset(assetId: string, _: FormState, fd: FormData): 
   const patch: Partial<typeof assets.$inferInsert> = {
     name,
     category,
-    makeModel: optStr(fd, 'makeModel', 120),
+    make: optStr(fd, 'make', 80),
+    model: optStr(fd, 'model', 120),
     serialNumber: optStr(fd, 'serialNumber', 120),
     installDate: isoDate(fd, 'installDate'),
     warrantyExpiry: isoDate(fd, 'warrantyExpiry'),
@@ -214,6 +217,30 @@ export async function createTask(_: FormState, fd: FormData): Promise<FormState>
   return { ok: 'Task added.' };
 }
 
+export async function updateTask(taskId: string, _: FormState, fd: FormData): Promise<FormState> {
+  const { household } = await requireHousehold();
+  const title = str(fd, 'title', 160);
+  const frequency = str(fd, 'frequency', 20);
+  const dueDate = isoDate(fd, 'dueDate');
+  const assetId = optStr(fd, 'assetId', 40);
+  if (!title) return { error: 'Give the task a title.' };
+  if (!(FREQUENCIES as readonly string[]).includes(frequency)) return { error: 'Choose how often it repeats.' };
+  if (!dueDate) return { error: 'Pick a due date.' };
+  if (assetId) {
+    const [a] = await db
+      .select({ id: assets.id })
+      .from(assets)
+      .where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
+    if (!a) return { error: 'Asset not found.' };
+  }
+  await db
+    .update(maintenanceTasks)
+    .set({ title, frequency, dueDate, assetId })
+    .where(and(eq(maintenanceTasks.id, taskId), eq(maintenanceTasks.householdId, household.id)));
+  revalidatePath('/dashboard', 'layout');
+  return { ok: 'Task updated.' };
+}
+
 export async function deleteTask(taskId: string) {
   const { household } = await requireHousehold();
   await db
@@ -264,18 +291,12 @@ export async function acceptInvite(token: string): Promise<FormState> {
         .where(eq(householdMembers.householdId, invite.householdId));
       if (n >= limits.members) return { error: `This home has reached the ${limits.members}-member limit.` };
     }
-    // Drop the auto-created personal home if it is still empty and only theirs.
-    const mine = await db
-      .select({ h: households })
-      .from(householdMembers)
-      .innerJoin(households, eq(households.id, householdMembers.householdId))
-      .where(and(eq(householdMembers.userId, user.id), eq(households.ownerId, user.id)));
-    for (const { h } of mine) {
+    // A brand-new user's auto-created, still-empty home is just clutter once they join a real one.
+    const mine = await listMemberships(user.id);
+    if (mine.length === 1 && mine[0].household.ownerId === user.id) {
+      const h = mine[0].household;
       const [{ a }] = await db.select({ a: count() }).from(assets).where(eq(assets.householdId, h.id));
-      const [{ m }] = await db
-        .select({ m: count() })
-        .from(householdMembers)
-        .where(eq(householdMembers.householdId, h.id));
+      const [{ m }] = await db.select({ m: count() }).from(householdMembers).where(eq(householdMembers.householdId, h.id));
       if (a === 0 && m === 1) await db.delete(households).where(eq(households.id, h.id));
     }
     await db
@@ -283,6 +304,7 @@ export async function acceptInvite(token: string): Promise<FormState> {
       .values({ householdId: invite.householdId, userId: user.id, role: 'member' })
       .onConflictDoNothing();
   }
+  setActiveCookie(invite.householdId);
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard');
 }
@@ -315,6 +337,44 @@ export async function setMemberRole(memberId: string, newRole: 'admin' | 'member
       ),
     );
   revalidatePath('/dashboard/household');
+}
+
+// ------------------------------------------------------------------ Multiple homes
+
+function setActiveCookie(householdId: string) {
+  cookies().set(HOME_COOKIE, householdId, { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 365 });
+}
+
+export async function switchHome(householdId: string) {
+  const user = await requireUser();
+  if (!(await isMember(user.id, householdId))) return;
+  setActiveCookie(householdId);
+  revalidatePath('/dashboard', 'layout');
+}
+
+export async function createHome(_: FormState, fd: FormData): Promise<FormState> {
+  const user = await requireUser();
+  const name = str(fd, 'name', 120);
+  if (!name) return { error: 'Give the home a name.' };
+  const owned = (await listMemberships(user.id)).filter((m) => m.household.ownerId === user.id).length;
+  if (owned >= 25) return { error: 'You have reached the maximum number of homes.' };
+  const h = await createHousehold(user.id, name);
+  const address = optStr(fd, 'address', 240);
+  if (address) await db.update(households).set({ address }).where(eq(households.id, h.id));
+  setActiveCookie(h.id);
+  revalidatePath('/dashboard', 'layout');
+  redirect('/dashboard');
+}
+
+/** Permanently deletes a home (and its assets, tasks, invites). Only its owner may do this. */
+export async function deleteHome(householdId: string) {
+  const user = await requireUser();
+  const [h] = await db.select().from(households).where(and(eq(households.id, householdId), eq(households.ownerId, user.id)));
+  if (!h) return;
+  await db.delete(households).where(eq(households.id, h.id));
+  cookies().delete(HOME_COOKIE);
+  revalidatePath('/dashboard', 'layout');
+  redirect('/dashboard/homes');
 }
 
 // ------------------------------------------------------------------ Passport

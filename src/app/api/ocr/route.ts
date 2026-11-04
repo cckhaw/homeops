@@ -11,7 +11,7 @@ const MAX_BYTES = 8 * 1024 * 1024;
 
 const PROMPT = `You read purchase receipts / invoices for home appliances and equipment.
 Extract the main product purchased and respond with ONLY a JSON object (no prose, no code fences) with these keys:
-{"name": string|null, "category": one of ${JSON.stringify(CATEGORIES)} | null, "makeModel": string|null, "serialNumber": string|null,
+{"name": string|null, "category": one of ${JSON.stringify(CATEGORIES)} | null, "make": string|null (brand/manufacturer only, e.g. "LG"), "model": string|null (model number/name only), "serialNumber": string|null,
 "purchaseDate": "YYYY-MM-DD"|null, "warrantyMonths": number|null, "vendor": string|null, "total": number|null}
 Use null for anything not present on the document. Never guess serial numbers.`;
 
@@ -66,7 +66,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       name: s(raw.name),
       category: s(raw.category),
-      makeModel: s(raw.makeModel),
+      make: s(raw.make),
+      model: s(raw.model),
       serialNumber: s(raw.serialNumber),
       vendor: s(raw.vendor),
       total: typeof raw.total === 'number' ? raw.total : null,

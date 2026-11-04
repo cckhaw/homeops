@@ -23,7 +23,7 @@ export default async function Landing() {
       <header className="glass sticky top-0 z-20 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-2.5">
           <Link href="/" className="flex items-center gap-2 text-[19px] font-bold">
-            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-tint text-white"><Home className="h-[18px] w-[18px]" aria-hidden /></span>
+            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-tint text-ontint"><Home className="h-[18px] w-[18px]" aria-hidden /></span>
             HomeOps
           </Link>
           <AppleButton href="/login" variant="plain">Sign in</AppleButton>

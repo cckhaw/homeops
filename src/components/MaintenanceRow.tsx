@@ -1,7 +1,9 @@
 'use client';
 
-import { useTransition } from 'react';
-import { Check, Trash2 } from 'lucide-react';
+import { useState, useTransition } from 'react';
+import { Check, Pencil, Trash2 } from 'lucide-react';
+import { Sheet } from './misc';
+import { TaskEditForm } from './forms';
 import { deleteTask, toggleTask } from '@/app/actions';
 import { cn, daysUntil, FREQUENCY_LABEL, formatDate, relativeDue } from '@/lib/utils';
 
@@ -13,11 +15,15 @@ type Props = {
   completed: boolean;
   completedAt?: string | null;
   assetName?: string | null;
+  assetId?: string | null;
+  /** When provided (and the task is pending) an edit button is shown. */
+  assets?: { id: string; name: string }[];
   canDelete?: boolean;
 };
 
-export default function MaintenanceRow({ id, title, dueDate, frequency, completed, completedAt, assetName, canDelete = true }: Props) {
+export default function MaintenanceRow({ id, title, dueDate, frequency, completed, completedAt, assetName, assetId = null, assets, canDelete = true }: Props) {
   const [pending, start] = useTransition();
+  const [editing, setEditing] = useState(false);
   const days = daysUntil(dueDate) ?? 0;
   const overdue = !completed && days < 0;
   const soon = !completed && days >= 0 && days <= 7;
@@ -50,6 +56,16 @@ export default function MaintenanceRow({ id, title, dueDate, frequency, complete
           {assetName ? ` · ${assetName}` : ''}
         </p>
       </div>
+      {assets && !completed && (
+        <>
+          <button type="button" aria-label={`Edit "${title}"`} onClick={() => setEditing(true)} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl text-secondary transition hover:text-tint active:scale-90">
+            <Pencil className="h-[18px] w-[18px]" aria-hidden />
+          </button>
+          <Sheet title="Edit task" open={editing} onClose={() => setEditing(false)}>
+            <TaskEditForm task={{ id, title, dueDate, frequency, assetId }} assets={assets} onDone={() => setEditing(false)} />
+          </Sheet>
+        </>
+      )}
       {canDelete && (
         <button
           type="button"

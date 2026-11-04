@@ -2,17 +2,22 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useFormState } from 'react-dom';
-import { Plus, ScanLine, Loader2, X } from 'lucide-react';
+import { Plus, ScanLine, Loader2 } from 'lucide-react';
+import BrandLogo from './BrandLogo';
+import { Sheet } from './misc';
+import { BRAND_NAMES } from '@/lib/brands';
 import AppleButton, { SubmitButton } from './AppleButton';
 import {
   addServiceRecord,
   createAsset,
+  createHome,
   createTask,
   requestMagicLink,
   saveSiteSettings,
   updateAsset,
   updateHousehold,
   updateProfile,
+  updateTask,
   type FormState,
 } from '@/app/actions';
 import { CATEGORIES, FREQUENCIES, FREQUENCY_LABEL, todayISO } from '@/lib/utils';
@@ -38,7 +43,8 @@ export function Field({ label, children }: { label: string; children: React.Reac
 type AssetInit = {
   name?: string;
   category?: string;
-  makeModel?: string | null;
+  make?: string | null;
+  model?: string | null;
   serialNumber?: string | null;
   installDate?: string | null;
   warrantyExpiry?: string | null;
@@ -50,7 +56,8 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
   const [v, setV] = useState({
     name: initial.name ?? '',
     category: initial.category ?? CATEGORIES[0],
-    makeModel: initial.makeModel ?? '',
+    make: initial.make ?? '',
+    model: initial.model ?? '',
     serialNumber: initial.serialNumber ?? '',
     installDate: initial.installDate ?? '',
     warrantyExpiry: initial.warrantyExpiry ?? '',
@@ -77,7 +84,8 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
         ...p,
         name: p.name || data.name || '',
         category: (CATEGORIES as readonly string[]).includes(data.category) ? data.category : p.category,
-        makeModel: p.makeModel || data.makeModel || '',
+        make: p.make || data.make || '',
+        model: p.model || data.model || '',
         serialNumber: p.serialNumber || data.serialNumber || '',
         installDate: p.installDate || data.purchaseDate || '',
         warrantyExpiry: p.warrantyExpiry || data.warrantyExpiry || '',
@@ -128,8 +136,17 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
         </select>
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Make & model">
-          <input name="makeModel" maxLength={120} className="input" placeholder="LG LRMVS3006S" value={v.makeModel} onChange={set('makeModel')} />
+        <Field label="Make (brand)">
+          <div className="flex items-center gap-2">
+            <BrandLogo make={v.make} size={44} />
+            <input name="make" list="brand-list" maxLength={80} className="input" placeholder="LG, Samsung, Rheem…" value={v.make} onChange={set('make')} autoComplete="off" />
+            <datalist id="brand-list">
+              {BRAND_NAMES.map((b) => <option key={b} value={b} />)}
+            </datalist>
+          </div>
+        </Field>
+        <Field label="Model">
+          <input name="model" maxLength={120} className="input" placeholder="LRMVS3006S" value={v.model} onChange={set('model')} />
         </Field>
         <Field label="Serial number">
           <input name="serialNumber" maxLength={120} className="input" value={v.serialNumber} onChange={set('serialNumber')} />
@@ -158,40 +175,17 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
   );
 }
 
-/** "Add asset" button that opens the form in an iOS-style bottom sheet. */
+/** "Add asset" button that opens the form in a bottom sheet. */
 export function AddAssetSheet() {
   const [open, setOpen] = useState(false);
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [open]);
-
   return (
     <>
       <AppleButton onClick={() => setOpen(true)}>
         <Plus className="h-5 w-5" aria-hidden /> Add asset
       </AppleButton>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-label="Add asset">
-          <button aria-label="Close" className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="glass relative max-h-[92dvh] w-full overflow-y-auto rounded-t-[28px] bg-surface p-5 sm:max-w-xl sm:rounded-[28px]" style={{ background: 'rgb(var(--surface) / 0.92)' }}>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-[22px] font-bold">New asset</h2>
-              <button aria-label="Close" onClick={() => setOpen(false)} className="grid h-11 w-11 place-items-center rounded-full bg-label/5">
-                <X className="h-5 w-5" aria-hidden />
-              </button>
-            </div>
-            <AssetForm />
-          </div>
-        </div>
-      )}
+      <Sheet title="New asset" open={open} onClose={() => setOpen(false)}>
+        <AssetForm />
+      </Sheet>
     </>
   );
 }
@@ -322,6 +316,59 @@ export function MagicLinkForm() {
       </Field>
       <Msg state={state} />
       <SubmitButton full>Email me a sign-in link</SubmitButton>
+    </form>
+  );
+}
+
+export function TaskEditForm({ task, assets, onDone }: { task: { id: string; title: string; dueDate: string; frequency: string; assetId: string | null }; assets: { id: string; name: string }[]; onDone: () => void }) {
+  const [state, action] = useFormState(updateTask.bind(null, task.id), undefined);
+  useEffect(() => {
+    if (state?.ok) onDone();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+  return (
+    <form action={action} className="space-y-3">
+      <Field label="Task">
+        <input name="title" required maxLength={160} defaultValue={task.title} className="input" />
+      </Field>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Due date">
+          <input name="dueDate" type="date" required defaultValue={task.dueDate} className="input" />
+        </Field>
+        <Field label="Repeats">
+          <select name="frequency" defaultValue={task.frequency} className="input">
+            {FREQUENCIES.map((f) => (
+              <option key={f} value={f}>{FREQUENCY_LABEL[f]}</option>
+            ))}
+          </select>
+        </Field>
+      </div>
+      <Field label="Asset (optional)">
+        <select name="assetId" defaultValue={task.assetId ?? ''} className="input">
+          <option value="">None</option>
+          {assets.map((a) => (
+            <option key={a.id} value={a.id}>{a.name}</option>
+          ))}
+        </select>
+      </Field>
+      <Msg state={state} />
+      <SubmitButton full>Save task</SubmitButton>
+    </form>
+  );
+}
+
+export function HomeForm() {
+  const [state, action] = useFormState(createHome, undefined);
+  return (
+    <form action={action} className="space-y-3">
+      <Field label="Home name">
+        <input name="name" required maxLength={120} className="input" placeholder="Lake cabin" />
+      </Field>
+      <Field label="Address (optional)">
+        <input name="address" maxLength={240} className="input" autoComplete="street-address" />
+      </Field>
+      <Msg state={state} />
+      <SubmitButton>Add home</SubmitButton>
     </form>
   );
 }

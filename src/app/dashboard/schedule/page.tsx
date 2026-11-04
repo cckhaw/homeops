@@ -32,7 +32,7 @@ export default async function SchedulePage() {
   }
 
   const row = (t: (typeof tasks)[number]) => (
-    <MaintenanceRow key={t.id} id={t.id} title={t.title} dueDate={t.dueDate} frequency={t.frequency} completed={t.status === 'completed'} completedAt={t.completedAt?.toISOString()} assetName={t.assetId ? names.get(t.assetId) : null} />
+    <MaintenanceRow key={t.id} id={t.id} title={t.title} dueDate={t.dueDate} frequency={t.frequency} completed={t.status === 'completed'} completedAt={t.completedAt?.toISOString()} assetName={t.assetId ? names.get(t.assetId) : null} assetId={t.assetId} assets={homeAssets} />
   );
   const list = (items: typeof tasks) => <ul className="divide-y hairline [&>li]:border-inherit">{items.map(row)}</ul>;
 
@@ -47,12 +47,14 @@ export default async function SchedulePage() {
         </section>
       )}
 
+      <div className="grid items-start gap-x-8 xl:grid-cols-2">
       {[...byMonth.entries()].map(([month, items]) => (
         <section key={month} className="mb-6">
           <h2 className="mb-2 px-1 text-[22px] font-bold">{formatMonth(`${month}-01`)}</h2>
           <GlassCard className="py-2">{list(items)}</GlassCard>
         </section>
       ))}
+      </div>
       {pending.length === 0 && <GlassCard className="mb-6 py-8 text-center text-secondary">All caught up. 🎉</GlassCard>}
 
       <section className="mb-6">
