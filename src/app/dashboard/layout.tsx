@@ -1,3 +1,4 @@
+import AccentScope from '@/components/AccentScope';
 import AppShell from '@/components/AppShell';
 import { LiveRefresh } from '@/components/misc';
 import { requireHousehold } from '@/lib/auth';
@@ -8,6 +9,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { user, household, homes } = await requireHousehold();
   return (
     <>
+      <AccentScope />
       <AppShell isAdmin={!!user.isAdmin} homes={homes} activeId={household.id}>
         {children}
       </AppShell>

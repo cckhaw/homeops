@@ -15,8 +15,8 @@ export type Mode = 'system' | 'light' | 'dark';
 export const MODE_KEY = 'homeops-mode';
 export const ACCENT_KEY = 'homeops-accent';
 
-/** Runs before first paint (inline in <head>) so there is no theme flash. */
-export const THEME_INIT_SCRIPT = `(function(){try{var d=document.documentElement,m=localStorage.getItem('${MODE_KEY}'),a=localStorage.getItem('${ACCENT_KEY}');if(m==='light'||m==='dark')d.setAttribute('data-theme',m);if(a)d.setAttribute('data-accent',a);}catch(e){}})();`;
+/** Runs before first paint (inline in <head>) so there is no theme flash. The accent colour only applies inside the signed-in app; public pages keep the default brand blue. */
+export const THEME_INIT_SCRIPT = `(function(){try{var d=document.documentElement,m=localStorage.getItem('${MODE_KEY}'),a=localStorage.getItem('${ACCENT_KEY}');if(m==='light'||m==='dark')d.setAttribute('data-theme',m);if(a&&/^\\/(dashboard|admin)(\\/|$)/.test(location.pathname))d.setAttribute('data-accent',a);}catch(e){}})();`;
 
 export function applyMode(mode: Mode) {
   const d = document.documentElement;
