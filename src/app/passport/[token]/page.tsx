@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { BadgeCheck, Home, Wrench } from 'lucide-react';
+import { BadgeCheck, Wrench } from 'lucide-react';
 import { loadPassport } from '@/lib/passport';
 import { formatCurrency, formatDate, warrantyState } from '@/lib/utils';
 import GlassCard from '@/components/GlassCard';
+import Logo from '@/components/Logo';
 import AppleButton from '@/components/AppleButton';
 import BrandLogo from '@/components/BrandLogo';
 import { makeModelLabel } from '@/lib/brands';
@@ -30,10 +31,7 @@ export default async function PublicPassport({ params }: { params: { token: stri
     <div className="min-h-dvh pb-16">
       <header className="glass sticky top-0 z-10 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-2.5">
-          <Link href="/" className="flex items-center gap-2 text-[17px] font-bold">
-            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-tint text-ontint"><Home className="h-[18px] w-[18px]" aria-hidden /></span>
-            HomeOps
-          </Link>
+          <Link href="/" aria-label="HomeOps"><Logo size={32} /></Link>
           <span className="flex items-center gap-1 text-[13px] font-semibold text-ok"><BadgeCheck className="h-4 w-4" aria-hidden /> Home Service Passport</span>
         </div>
       </header>

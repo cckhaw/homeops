@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HomeSwitcher, ThemeToggle } from './misc';
+import Logo, { LogoMark } from './Logo';
 
 const items = [
   { href: '/dashboard', label: 'Home', icon: Home, exact: true },
@@ -61,11 +62,8 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle }
         )}
       >
         <div className={cn('mb-4 flex items-center pt-1', collapsed ? 'justify-center' : 'justify-between px-1')}>
-          <Link href="/dashboard" aria-label="HomeOps" className="flex items-center gap-2">
-            <span className="grid h-10 w-10 place-items-center rounded-[11px] bg-tint text-ontint">
-              <Home className="h-5 w-5" aria-hidden />
-            </span>
-            {!collapsed && <span className="text-[19px] font-bold">HomeOps</span>}
+          <Link href="/dashboard" aria-label="HomeOps" className="flex items-center">
+            {collapsed ? <LogoMark size={40} /> : <Logo size={36} />}
           </Link>
           {!collapsed && (
             <button onClick={onToggle} aria-label="Collapse sidebar" title="Collapse sidebar" className="grid h-11 w-11 place-items-center rounded-xl text-secondary hover:bg-label/5">
