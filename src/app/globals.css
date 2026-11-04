@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: 245 245 247;
+  --surface: 255 255 255;
+  --label: 29 29 31;
+  --secondary: 110 110 115;
+  --tint: 0 113 227;
+  --ok: 36 138 61;
+  --warn: 201 104 0;
+  --bad: 215 0 21;
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --hairline: rgba(60, 60, 67, 0.16);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: 0 0 0;
+    --surface: 28 28 30;
+    --label: 245 245 247;
+    --secondary: 152 152 157;
+    --tint: 10 132 255;
+    --ok: 48 209 88;
+    --warn: 255 159 10;
+    --bad: 255 69 58;
+    --glass: rgba(28, 28, 30, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --hairline: rgba(84, 84, 88, 0.45);
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: rgb(var(--bg));
+  color: rgb(var(--label));
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.011em;
+  min-height: 100dvh;
+}
+
+@layer components {
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--glass-border);
+  }
+  .input {
+    @apply min-h-[44px] w-full rounded-xl border bg-surface px-3.5 py-2.5 text-[17px] text-label outline-none transition;
+    border-color: var(--hairline);
+  }
+  .input:focus {
+    @apply ring-2 ring-tint/40;
+    border-color: rgb(var(--tint));
+  }
+  .field-label {
+    @apply mb-1.5 block px-1 text-[13px] font-medium text-secondary;
+  }
+  .large-title {
+    @apply text-[34px] font-bold leading-tight tracking-tight;
+  }
+  .hairline {
+    border-color: var(--hairline);
+  }
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 0.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

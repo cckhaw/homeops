@@ -1,0 +1,60 @@
+name: Deploy to Vercel (Production)
+
+# Production only: no preview deployments are ever created (see also vercel.json -> git.deploymentEnabled=false).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN || vars.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID || vars.VERCEL_ORG_ID }}
+  VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID || vars.VERCEL_TEAM_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID || vars.VERCEL_PROJECT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # The build runs on Vercel (not here) so that Neon's DATABASE_URL — a sensitive
+      # env var — is available to `npm run vercel-build`, which migrates the DB first.
+      - name: Deploy to production
+        id: deploy
+        run: |
+          SCOPE="${VERCEL_TEAM_ID:-$VERCEL_ORG_ID}"
+          URL=$(npx --yes vercel@65 deploy --prod --yes --token "$VERCEL_TOKEN" --scope "$SCOPE" | tail -n1)
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed: $URL"
+
+      - name: Verify the deployment is live
+        run: |
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "${{ steps.deploy.outputs.url }}/manifest.webmanifest" || true)
+            [ "$code" = "200" ] && echo "Live (HTTP 200)" && exit 0
+            echo "HTTP $code, retrying..."; sleep 6
+          done
+          echo "Deployment did not become healthy" >&2; exit 1
+
+      # Runs only after the new production deployment is READY and serving traffic.
+      - name: Delete all previous deployments
+        run: node scripts/cleanup-deployments.mjs "${{ steps.deploy.outputs.url }}"
