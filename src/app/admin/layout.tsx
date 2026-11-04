@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowLeft, BarChart3, Settings, Users } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
+import AccentScope from '@/components/AccentScope';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Admin', robots: { index: false } };
@@ -16,6 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   await requireAdmin();
   return (
     <div className="min-h-dvh">
+      <AccentScope />
       <header className="glass sticky top-0 z-20 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-5xl items-center gap-1 overflow-x-auto px-3 py-1.5">
           <Link href="/dashboard" className="flex min-h-[44px] shrink-0 items-center gap-1 rounded-xl px-3 text-[15px] text-tint">
