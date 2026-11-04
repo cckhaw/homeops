@@ -14,6 +14,14 @@ export const BRANDS: Record<string, string> = {
   Sony: 'sony.com', 'Speed Queen': 'speedqueen.com', 'Sub-Zero': 'subzero-wolf.com', Tesla: 'tesla.com', Thermador: 'thermador.com',
   Toro: 'toro.com', Toshiba: 'toshiba.com', Traeger: 'traeger.com', Trane: 'trane.com', Viking: 'vikingrange.com', Weber: 'weber.com',
   Whirlpool: 'whirlpool.com', York: 'york.com',
+  'American Standard': 'americanstandardair.com', Arlo: 'arlo.com', August: 'august.com', Beko: 'beko.com', Bertazzoni: 'bertazzoni.com',
+  'Black & Decker': 'blackanddecker.com', Blomberg: 'blombergappliances.com', Bose: 'bose.com', 'Briggs & Stratton': 'briggsandstratton.com',
+  Bryant: 'bryant.com', Café: 'cafeappliances.com', Craftsman: 'craftsman.com', Cuisinart: 'cuisinart.com', Eaton: 'eaton.com',
+  Friedrich: 'friedrich.com', Fujitsu: 'fujitsugeneral.com', 'Hamilton Beach': 'hamiltonbeach.com', Hayward: 'hayward.com', Honda: 'honda.com',
+  'Instant Pot': 'instantpot.com', JennAir: 'jennair.com', Keurig: 'keurig.com', Kwikset: 'kwikset.com', Leviton: 'leviton.com',
+  Lutron: 'lutron.com', Monogram: 'monogram.com', Ninja: 'ninjakitchen.com', Pentair: 'pentair.com', 'Rain Bird': 'rainbird.com',
+  Ruud: 'ruud.com', Schlage: 'schlage.com', 'Schneider Electric': 'se.com', Shark: 'sharkclean.com', Sonos: 'sonos.com', Stihl: 'stihlusa.com',
+  TCL: 'tcl.com', Vizio: 'vizio.com', Wolf: 'subzero-wolf.com', Wyze: 'wyze.com', Yale: 'yalehome.com',
 };
 
 export const BRAND_NAMES = Object.keys(BRANDS).sort((a, b) => a.localeCompare(b));
@@ -38,6 +46,13 @@ export function brandDomain(make: string | null | undefined): string | null {
 
 export function logoUrl(domain: string, size = 128): string {
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${size}`;
+}
+
+/** Returns the canonical brand name if `make` is a known brand (case/punctuation-insensitive), else null. */
+export function canonicalBrand(make: string | null | undefined): string | null {
+  if (!make) return null;
+  const k = norm(make);
+  return BRAND_NAMES.find((n) => norm(n) === k) ?? null;
 }
 
 /** "LG" + "OLED65" → "LG OLED65"; falls back to the legacy combined field. */

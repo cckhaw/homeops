@@ -3,9 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFormState } from 'react-dom';
 import { Plus, ScanLine, Loader2 } from 'lucide-react';
-import BrandLogo from './BrandLogo';
+import BrandSelect from './BrandSelect';
+import { canonicalBrand } from '@/lib/brands';
 import { Sheet } from './misc';
-import { BRAND_NAMES } from '@/lib/brands';
 import AppleButton, { SubmitButton } from './AppleButton';
 import {
   addServiceRecord,
@@ -84,7 +84,7 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
         ...p,
         name: p.name || data.name || '',
         category: (CATEGORIES as readonly string[]).includes(data.category) ? data.category : p.category,
-        make: p.make || data.make || '',
+        make: p.make || canonicalBrand(data.make) || data.make || '',
         model: p.model || data.model || '',
         serialNumber: p.serialNumber || data.serialNumber || '',
         installDate: p.installDate || data.purchaseDate || '',
@@ -136,15 +136,10 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
         </select>
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Make (brand)">
-          <div className="flex items-center gap-2">
-            <BrandLogo make={v.make} size={44} />
-            <input name="make" list="brand-list" maxLength={80} className="input" placeholder="LG, Samsung, Rheem…" value={v.make} onChange={set('make')} autoComplete="off" />
-            <datalist id="brand-list">
-              {BRAND_NAMES.map((b) => <option key={b} value={b} />)}
-            </datalist>
-          </div>
-        </Field>
+        <div>
+          <span className="field-label">Make (brand)</span>
+          <BrandSelect value={v.make} onChange={(make) => setV((p) => ({ ...p, make }))} />
+        </div>
         <Field label="Model">
           <input name="model" maxLength={120} className="input" placeholder="LRMVS3006S" value={v.model} onChange={set('model')} />
         </Field>
