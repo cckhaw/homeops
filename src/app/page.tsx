@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { BadgeCheck, BellRing, Home, ReceiptText, Users, Share2 } from 'lucide-react';
+import { BadgeCheck, BellRing, ReceiptText, Users, Share2 } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import AppleButton from '@/components/AppleButton';
 import GlassCard from '@/components/GlassCard';
+import Logo, { LogoMark } from '@/components/Logo';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,16 +23,14 @@ export default async function Landing() {
     <div className="min-h-dvh">
       <header className="glass sticky top-0 z-20 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-2.5">
-          <Link href="/" className="flex items-center gap-2 text-[19px] font-bold">
-            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-tint text-ontint"><Home className="h-[18px] w-[18px]" aria-hidden /></span>
-            HomeOps
-          </Link>
+          <Link href="/" aria-label="HomeOps"><Logo size={36} /></Link>
           <AppleButton href="/login" variant="plain">Sign in</AppleButton>
         </div>
       </header>
 
       <main>
         <section className="mx-auto max-w-3xl px-5 pb-16 pt-16 text-center sm:pt-24">
+          <LogoMark size={88} className="mx-auto mb-5" />
           <p className="mb-4 text-[15px] font-semibold text-tint">Your home, documented.</p>
           <h1 className="text-[44px] font-bold leading-[1.05] tracking-tight sm:text-[64px]">
             The digital passport<br />for your home.

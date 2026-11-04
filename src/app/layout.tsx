@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   applicationName: 'HomeOps',
   appleWebApp: { capable: true, title: 'HomeOps', statusBarStyle: 'default' },
-  icons: { icon: '/icons/192', apple: '/icons/180' },
+  icons: { apple: '/icons/180' }, // favicon.ico + icon.svg are picked up from src/app/
   formatDetection: { telephone: false },
 };
 
