@@ -1,4 +1,5 @@
 export const ACCENTS = [
+  { id: 'logo', label: 'HomeOps (default)', swatch: '#6CC4EA' },
   { id: 'red', label: 'Red', swatch: '#ff3b30' },
   { id: 'orange', label: 'Orange', swatch: '#ff9500' },
   { id: 'yellow', label: 'Yellow', swatch: '#ffcc00' },
@@ -39,6 +40,6 @@ export function readMode(): Mode {
 export function readAccent(): AccentId {
   try {
     const a = localStorage.getItem(ACCENT_KEY);
-    return (ACCENTS.find((x) => x.id === a)?.id ?? 'blue') as AccentId;
+    return (ACCENTS.find((x) => x.id === a)?.id ?? 'logo') as AccentId;
   } catch { return 'blue'; }
 }
