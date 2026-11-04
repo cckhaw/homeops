@@ -47,7 +47,9 @@ export const assets = pgTable(
     householdId: uuid('household_id').references(() => households.id, { onDelete: 'cascade' }).notNull(),
     name: text('name').notNull(),
     category: text('category').notNull(),
-    makeModel: text('make_model'),
+    makeModel: text('make_model'), // legacy combined field, superseded by make + model
+    make: text('make'),
+    model: text('model'),
     serialNumber: text('serial_number'),
     installDate: date('install_date'),
     warrantyExpiry: date('warranty_expiry'),

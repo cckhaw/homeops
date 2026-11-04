@@ -39,12 +39,13 @@ export default async function DashboardPage() {
     <>
       <PageHeader title={greeting ? `Hi, ${greeting}` : 'Welcome'} subtitle={household.name} />
 
-      <section className="mb-6 grid grid-cols-3 gap-3" aria-label="Summary">
+      <section className="mb-6 grid grid-cols-3 gap-3 lg:max-w-3xl" aria-label="Summary">
         <Stat icon={Package} label="Assets" value={homeAssets.length} />
         <Stat icon={AlertTriangle} label="Overdue" value={overdue.length} tone={overdue.length ? 'bad' : undefined} />
         <Stat icon={ShieldAlert} label="Warranties ending" value={expiring.length} tone={expiring.length ? 'warn' : undefined} />
       </section>
 
+      <div className="grid items-start gap-x-8 lg:grid-cols-2">
       <section className="mb-8" aria-labelledby="urgent">
         <div className="mb-2 flex items-center justify-between px-1">
           <h2 id="urgent" className="text-[22px] font-bold">Up next</h2>
@@ -58,7 +59,7 @@ export default async function DashboardPage() {
           ) : (
             <ul className="divide-y hairline [&>li]:border-inherit">
               {urgent.map((t) => (
-                <MaintenanceRow key={t.id} id={t.id} title={t.title} dueDate={t.dueDate} frequency={t.frequency} completed={false} assetName={t.assetId ? assetName.get(t.assetId) : null} canDelete={false} />
+                <MaintenanceRow key={t.id} id={t.id} title={t.title} dueDate={t.dueDate} frequency={t.frequency} completed={false} assetName={t.assetId ? assetName.get(t.assetId) : null} canDelete={false} assetId={t.assetId} assets={homeAssets.map((a) => ({ id: a.id, name: a.name }))} />
               ))}
             </ul>
           )}
@@ -77,13 +78,14 @@ export default async function DashboardPage() {
             <AppleButton href="/dashboard/assets">Add an asset</AppleButton>
           </GlassCard>
         ) : (
-          <div className="space-y-3">
-            {homeAssets.slice(0, 5).map((a) => (
+          <div className="space-y-3 2xl:grid 2xl:grid-cols-2 2xl:gap-3 2xl:space-y-0">
+            {homeAssets.slice(0, 6).map((a) => (
               <AssetCard key={a.id} asset={a} overdueTasks={overdueByAsset.get(a.id) ?? 0} />
             ))}
           </div>
         )}
       </section>
+      </div>
     </>
   );
 }

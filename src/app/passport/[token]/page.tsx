@@ -6,6 +6,8 @@ import { loadPassport } from '@/lib/passport';
 import { formatCurrency, formatDate, warrantyState } from '@/lib/utils';
 import GlassCard from '@/components/GlassCard';
 import AppleButton from '@/components/AppleButton';
+import BrandLogo from '@/components/BrandLogo';
+import { makeModelLabel } from '@/lib/brands';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,16 +29,16 @@ export default async function PublicPassport({ params }: { params: { token: stri
   return (
     <div className="min-h-dvh pb-16">
       <header className="glass sticky top-0 z-10 border-x-0 border-t-0">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-2.5">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-2.5">
           <Link href="/" className="flex items-center gap-2 text-[17px] font-bold">
-            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-tint text-white"><Home className="h-[18px] w-[18px]" aria-hidden /></span>
+            <span className="grid h-8 w-8 place-items-center rounded-[9px] bg-tint text-ontint"><Home className="h-[18px] w-[18px]" aria-hidden /></span>
             HomeOps
           </Link>
           <span className="flex items-center gap-1 text-[13px] font-semibold text-ok"><BadgeCheck className="h-4 w-4" aria-hidden /> Home Service Passport</span>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 pt-8 sm:px-6">
+      <main className="mx-auto max-w-5xl px-4 pt-8 sm:px-6">
         <h1 className="large-title">{p.home.name}</h1>
         {p.home.address && <p className="mt-1 text-[17px] text-secondary">{p.home.address}</p>}
 
@@ -48,7 +50,7 @@ export default async function PublicPassport({ params }: { params: { token: stri
         </section>
 
         <h2 className="mb-2 px-1 text-[22px] font-bold">Appliances & systems</h2>
-        <div className="mb-8 space-y-3">
+        <div className="mb-8 grid items-start gap-3 md:grid-cols-2">
           {p.assets.length === 0 && <GlassCard className="text-secondary">No assets recorded yet.</GlassCard>}
           {p.assets.map((a) => {
             const w = warrantyState(a.warrantyExpiry);
@@ -56,9 +58,10 @@ export default async function PublicPassport({ params }: { params: { token: stri
             return (
               <GlassCard key={a.id}>
                 <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
+                  <BrandLogo make={a.make} size={48} />
+                  <div className="min-w-0 flex-1">
                     <p className="text-[19px] font-semibold">{a.name}</p>
-                    <p className="text-[14px] text-secondary">{a.category}{a.makeModel ? ` · ${a.makeModel}` : ''}</p>
+                    <p className="text-[14px] text-secondary">{a.category}{makeModelLabel(a) ? ` · ${makeModelLabel(a)}` : ''}</p>
                   </div>
                   <span className="shrink-0 rounded-full bg-label/5 px-2.5 py-1 text-[13px] font-semibold">{a.health}/100</span>
                 </div>

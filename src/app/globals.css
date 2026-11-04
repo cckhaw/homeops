@@ -7,31 +7,79 @@
   --surface: 255 255 255;
   --label: 29 29 31;
   --secondary: 110 110 115;
-  --tint: 0 113 227;
   --ok: 36 138 61;
   --warn: 201 104 0;
   --bad: 215 0 21;
   --glass: rgba(255, 255, 255, 0.72);
   --glass-border: rgba(0, 0, 0, 0.08);
   --hairline: rgba(60, 60, 67, 0.16);
-  color-scheme: light dark;
+  /* accent (default: blue) */
+  --tint: 0 113 227;
+  --on-tint: 255 255 255;
+  color-scheme: light;
 }
 
+/* Accent colours — light variants are tuned for text/button contrast on white */
+:root[data-accent='red'] { --tint: 215 0 21; }
+:root[data-accent='orange'] { --tint: 192 86 0; }
+:root[data-accent='yellow'] { --tint: 150 108 0; }
+:root[data-accent='green'] { --tint: 36 138 61; }
+:root[data-accent='blue'] { --tint: 0 113 227; }
+:root[data-accent='indigo'] { --tint: 88 86 214; }
+:root[data-accent='violet'] { --tint: 150 55 200; }
+
+/* Dark palette: applied for OS dark mode unless the user forced light, or when the user forced dark */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --bg: 0 0 0;
     --surface: 28 28 30;
     --label: 245 245 247;
     --secondary: 152 152 157;
-    --tint: 10 132 255;
     --ok: 48 209 88;
     --warn: 255 159 10;
     --bad: 255 69 58;
     --glass: rgba(28, 28, 30, 0.72);
     --glass-border: rgba(255, 255, 255, 0.1);
     --hairline: rgba(84, 84, 88, 0.45);
+    --tint: 10 132 255;
+    --on-tint: 255 255 255;
+    color-scheme: dark;
   }
 }
+:root[data-theme='dark'] {
+    --bg: 0 0 0;
+    --surface: 28 28 30;
+    --label: 245 245 247;
+    --secondary: 152 152 157;
+    --ok: 48 209 88;
+    --warn: 255 159 10;
+    --bad: 255 69 58;
+    --glass: rgba(28, 28, 30, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --hairline: rgba(84, 84, 88, 0.45);
+    --tint: 10 132 255;
+    --on-tint: 255 255 255;
+    color-scheme: dark;
+  }
+
+
+/* Dark-mode accent variants (brighter) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light'])[data-accent='red'] { --tint: 255 69 58; }
+  :root:not([data-theme='light'])[data-accent='orange'] { --tint: 255 159 10; --on-tint: 0 0 0; }
+  :root:not([data-theme='light'])[data-accent='yellow'] { --tint: 255 214 10; --on-tint: 0 0 0; }
+  :root:not([data-theme='light'])[data-accent='green'] { --tint: 48 209 88; --on-tint: 0 0 0; }
+  :root:not([data-theme='light'])[data-accent='blue'] { --tint: 10 132 255; }
+  :root:not([data-theme='light'])[data-accent='indigo'] { --tint: 94 92 230; }
+  :root:not([data-theme='light'])[data-accent='violet'] { --tint: 191 90 242; }
+}
+:root[data-theme='dark'][data-accent='red'] { --tint: 255 69 58; }
+:root[data-theme='dark'][data-accent='orange'] { --tint: 255 159 10; --on-tint: 0 0 0; }
+:root[data-theme='dark'][data-accent='yellow'] { --tint: 255 214 10; --on-tint: 0 0 0; }
+:root[data-theme='dark'][data-accent='green'] { --tint: 48 209 88; --on-tint: 0 0 0; }
+:root[data-theme='dark'][data-accent='blue'] { --tint: 10 132 255; }
+:root[data-theme='dark'][data-accent='indigo'] { --tint: 94 92 230; }
+:root[data-theme='dark'][data-accent='violet'] { --tint: 191 90 242; }
 
 html {
   -webkit-text-size-adjust: 100%;

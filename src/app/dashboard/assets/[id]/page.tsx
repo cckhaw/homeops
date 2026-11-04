@@ -11,6 +11,8 @@ import GlassCard from '@/components/GlassCard';
 import MaintenanceRow from '@/components/MaintenanceRow';
 import AppleButton, { SubmitButton } from '@/components/AppleButton';
 import { AssetForm, ServiceForm } from '@/components/forms';
+import BrandLogo from '@/components/BrandLogo';
+import { makeModelLabel } from '@/lib/brands';
 
 const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
@@ -20,10 +22,12 @@ export default async function AssetDetail({ params }: { params: { id: string } }
   const [asset] = await db.select().from(assets).where(and(eq(assets.id, params.id), eq(assets.householdId, household.id)));
   if (!asset) notFound();
 
-  const [records, tasks] = await Promise.all([
+  const [records, tasks, allAssets] = await Promise.all([
     db.select().from(serviceRecords).where(eq(serviceRecords.assetId, asset.id)).orderBy(desc(serviceRecords.serviceDate)),
     db.select().from(maintenanceTasks).where(eq(maintenanceTasks.assetId, asset.id)).orderBy(asc(maintenanceTasks.dueDate)),
+    db.select({ id: assets.id, name: assets.name }).from(assets).where(eq(assets.householdId, household.id)).orderBy(asc(assets.name)),
   ]);
+  const editAssets = allAssets;
   const pending = tasks.filter((t) => t.status === 'pending');
   const done = tasks.filter((t) => t.status === 'completed').slice(-5).reverse();
   const overdue = pending.filter((t) => (daysUntil(t.dueDate) ?? 0) < 0).length;
@@ -38,8 +42,13 @@ export default async function AssetDetail({ params }: { params: { id: string } }
       <Link href="/dashboard/assets" className="mb-3 -ml-2 flex min-h-[44px] w-fit items-center gap-1 px-2 text-[17px] text-tint">
         <ArrowLeft className="h-5 w-5" aria-hidden /> Assets
       </Link>
-      <h1 className="large-title">{asset.name}</h1>
-      <p className="mb-5 text-[15px] text-secondary">{asset.category}{asset.makeModel ? ` · ${asset.makeModel}` : ''}</p>
+      <div className="mb-5 flex items-center gap-4">
+        <BrandLogo make={asset.make} size={64} />
+        <div className="min-w-0">
+          <h1 className="large-title">{asset.name}</h1>
+          <p className="text-[15px] text-secondary">{asset.category}{makeModelLabel(asset) ? ` · ${makeModelLabel(asset)}` : ''}</p>
+        </div>
+      </div>
 
       <GlassCard className="mb-6 grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-4">
         <Fact label="Health" value={`${health.score}/100`} className={{ ok: 'text-ok', warn: 'text-warn', bad: 'text-bad' }[health.tone]} />
@@ -48,6 +57,8 @@ export default async function AssetDetail({ params }: { params: { id: string } }
         <Fact label="Serial" value={asset.serialNumber ?? '—'} />
       </GlassCard>
 
+      <div className="grid items-start gap-x-8 xl:grid-cols-2">
+      <div>
       <Section title="Documents">
         <GlassCard className="flex flex-wrap gap-3">
           {asset.receiptUrl ? <AppleButton href={asset.receiptUrl} variant="secondary"><FileText className="h-4 w-4" aria-hidden /> Receipt</AppleButton> : <span className="text-[15px] text-secondary">No receipt uploaded.</span>}
@@ -61,7 +72,7 @@ export default async function AssetDetail({ params }: { params: { id: string } }
             <p className="py-4 text-[15px] text-secondary">No tasks linked to this asset.</p>
           ) : (
             <ul className="divide-y hairline [&>li]:border-inherit">
-              {pending.map((t) => <MaintenanceRow key={t.id} id={t.id} title={t.title} dueDate={t.dueDate} frequency={t.frequency} completed={false} />)}
+              {pending.map((t) => <MaintenanceRow key={t.id} id={t.id} title={t.title} dueDate={t.dueDate} frequency={t.frequency} completed={false} assetId={t.assetId} assets={editAssets} />)}
               {done.map((t) => <MaintenanceRow key={t.id} id={t.id} title={t.title} dueDate={t.dueDate} frequency={t.frequency} completed completedAt={t.completedAt?.toISOString()} canDelete={false} />)}
             </ul>
           )}
@@ -91,13 +102,17 @@ export default async function AssetDetail({ params }: { params: { id: string } }
         </GlassCard>
       </Section>
 
+      </div>
+      <div>
       <Section title="Edit details">
-        <GlassCard><AssetForm assetId={asset.id} initial={{ name: asset.name, category: asset.category, makeModel: asset.makeModel, serialNumber: asset.serialNumber, installDate: asset.installDate, warrantyExpiry: asset.warrantyExpiry, notes: asset.notes }} /></GlassCard>
+        <GlassCard><AssetForm assetId={asset.id} initial={{ name: asset.name, category: asset.category, make: asset.make ?? null, model: asset.model ?? asset.makeModel, serialNumber: asset.serialNumber, installDate: asset.installDate, warrantyExpiry: asset.warrantyExpiry, notes: asset.notes }} /></GlassCard>
       </Section>
 
-      <form action={removeAsset} className="mt-8">
+      <form action={removeAsset} className="mt-2">
         <SubmitButton variant="destructive" full>Delete asset</SubmitButton>
       </form>
+      </div>
+      </div>
     </>
   );
 }

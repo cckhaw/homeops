@@ -28,7 +28,7 @@ export default async function AssetsPage() {
       {list.length === 0 ? (
         <GlassCard className="py-10 text-center text-secondary">No assets yet. Tap “Add asset” to create your first passport entry.</GlassCard>
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
           {list.map((a) => (
             <AssetCard key={a.id} asset={a} overdueTasks={overdue.get(a.id) ?? 0} />
           ))}

@@ -8,6 +8,13 @@
       "when": 1793775451126,
       "tag": "0000_minor_power_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793779223867,
+      "tag": "0001_wise_lucky_pierre",
+      "breakpoints": true
     }
   ]
 }

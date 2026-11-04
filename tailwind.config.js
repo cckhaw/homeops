@@ -10,6 +10,7 @@ module.exports = {
         label: 'rgb(var(--label) / <alpha-value>)',
         secondary: 'rgb(var(--secondary) / <alpha-value>)',
         tint: 'rgb(var(--tint) / <alpha-value>)',
+        ontint: 'rgb(var(--on-tint) / <alpha-value>)',
         ok: 'rgb(var(--ok) / <alpha-value>)',
         warn: 'rgb(var(--warn) / <alpha-value>)',
         bad: 'rgb(var(--bad) / <alpha-value>)',

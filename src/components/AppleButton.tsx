@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 type Variant = 'primary' | 'secondary' | 'destructive' | 'plain';
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-tint text-white hover:brightness-110',
+  primary: 'bg-tint text-ontint hover:brightness-110',
   secondary: 'bg-tint/10 text-tint hover:bg-tint/15',
   destructive: 'bg-bad/10 text-bad hover:bg-bad/15',
   plain: 'text-tint hover:bg-tint/10',

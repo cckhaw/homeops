@@ -3,6 +3,8 @@ import GlassCard from '@/components/GlassCard';
 import PageHeader from '@/components/PageHeader';
 import { HouseholdForm, ProfileForm } from '@/components/forms';
 import SignOutButton from './SignOutButton';
+import AppearanceSettings from '@/components/AppearanceSettings';
+import AppleButton from '@/components/AppleButton';
 
 export const metadata = { title: 'Settings' };
 
@@ -11,11 +13,20 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" />
+      <div className="grid items-start gap-x-8 xl:grid-cols-2">
+      <div>
+      <h2 className="mb-2 px-1 text-[22px] font-bold">Appearance</h2>
+      <GlassCard className="mb-8"><AppearanceSettings /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Account</h2>
       <GlassCard className="mb-8"><ProfileForm fullName={user.fullName} email={user.email} /></GlassCard>
-      <h2 className="mb-2 px-1 text-[22px] font-bold">Home</h2>
+      </div>
+      <div>
+      <h2 className="mb-2 px-1 text-[22px] font-bold">Current home</h2>
       <GlassCard className="mb-8"><HouseholdForm name={household.name} address={household.address} disabled={role === 'member'} /></GlassCard>
+      <AppleButton href="/dashboard/homes" variant="secondary" full className="mb-3">Manage all my homes</AppleButton>
       <SignOutButton />
+      </div>
+      </div>
     </>
   );
 }
