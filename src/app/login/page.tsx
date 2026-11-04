@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { Home } from 'lucide-react';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, googleEnabled } from '@/lib/auth';
 import GlassCard from '@/components/GlassCard';
 import GoogleButton from './GoogleButton';
 import { MagicLinkForm } from '@/components/forms';
@@ -25,14 +25,18 @@ export default async function LoginPage({ searchParams }: { searchParams: { call
         <div className="text-center">
           <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-[16px] bg-tint text-white"><Home className="h-8 w-8" aria-hidden /></span>
           <h1 className="text-[28px] font-bold">Welcome to HomeOps</h1>
-          <p className="mt-1 text-[15px] text-secondary">Sign in to open your home passport.</p>
+          <p className="mt-1 text-[15px] text-secondary">Enter your e-mail and we'll send you a sign-in link — no password needed.</p>
         </div>
         {error && <p role="alert" className="rounded-xl bg-bad/10 px-3 py-2.5 text-center text-[14px] text-bad">{error}</p>}
-        <GoogleButton callbackUrl={callbackUrl} />
-        <div className="flex items-center gap-3 text-[13px] text-secondary" aria-hidden>
-          <span className="hairline h-px flex-1 border-t" /> or <span className="hairline h-px flex-1 border-t" />
-        </div>
         <MagicLinkForm />
+        {googleEnabled && (
+          <>
+            <div className="flex items-center gap-3 text-[13px] text-secondary" aria-hidden>
+              <span className="hairline h-px flex-1 border-t" /> or <span className="hairline h-px flex-1 border-t" />
+            </div>
+            <GoogleButton callbackUrl={callbackUrl} />
+          </>
+        )}
       </GlassCard>
     </main>
   );
