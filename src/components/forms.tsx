@@ -321,7 +321,7 @@ export function MagicLinkForm() {
         <input name="email" type="email" required autoComplete="email" className="input" placeholder="you@example.com" />
       </Field>
       <Msg state={state} />
-      <SubmitButton variant="secondary" full>Email me a magic link</SubmitButton>
+      <SubmitButton full>Email me a sign-in link</SubmitButton>
     </form>
   );
 }

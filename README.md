@@ -15,9 +15,9 @@ npm run dev
 |---|---|---|
 | `DATABASE_URL` | yes | Neon connection string (set by the Vercel–Neon integration) |
 | `NEXTAUTH_SECRET`, `NEXTAUTH_URL` | yes | Session signing / canonical URL |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | for Google sign-in | OAuth redirect URI: `<NEXTAUTH_URL>/api/auth/callback/google` |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | optional (Google button appears only when both set) | OAuth redirect URI: `<NEXTAUTH_URL>/api/auth/callback/google` |
 | `ADMIN_EMAILS` | recommended | Comma-separated emails promoted to admin on sign-in |
-| `RESEND_API_KEY`, `EMAIL_FROM` | optional | Enables e-mail magic links |
+| `RESEND_API_KEY`, `EMAIL_FROM` | yes for sign-in | E-mail magic links (verify your sending domain in Resend; `EMAIL_FROM` must use it) |
 | `BLOB_READ_WRITE_TOKEN` | optional | Receipt / manual uploads (Vercel Blob) |
 | `ANTHROPIC_API_KEY` | optional | Receipt OCR (`/api/ocr`) |
 

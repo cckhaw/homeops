@@ -398,7 +398,9 @@ export async function requestMagicLink(_: FormState, fd: FormData): Promise<Form
   const email = str(fd, 'email', 200).toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: 'Enter a valid e-mail address.' };
   const key = process.env.RESEND_API_KEY;
-  if (!key) return { error: 'E-mail sign-in is not enabled yet. Please continue with Google.' };
+  if (!key && process.env.NODE_ENV === 'production') {
+    return { error: 'E-mail sign-in is not set up yet (missing RESEND_API_KEY). Please contact the site owner.' };
+  }
 
   const recent = await db
     .select({ id: loginTokens.id })
@@ -416,6 +418,12 @@ export async function requestMagicLink(_: FormState, fd: FormData): Promise<Form
     process.env.NEXTAUTH_URL ??
     (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000');
   const link = `${base}/login/verify?token=${encodeURIComponent(token)}`;
+
+  if (!key) {
+    // Local development only: no e-mail provider, so print the link instead.
+    console.log(`\n[magic link] ${email}: ${link}\n`);
+    return { ok: 'Dev mode: the sign-in link was printed to the server console.' };
+  }
 
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',

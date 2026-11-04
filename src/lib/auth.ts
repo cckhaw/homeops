@@ -51,14 +51,16 @@ export async function upsertProfile(input: { email: string; name?: string | null
   return profile;
 }
 
+export const googleEnabled = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 30 },
   pages: { signIn: '/login', error: '/login' },
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
-    }),
+    // Google is optional: only registered when credentials are configured.
+    ...(googleEnabled
+      ? [GoogleProvider({ clientId: process.env.GOOGLE_CLIENT_ID!, clientSecret: process.env.GOOGLE_CLIENT_SECRET! })]
+      : []),
     CredentialsProvider({
       id: 'magic-link',
       name: 'Magic link',
