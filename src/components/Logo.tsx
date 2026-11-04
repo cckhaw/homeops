@@ -30,23 +30,43 @@ export function LogoMark({ size = 40, className }: { size?: number; className?: 
   );
 }
 
-/** Mark + "HomeOps" wordmark (the roof over the O echoes the mark). */
+/**
+ * "HomeOps" wordmark: bold geometric type where the O becomes a little house —
+ * a roof sits on top of it and a four-pane window fills the counter.
+ */
+export function Wordmark({ size = 40, className }: { size?: number; className?: string }) {
+  return (
+    <span
+      className={cn('inline-block select-none whitespace-nowrap font-bold leading-none tracking-tight', className)}
+      style={{ fontFamily: 'var(--font-brand), -apple-system, "SF Pro Display", sans-serif', fontSize: size, color: 'rgb(var(--label) / 0.78)' }}
+      aria-hidden
+    >
+      Home
+      {/* The "O" is drawn: a ring (cap-height, matches the type weight) with a roof above and a four-pane window inside. */}
+      <svg
+        viewBox="0 0 84 104"
+        style={{ display: 'inline-block', width: '0.84em', height: '1.04em', verticalAlign: 'baseline', margin: '0 0.015em' }}
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M4 41 42 11l38 30" strokeWidth={13} />
+        <circle cx="42" cy="67" r="28.5" strokeWidth={14.5} />
+        <rect x="30" y="55" width="24" height="24" rx="1.5" strokeWidth={4} />
+        <path d="M42 55v24M30 67h24" strokeWidth={3.5} strokeLinecap="butt" />
+      </svg>
+      ps
+    </span>
+  );
+}
+
+/** Mark + wordmark lockup. */
 export default function Logo({ size = 40, wordmark = true, className }: { size?: number; wordmark?: boolean; className?: string }) {
   return (
-    <span className={cn('inline-flex items-center gap-2', className)}>
+    <span className={cn('inline-flex items-center gap-2.5', className)}>
       <LogoMark size={size} />
-      {wordmark && (
-        <span className="font-bold leading-none tracking-tight text-label/80" style={{ fontSize: size * 0.58 }} aria-hidden>
-          Home
-          <span className="relative inline-block">
-            O
-            <svg viewBox="0 0 20 10" className="absolute left-1/2 -translate-x-1/2" style={{ width: '0.62em', top: '-0.18em' }} fill="none" stroke={LOGO_BLUE} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M2 9 10 2l8 7" />
-            </svg>
-          </span>
-          ps
-        </span>
-      )}
+      {wordmark && <Wordmark size={size * 0.62} />}
     </span>
   );
 }

@@ -492,7 +492,7 @@ export async function requestMagicLink(_: FormState, fd: FormData): Promise<Form
       from: process.env.EMAIL_FROM ?? 'HomeOps <onboarding@resend.dev>',
       to: email,
       subject: 'Your HomeOps sign-in link',
-      html: `<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;max-width:420px;margin:auto"><h2>Sign in to HomeOps</h2><p>Tap the button to sign in. This link works once and expires in 15 minutes.</p><p><a href="${link}" style="display:inline-block;background:#0071e3;color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:600">Sign in</a></p><p style="color:#86868b;font-size:12px">If you didn't request this, you can ignore this e-mail.</p></div>`,
+      html: `<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;max-width:420px;margin:auto"><h2>Sign in to HomeOps</h2><p>Tap the button to sign in. This link works once and expires in 15 minutes.</p><p><a href="${link}" style="display:inline-block;background:#0e7fae;color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:600">Sign in</a></p><p style="color:#86868b;font-size:12px">If you didn't request this, you can ignore this e-mail.</p></div>`,
     }),
   });
   if (!res.ok) return { error: 'We could not send the e-mail. Please try again.' };

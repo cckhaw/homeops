@@ -13,8 +13,8 @@
   --glass: rgba(255, 255, 255, 0.72);
   --glass-border: rgba(0, 0, 0, 0.08);
   --hairline: rgba(60, 60, 67, 0.16);
-  /* accent (default: blue) */
-  --tint: 0 113 227;
+  /* accent (default: HomeOps logo blue, darkened for AA contrast with white text) */
+  --tint: 14 127 174;
   --on-tint: 255 255 255;
   color-scheme: light;
 }
@@ -41,8 +41,8 @@
     --glass: rgba(28, 28, 30, 0.72);
     --glass-border: rgba(255, 255, 255, 0.1);
     --hairline: rgba(84, 84, 88, 0.45);
-    --tint: 10 132 255;
-    --on-tint: 255 255 255;
+    --tint: 108 196 234;
+    --on-tint: 0 0 0;
     color-scheme: dark;
   }
 }
@@ -57,29 +57,29 @@
     --glass: rgba(28, 28, 30, 0.72);
     --glass-border: rgba(255, 255, 255, 0.1);
     --hairline: rgba(84, 84, 88, 0.45);
-    --tint: 10 132 255;
-    --on-tint: 255 255 255;
+    --tint: 108 196 234;
+    --on-tint: 0 0 0;
     color-scheme: dark;
   }
 
 
 /* Dark-mode accent variants (brighter) */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light'])[data-accent='red'] { --tint: 255 69 58; }
+  :root:not([data-theme='light'])[data-accent='red'] { --tint: 255 69 58; --on-tint: 255 255 255; }
   :root:not([data-theme='light'])[data-accent='orange'] { --tint: 255 159 10; --on-tint: 0 0 0; }
   :root:not([data-theme='light'])[data-accent='yellow'] { --tint: 255 214 10; --on-tint: 0 0 0; }
   :root:not([data-theme='light'])[data-accent='green'] { --tint: 48 209 88; --on-tint: 0 0 0; }
-  :root:not([data-theme='light'])[data-accent='blue'] { --tint: 10 132 255; }
-  :root:not([data-theme='light'])[data-accent='indigo'] { --tint: 94 92 230; }
-  :root:not([data-theme='light'])[data-accent='violet'] { --tint: 191 90 242; }
+  :root:not([data-theme='light'])[data-accent='blue'] { --tint: 10 132 255; --on-tint: 255 255 255; }
+  :root:not([data-theme='light'])[data-accent='indigo'] { --tint: 94 92 230; --on-tint: 255 255 255; }
+  :root:not([data-theme='light'])[data-accent='violet'] { --tint: 191 90 242; --on-tint: 255 255 255; }
 }
-:root[data-theme='dark'][data-accent='red'] { --tint: 255 69 58; }
+:root[data-theme='dark'][data-accent='red'] { --tint: 255 69 58; --on-tint: 255 255 255; }
 :root[data-theme='dark'][data-accent='orange'] { --tint: 255 159 10; --on-tint: 0 0 0; }
 :root[data-theme='dark'][data-accent='yellow'] { --tint: 255 214 10; --on-tint: 0 0 0; }
 :root[data-theme='dark'][data-accent='green'] { --tint: 48 209 88; --on-tint: 0 0 0; }
-:root[data-theme='dark'][data-accent='blue'] { --tint: 10 132 255; }
-:root[data-theme='dark'][data-accent='indigo'] { --tint: 94 92 230; }
-:root[data-theme='dark'][data-accent='violet'] { --tint: 191 90 242; }
+:root[data-theme='dark'][data-accent='blue'] { --tint: 10 132 255; --on-tint: 255 255 255; }
+:root[data-theme='dark'][data-accent='indigo'] { --tint: 94 92 230; --on-tint: 255 255 255; }
+:root[data-theme='dark'][data-accent='violet'] { --tint: 191 90 242; --on-tint: 255 255 255; }
 
 html {
   -webkit-text-size-adjust: 100%;

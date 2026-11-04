@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from 'next';
+import { Montserrat } from 'next/font/google';
 import './globals.css';
 import { ServiceWorkerRegister } from '@/components/misc';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
+
+// Geometric bold face used only for the HomeOps wordmark.
+const brandFont = Montserrat({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-brand', display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000')),
@@ -30,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body>
+      <body className={brandFont.variable}>
         {children}
         <ServiceWorkerRegister />
       </body>

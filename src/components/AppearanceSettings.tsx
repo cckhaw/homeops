@@ -13,7 +13,7 @@ const modes: { id: Mode; label: string; icon: typeof Sun }[] = [
 
 export default function AppearanceSettings() {
   const [mode, setMode] = useState<Mode>('system');
-  const [accent, setAccent] = useState<AccentId>('blue');
+  const [accent, setAccent] = useState<AccentId>('logo');
   useEffect(() => {
     setMode(readMode());
     setAccent(readAccent());
