@@ -18,6 +18,8 @@ npm run dev
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | optional (Google button appears only when both set) | OAuth redirect URI: `<NEXTAUTH_URL>/api/auth/callback/google` |
 | `ADMIN_EMAILS` | recommended | Comma-separated emails promoted to admin on sign-in |
 | `RESEND_API_KEY`, `EMAIL_FROM` | yes for sign-in | E-mail magic links (verify your sending domain in Resend; `EMAIL_FROM` must use it) |
+| `STRIPE_SECRET_KEY` | optional | Turns on the public `/support` "Buy me a coffee" page (Stripe Checkout, $1–$500). Use a restricted key with *Checkout Sessions: write*. `STRIPE_CURRENCY` (default `usd`) |
+| `DONATE_URL` | optional | Instead of the key: an `https://` Stripe Payment Link to redirect donors to |
 | `BLOB_READ_WRITE_TOKEN` | optional | Receipt / manual uploads (Vercel Blob) |
 | `ANTHROPIC_API_KEY` | optional | Receipt OCR (`/api/ocr`) |
 

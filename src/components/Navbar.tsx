@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Home, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HomeSwitcher, ThemeToggle } from './misc';
 import Logo, { LogoMark } from './Logo';
@@ -25,9 +25,10 @@ type Props = {
   activeId: string;
   collapsed: boolean;
   onToggle: () => void;
+  donate?: boolean;
 };
 
-export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle }: Props) {
+export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, donate }: Props) {
   const path = usePathname();
   const active = (href: string, exact?: boolean) => (exact ? path === href : path === href || path.startsWith(href + '/'));
   const link = (href: string, label: string, Icon: typeof Home, exact?: boolean) => {
@@ -83,6 +84,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle }
           <div className="my-2 border-t hairline" />
           {sideExtra.map((i) => link(i.href, i.label, i.icon))}
           {isAdmin && link('/admin', 'Admin portal', ShieldCheck)}
+          {donate && link('/support', 'Buy me a coffee', Coffee)}
         </nav>
         <div className={cn('flex gap-1', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
           <ThemeToggle />

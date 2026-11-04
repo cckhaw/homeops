@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { BadgeCheck, BellRing, ReceiptText, Users, Share2 } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
 import AppleButton from '@/components/AppleButton';
+import { donationsEnabled } from '@/lib/donate';
 import GlassCard from '@/components/GlassCard';
 import Logo, { LogoMark } from '@/components/Logo';
 
@@ -66,7 +67,15 @@ export default async function Landing() {
         </section>
       </main>
 
-      <footer className="px-5 pb-10 text-center text-[13px] text-secondary">© {new Date().getFullYear()} HomeOps</footer>
+      <footer className="px-5 pb-10 text-center text-[13px] text-secondary">
+        © {new Date().getFullYear()} HomeOps
+        {donationsEnabled() && (
+          <>
+            {' · '}
+            <Link href="/support" className="font-semibold text-tint">☕ Buy me a coffee</Link>
+          </>
+        )}
+      </footer>
     </div>
   );
 }

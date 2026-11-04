@@ -5,6 +5,7 @@ import { HouseholdForm, ProfileForm } from '@/components/forms';
 import SignOutButton from './SignOutButton';
 import AppearanceSettings from '@/components/AppearanceSettings';
 import AppleButton from '@/components/AppleButton';
+import { donationsEnabled } from '@/lib/donate';
 
 export const metadata = { title: 'Settings' };
 
@@ -23,6 +24,9 @@ export default async function SettingsPage() {
       <div>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Current home</h2>
       <GlassCard className="mb-8"><HouseholdForm name={household.name} address={household.address} disabled={role === 'member'} /></GlassCard>
+      {donationsEnabled() && (
+        <AppleButton href="/support" variant="secondary" full className="mb-3">☕ Buy me a coffee</AppleButton>
+      )}
       <AppleButton href="/dashboard/homes" variant="secondary" full className="mb-3">Manage all my homes</AppleButton>
       <SignOutButton />
       </div>
