@@ -21,7 +21,7 @@ import {
 } from '@/lib/security';
 import { randomUUID } from 'crypto';
 import { HOME_COOKIE, ensureMembership, listMemberships } from '@/lib/household';
-import { del } from '@vercel/blob';
+import { deleteBlobs } from '@/lib/blob';
 import { asc, ne } from 'drizzle-orm';
 
 export type FormState = { error?: string; ok?: string } | undefined;
@@ -285,13 +285,7 @@ export async function deleteMyAccount(_: FormState, fd: FormData): Promise<FormS
     }
   }
 
-  if (fileUrls.length && process.env.BLOB_READ_WRITE_TOKEN) {
-    try {
-      await del(fileUrls);
-    } catch (e) {
-      console.error('Blob cleanup failed during account deletion', e instanceof Error ? e.message : e);
-    }
-  }
+  await deleteBlobs(fileUrls);
   await db.delete(loginTokens).where(eq(loginTokens.email, user.email));
   await db.delete(profiles).where(eq(profiles.id, user.id)); // cascades memberships, reminders log, invites they created
 

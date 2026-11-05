@@ -2,13 +2,13 @@
 
 import { revalidatePath } from 'next/cache';
 import { eq, sql } from 'drizzle-orm';
-import { del } from '@vercel/blob';
 import { db } from '@/db';
 import { assets, brands } from '@/db/schema';
 import { requireAdmin } from '@/lib/auth';
 import { brandKey, normalizeDomain } from '@/lib/brands';
 import { refreshBrands } from '@/lib/brand-store';
 import { uploadLogo } from '@/lib/storage';
+import { deleteBlobs } from '@/lib/blob';
 
 export type BrandState = { error?: string; ok?: string } | undefined;
 
@@ -20,14 +20,9 @@ const touch = () => {
   revalidatePath('/dashboard', 'layout');
 };
 
-/** Deletes a previously uploaded logo from Blob storage (best effort; only our own uploads). */
+/** Deletes a previously uploaded logo from storage (best effort; only our own uploads). */
 async function dropLogoFile(url: string | null | undefined) {
-  if (!url || !url.includes('brand-logos/') || !process.env.BLOB_READ_WRITE_TOKEN) return;
-  try {
-    await del(url);
-  } catch (e) {
-    console.error('Brand logo cleanup failed', e instanceof Error ? e.message : e);
-  }
+  if (url && url.includes('brand-logos/')) await deleteBlobs([url]);
 }
 
 /** Creates (id = '') or updates a brand: name, website domain, and logo (upload, link, or remove). */

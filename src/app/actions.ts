@@ -18,6 +18,7 @@ import { requireAdmin, requireHousehold, requireUser } from '@/lib/auth';
 import { HOME_COOKIE, createHousehold, isMember, listMemberships, newToken } from '@/lib/household';
 import { getLimits, setSetting } from '@/lib/settings';
 import { uploadFile } from '@/lib/storage';
+import { deleteBlobs } from '@/lib/blob';
 import {
   CATEGORIES,
   CATEGORY_TASKS,
@@ -120,14 +121,19 @@ export async function updateAsset(assetId: string, _: FormState, fd: FormData): 
   if (manual.error) return { error: manual.error };
   if (manual.url) patch.manualUrl = manual.url;
 
+  const [before] = await db.select({ r: assets.receiptUrl, m: assets.manualUrl }).from(assets).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
   await db.update(assets).set(patch).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
+  // Files that were replaced are no longer needed: remove them from storage.
+  await deleteBlobs([receipt.url && before?.r, manual.url && before?.m]);
   revalidatePath('/dashboard', 'layout');
   return { ok: 'Saved.' };
 }
 
 export async function deleteAsset(assetId: string) {
   const { household } = await requireHousehold();
+  const [gone] = await db.select({ r: assets.receiptUrl, m: assets.manualUrl }).from(assets).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
   await db.delete(assets).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
+  await deleteBlobs([gone?.r, gone?.m]);
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard/assets');
 }
@@ -370,7 +376,9 @@ export async function deleteHome(householdId: string) {
   const user = await requireUser();
   const [h] = await db.select().from(households).where(and(eq(households.id, householdId), eq(households.ownerId, user.id)));
   if (!h) return;
+  const files = await db.select({ r: assets.receiptUrl, m: assets.manualUrl }).from(assets).where(eq(assets.householdId, h.id));
   await db.delete(households).where(eq(households.id, h.id));
+  await deleteBlobs(files.flatMap((f) => [f.r, f.m]));
   cookies().delete(HOME_COOKIE);
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard/homes');

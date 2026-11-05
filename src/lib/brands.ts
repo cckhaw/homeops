@@ -121,11 +121,24 @@ export function faviconUrl(domain: string, size = 128): string {
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${size}`;
 }
 
+const isPrivateBlob = (u: string) => /\.private\.blob\.vercel-storage\.com\//.test(u);
+const shortHash = (s: string) => {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+};
+
+/** Logo for a known brand record: uploaded image (served by our proxy when it is in private storage), else the website icon. */
+export function recordLogoSrc(rec: BrandRecord | null | undefined, size = 64): string | null {
+  if (!rec) return null;
+  if (rec.logoUrl) return isPrivateBlob(rec.logoUrl) && rec.id ? `/api/brand-logo/${rec.id}?v=${shortHash(rec.logoUrl)}` : rec.logoUrl;
+  return rec.domain ? faviconUrl(rec.domain, size) : null;
+}
+
 /** Where to load a brand's logo from: an uploaded/linked image first, then the website's icon; null → letter tile. */
 export function logoSrc(list: BrandRecord[], make: string | null | undefined, size = 64): string | null {
   const rec = findBrand(list, make);
-  if (rec?.logoUrl) return rec.logoUrl;
-  if (rec?.domain) return faviconUrl(rec.domain, size);
+  if (rec) return recordLogoSrc(rec, size);
   // A typed website ("lg.com") works too.
   if (!rec && make && /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(make.trim())) return faviconUrl(make.trim().toLowerCase(), size);
   return null;
