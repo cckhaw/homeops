@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Home, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { BarChart3, Ellipsis, FileArchive, FolderLock, HardHat, Home, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HomeSwitcher, ThemeToggle, type SwitcherHome } from './misc';
 import Logo, { LogoMark } from './Logo';
@@ -17,8 +17,16 @@ const items = [
   { href: '/dashboard/household', label: 'Household', icon: Users },
   { href: '/dashboard/passport', label: 'Passport', icon: BadgeCheck },
 ];
-const sideExtra = [
+const records = [
+  { href: '/dashboard/documents', label: 'Documents', icon: FolderLock },
+  { href: '/dashboard/contractors', label: 'Contractors', icon: HardHat },
+  { href: '/dashboard/bills', label: 'Utility bills', icon: Receipt },
   { href: '/dashboard/reports', label: 'Spending', icon: BarChart3 },
+  { href: '/dashboard/pack', label: 'Move-out pack', icon: FileArchive },
+];
+// The phone tab bar has room for six: the five daily screens plus a hub for everything else.
+const mobileTabs = [...items, { href: '/dashboard/more', label: 'More', icon: Ellipsis }];
+const sideExtra = [
   { href: '/dashboard/homes', label: 'My homes', icon: Building2 },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
@@ -76,6 +84,8 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
         <nav className="flex flex-1 flex-col gap-1" aria-label="Primary">
           {items.map((i) => link(i.href, i.label, i.icon, i.exact))}
           <div className="my-2 border-t hairline" />
+          {records.map((i) => link(i.href, i.label, i.icon))}
+          <div className="my-2 border-t hairline" />
           {sideExtra.map((i) => link(i.href, i.label, i.icon))}
         </nav>
 
@@ -110,8 +120,8 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
 
       {/* Mobile bottom tab bar */}
       <nav aria-label="Primary" className="glass pb-safe fixed inset-x-0 bottom-0 z-30 flex border-x-0 border-b-0 md:hidden">
-        {items.map(({ href, label, icon: Icon, ...r }) => {
-          const on = active(href, 'exact' in r ? r.exact : false);
+        {mobileTabs.map(({ href, label, icon: Icon, ...r }) => {
+          const on = active(href, 'exact' in r ? r.exact : false) || (href === '/dashboard/more' && ['/dashboard/documents', '/dashboard/contractors', '/dashboard/bills', '/dashboard/reports', '/dashboard/pack', '/dashboard/labels', '/dashboard/homes', '/dashboard/settings'].some((p) => path.startsWith(p)));
           return (
             <Link
               key={href}

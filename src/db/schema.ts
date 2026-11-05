@@ -128,6 +128,7 @@ export const serviceRecords = pgTable(
     serviceDate: date('service_date').notNull(),
     description: text('description').notNull(),
     provider: text('provider'),
+    contractorId: uuid('contractor_id').references(() => contractors.id, { onDelete: 'set null' }),
     costCents: integer('cost_cents'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
@@ -228,3 +229,64 @@ export type Household = typeof households.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
 export type MaintenanceTask = typeof maintenanceTasks.$inferSelect;
 export type ServiceRecord = typeof serviceRecords.$inferSelect;
+
+/** The household's address book of tradespeople (plumber, electrician, …). Linked from service records. */
+export const contractors = pgTable(
+  'contractors',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    householdId: uuid('household_id').references(() => households.id, { onDelete: 'cascade' }).notNull(),
+    name: text('name').notNull(),
+    trade: text('trade').notNull(),
+    phone: text('phone'),
+    email: text('email'),
+    notes: text('notes'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => ({ byHousehold: index('contractors_household_idx').on(t.householdId) }),
+);
+
+/** Document vault: insurance, mortgage, deeds, inspection reports… stored privately, optionally with an expiry date. */
+export const documents = pgTable(
+  'documents',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    householdId: uuid('household_id').references(() => households.id, { onDelete: 'cascade' }).notNull(),
+    title: text('title').notNull(),
+    category: text('category').notNull(),
+    fileUrl: text('file_url'),
+    expiresOn: date('expires_on'),
+    notes: text('notes'),
+    createdBy: uuid('created_by').references(() => profiles.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => ({ byHousehold: index('documents_household_idx').on(t.householdId) }),
+);
+
+/** One expiry e-mail per document and kind ('lead' = entered the reminder window, 'final' = within 7 days). */
+export const documentReminders = pgTable(
+  'document_reminders',
+  {
+    userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+    documentId: uuid('document_id').references(() => documents.id, { onDelete: 'cascade' }).notNull(),
+    kind: text('kind').notNull(),
+    sentAt: timestamp('sent_at').defaultNow().notNull(),
+  },
+  (t) => ({ pk: uniqueIndex('document_reminders_pk').on(t.userId, t.documentId, t.kind) }),
+);
+
+/** One bill per utility per month. `period` is always the first day of the month. */
+export const utilityBills = pgTable(
+  'utility_bills',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    householdId: uuid('household_id').references(() => households.id, { onDelete: 'cascade' }).notNull(),
+    kind: text('kind').notNull(), // electricity | water | gas | internet | other
+    period: date('period').notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    usage: integer('usage'), // whole units (kWh, m³, …) — optional
+    note: text('note'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => ({ one: uniqueIndex('utility_bills_one').on(t.householdId, t.kind, t.period) }),
+);

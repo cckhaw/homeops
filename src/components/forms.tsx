@@ -231,7 +231,7 @@ export function AddAssetSheet() {
 
 // ---------------------------------------------------------------- Other forms
 
-export function ServiceForm({ assetId }: { assetId: string }) {
+export function ServiceForm({ assetId, contractors = [] }: { assetId: string; contractors?: { id: string; name: string; trade: string }[] }) {
   const { currency } = usePrefs();
   const { state, pending, formKey, formProps } = useServerForm(addServiceRecord.bind(null, assetId), { resetOnSuccess: true });
   return (
@@ -243,13 +243,19 @@ export function ServiceForm({ assetId }: { assetId: string }) {
         <Field label="Date">
           <input name="serviceDate" type="date" defaultValue={todayISO()} className="input" />
         </Field>
-        <Field label="Provider">
-          <input name="provider" maxLength={120} className="input" />
+        <Field label="Contractor">
+          <select name="contractorId" className="input" defaultValue="">
+            <option value="">{contractors.length ? '— none / someone else —' : 'None saved yet'}</option>
+            {contractors.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.trade})</option>)}
+          </select>
         </Field>
         <Field label={`Cost (${currency})`}>
           <input name="cost" inputMode="decimal" className="input" placeholder="0.00" />
         </Field>
       </div>
+      <Field label="Provider, if not in your contractors">
+        <input name="provider" maxLength={120} className="input" />
+      </Field>
       <Msg state={state} />
       <SubmitButton variant="secondary" pending={pending}>Add service record</SubmitButton>
     </form>

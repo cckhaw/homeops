@@ -7,6 +7,7 @@ import { and, count, eq, gt, ne } from 'drizzle-orm';
 import { db } from '@/db';
 import {
   assets,
+  contractors,
   householdInvites,
   householdMembers,
   households,
@@ -159,15 +160,18 @@ export async function addServiceRecord(assetId: string, _: FormState, fd: FormDa
   if (!asset) return { error: 'Asset not found.' };
   const description = str(fd, 'description', 500);
   if (!description) return { error: 'Describe the service performed.' };
+  const wanted = str(fd, 'contractorId', 36);
+  const [picked] = wanted ? await db.select({ id: contractors.id, name: contractors.name }).from(contractors).where(and(eq(contractors.id, wanted), eq(contractors.householdId, household.id))) : [];
   await db.insert(serviceRecords).values({
     householdId: household.id,
     assetId,
     serviceDate: isoDate(fd, 'serviceDate') ?? todayISO(),
     description,
-    provider: optStr(fd, 'provider', 120),
+    provider: optStr(fd, 'provider', 120) ?? picked?.name ?? null,
+    contractorId: picked?.id ?? null,
     costCents: parseCurrencyToCents(str(fd, 'cost', 20)),
   });
-  revalidatePath(`/dashboard/assets/${assetId}`);
+  revalidatePath('/dashboard', 'layout');
   return { ok: 'Service record added.' };
 }
 
