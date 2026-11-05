@@ -110,9 +110,63 @@ body {
     @apply min-h-[44px] w-full rounded-xl border bg-surface px-3.5 py-2.5 text-[17px] text-label outline-none transition;
     border-color: var(--hairline);
   }
+  /* One height for every single-line control so rows line up (date pickers otherwise render taller on iOS/iPadOS). */
+  .input:not(textarea) {
+    height: 2.875rem;
+    padding-top: 0;
+    padding-bottom: 0;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  /* Date / month / time pickers: Safari ignores width and alignment unless the native look is switched off. */
+  input.input[type='date'],
+  input.input[type='month'],
+  input.input[type='time'],
+  input.input[type='datetime-local'] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    width: 100%;
+    min-height: 2.875rem;
+    line-height: 2.875rem;
+    text-align: left;
+  }
+  input.input[type='date']::-webkit-date-and-time-value,
+  input.input[type='month']::-webkit-date-and-time-value,
+  input.input[type='time']::-webkit-date-and-time-value,
+  input.input[type='datetime-local']::-webkit-date-and-time-value {
+    text-align: left;
+    margin: 0;
+    min-height: 1.5em;
+  }
+  input.input[type='date']::-webkit-datetime-edit,
+  input.input[type='month']::-webkit-datetime-edit {
+    padding: 0;
+  }
+  input.input[type='date']::-webkit-calendar-picker-indicator,
+  input.input[type='month']::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+  }
   .input:focus {
     @apply ring-2 ring-tint/40;
     border-color: rgb(var(--tint));
+  }
+  /* File pickers look like the other inputs (same height and border) so they line up in form rows. */
+  .file-input {
+    @apply input flex items-center py-0 pl-1.5 pr-2 text-[15px];
+    height: 2.875rem;
+    overflow: hidden;
+  }
+  .file-input::file-selector-button {
+    margin-right: 0.75rem;
+    height: 2.25rem;
+    border: 0;
+    border-radius: 0.65rem;
+    padding: 0 1rem;
+    font-weight: 600;
+    background: rgb(var(--tint) / 0.1);
+    color: rgb(var(--tint));
   }
   .field-label {
     @apply mb-1.5 block px-1 text-[13px] font-medium text-secondary;

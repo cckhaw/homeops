@@ -237,20 +237,25 @@ export type Asset = typeof assets.$inferSelect;
 export type MaintenanceTask = typeof maintenanceTasks.$inferSelect;
 export type ServiceRecord = typeof serviceRecords.$inferSelect;
 
-/** The household's address book of tradespeople (plumber, electrician, …). Linked from service records. */
-export const contractors = pgTable(
-  'contractors',
+/** An address book of tradespeople. A contractor can cover several homes — see `contractorHomes`. */
+export const contractors = pgTable('contractors', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  trade: text('trade').notNull(),
+  phone: text('phone'),
+  email: text('email'),
+  notes: text('notes'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+/** Which homes a contractor covers (and therefore which members can see them). */
+export const contractorHomes = pgTable(
+  'contractor_homes',
   {
-    id: uuid('id').defaultRandom().primaryKey(),
+    contractorId: uuid('contractor_id').references(() => contractors.id, { onDelete: 'cascade' }).notNull(),
     householdId: uuid('household_id').references(() => households.id, { onDelete: 'cascade' }).notNull(),
-    name: text('name').notNull(),
-    trade: text('trade').notNull(),
-    phone: text('phone'),
-    email: text('email'),
-    notes: text('notes'),
-    createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (t) => ({ byHousehold: index('contractors_household_idx').on(t.householdId) }),
+  (t) => ({ pk: primaryKey({ columns: [t.contractorId, t.householdId] }), byHome: index('contractor_homes_home_idx').on(t.householdId) }),
 );
 
 /** Document vault: insurance, mortgage, deeds, inspection reports… stored privately, optionally with an expiry date. */

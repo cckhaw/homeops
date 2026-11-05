@@ -67,7 +67,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
         </section>
       )}
 
-      <div className="grid items-start gap-x-8 xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-x-8 xl:grid-cols-2">
       {[...byMonth.entries()].map(([month, items]) => (
         <section key={month} className="mb-6">
           <h2 className="mb-2 px-1 text-[22px] font-bold">{formatMonth(`${month}-01`, locale)}</h2>

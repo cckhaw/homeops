@@ -1,7 +1,8 @@
-import { asc, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { Mail, MessageCircle, Phone, Trash2, Wrench } from 'lucide-react';
 import { db } from '@/db';
-import { contractors, serviceRecords } from '@/db/schema';
+import { serviceRecords } from '@/db/schema';
+import { contractorsForHome } from '@/lib/contractors';
 import { requireHousehold } from '@/lib/auth';
 import { getPrefs } from '@/lib/prefs';
 import { toInternational, whatsappLink } from '@/lib/phone';
@@ -16,10 +17,10 @@ export const metadata = { title: 'Contractors' };
 export const dynamic = 'force-dynamic';
 
 export default async function ContractorsPage() {
-  const { household } = await requireHousehold();
+  const { household, homes } = await requireHousehold();
   const { locale, currency } = await getPrefs();
   const [list, stats] = await Promise.all([
-    db.select().from(contractors).where(eq(contractors.householdId, household.id)).orderBy(asc(contractors.trade), asc(contractors.name)),
+    contractorsForHome(household.id),
     db
       .select({ id: serviceRecords.contractorId, jobs: sql<number>`count(*)::int`, spent: sql<number>`coalesce(sum(${serviceRecords.costCents}),0)::int`, last: sql<string>`max(${serviceRecords.serviceDate})` })
       .from(serviceRecords)
@@ -28,11 +29,13 @@ export default async function ContractorsPage() {
   ]);
   const byId = new Map(stats.map((s) => [s.id, s]));
   const trades = [...new Set(list.map((c) => c.trade))];
+  const homeOpts = homes.map((h) => ({ id: h.id, name: h.name }));
+  const homeName = new Map(homeOpts.map((h) => [h.id, h.name]));
 
   return (
     <>
       <PageHeader title="Contractors" subtitle="The people you call when something breaks" />
-      <GlassCard className="mb-6"><h2 className="mb-3 text-[17px] font-semibold">Add a contractor</h2><ContractorForm /></GlassCard>
+      <GlassCard className="mb-6"><h2 className="mb-3 text-[17px] font-semibold">Add a contractor</h2><ContractorForm homes={homeOpts} selected={[household.id]} /></GlassCard>
 
       {list.length === 0 ? (
         <GlassCard className="p-6 text-center text-[15px] text-secondary">No contractors yet. Add your plumber or electrician, then pick them when you log a repair.</GlassCard>
@@ -54,6 +57,11 @@ export default async function ContractorsPage() {
                           {s ? <><Wrench className="mr-1 inline h-3.5 w-3.5" aria-hidden />{s.jobs} job{s.jobs === 1 ? '' : 's'} · {formatCurrency(s.spent, currency, locale)} · last {formatDate(s.last, undefined, locale)}</> : 'No jobs logged yet'}
                         </p>
                         {c.notes && <p className="mt-1 text-[14px] text-secondary">{c.notes}</p>}
+                        {homes.length > 1 && (
+                          <p className="mt-1.5 flex flex-wrap gap-1.5" data-testid="covers" aria-label="Homes covered">
+                            {c.homeIds.filter((h) => homeName.has(h)).map((h) => <span key={h} className={`rounded-full px-2.5 py-0.5 text-[12px] font-medium ${h === household.id ? 'bg-tint/10 text-tint' : 'bg-label/5 text-secondary'}`}>{homeName.get(h)}</span>)}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -64,9 +72,9 @@ export default async function ContractorsPage() {
                     <details className="border-t pt-1 hairline">
                       <summary className="flex min-h-[44px] cursor-pointer items-center text-[15px] font-semibold text-tint">Edit</summary>
                       <div className="space-y-3 pb-2">
-                        <ContractorForm id={c.id} initial={c} />
+                        <ContractorForm id={c.id} initial={c} homes={homeOpts} selected={c.homeIds} />
                         <form action={deleteContractor.bind(null, c.id)}>
-                          <ConfirmButton message={`Remove ${c.name}? Past service records keep the name.`} label={`Delete ${c.name}`}><Trash2 className="h-4 w-4" aria-hidden /> Delete</ConfirmButton>
+                          <ConfirmButton message={`Remove ${c.name} from ${household.name}? Past service records keep the name.${c.homeIds.length > 1 ? ' They stay in your other homes.' : ''}`} label={`Delete ${c.name}`}><Trash2 className="h-4 w-4" aria-hidden /> Delete</ConfirmButton>
                         </form>
                       </div>
                     </details>

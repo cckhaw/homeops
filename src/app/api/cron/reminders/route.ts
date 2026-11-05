@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { sendReminderDigests } from '@/lib/reminders';
 import { purgeRateLimits } from '@/lib/rate-limit';
 import { db } from '@/db';
-import { errorLog } from '@/db/schema';
-import { and, isNotNull, lt } from 'drizzle-orm';
+import { contractorHomes, contractors, errorLog } from '@/db/schema';
+import { and, isNotNull, lt, notInArray } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -17,6 +17,8 @@ export async function GET(req: Request) {
   const result = await sendReminderDigests();
   // Daily housekeeping: finished rate-limit windows, and resolved errors older than 30 days.
   await purgeRateLimits().catch(() => {});
+  // Contractors whose every home has been deleted are orphans.
+  await db.delete(contractors).where(notInArray(contractors.id, db.select({ id: contractorHomes.contractorId }).from(contractorHomes))).catch(() => {});
   await db.delete(errorLog).where(and(isNotNull(errorLog.resolvedAt), lt(errorLog.resolvedAt, new Date(Date.now() - 30 * 86_400_000)))).catch(() => {});
   return NextResponse.json(result);
 }

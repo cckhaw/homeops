@@ -1,10 +1,12 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray, notInArray } from 'drizzle-orm';
 import { db } from '@/db';
-import { contractors, documents, utilityBills } from '@/db/schema';
+import { contractorHomes, contractors, documents, utilityBills } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
+import { listMemberships } from '@/lib/household';
+import { coversAny } from '@/lib/contractors';
 import { deleteBlobs } from '@/lib/blob';
 import { uploadFile } from '@/lib/storage';
 import { isDocumentCategory } from '@/lib/documents-core';
@@ -38,34 +40,54 @@ function contractorFields(fd: FormData, currency: string) {
   return { values: { name: str(fd, 'name', 120), trade: str(fd, 'trade', 60), phone, email, notes: optStr(fd, 'notes', 1000) } } as const;
 }
 
+/** Homes the signed-in user belongs to that were ticked on the form. Anything else is ignored (you can't attach a contractor to a home you're not in). */
+async function pickedHomes(fd: FormData, userId: string) {
+  const mine = (await listMemberships(userId)).map((m) => m.household.id);
+  const wanted = fd.getAll('homeIds').map(String);
+  return { mine, chosen: mine.filter((id) => wanted.includes(id)) };
+}
+
 export async function addContractor(_: FormState, fd: FormData): Promise<FormState> {
-  const { household } = await requireHousehold();
+  const { user } = await requireHousehold();
   const { currency } = await getPrefs();
   const f = contractorFields(fd, currency);
   if ('error' in f) return { error: f.error };
   if (!f.values.name) return { error: 'Enter a name.' };
   if (!f.values.trade) return { error: 'Choose or type the trade (plumber, electrician…).' };
-  await db.insert(contractors).values({ householdId: household.id, ...f.values });
+  const { chosen } = await pickedHomes(fd, user.id);
+  if (!chosen.length) return { error: 'Choose at least one home this contractor covers.' };
+  const [c] = await db.insert(contractors).values(f.values).returning({ id: contractors.id });
+  await db.insert(contractorHomes).values(chosen.map((householdId) => ({ contractorId: c.id, householdId })));
   refresh();
   return { ok: 'Contractor saved.' };
 }
 
 export async function updateContractor(id: string, _: FormState, fd: FormData): Promise<FormState> {
-  const { household } = await requireHousehold();
+  const { user } = await requireHousehold();
   const { currency } = await getPrefs();
   if (!UUID.test(id)) return { error: 'Not found.' };
   const f = contractorFields(fd, currency);
   if ('error' in f) return { error: f.error };
   if (!f.values.name || !f.values.trade) return { error: 'Name and trade are required.' };
-  await db.update(contractors).set(f.values).where(and(eq(contractors.id, id), eq(contractors.householdId, household.id)));
+  const { mine, chosen } = await pickedHomes(fd, user.id);
+  if (!(await coversAny(id, mine))) return { error: 'Not found.' };
+  // Links to homes this person isn't a member of belong to other households and are left alone.
+  const others = await db.select({ h: contractorHomes.householdId }).from(contractorHomes).where(and(eq(contractorHomes.contractorId, id), mine.length ? notInArray(contractorHomes.householdId, mine) : undefined));
+  if (!chosen.length && !others.length) return { error: 'Choose at least one home this contractor covers.' };
+  await db.update(contractors).set(f.values).where(eq(contractors.id, id));
+  if (mine.length) await db.delete(contractorHomes).where(and(eq(contractorHomes.contractorId, id), inArray(contractorHomes.householdId, mine)));
+  if (chosen.length) await db.insert(contractorHomes).values(chosen.map((householdId) => ({ contractorId: id, householdId })));
   refresh();
   return { ok: 'Saved.' };
 }
 
+/** Removes the contractor from the home being viewed; the contractor itself goes only when no home covers it any more. */
 export async function deleteContractor(id: string) {
   const { household } = await requireHousehold();
   if (!UUID.test(id)) return;
-  await db.delete(contractors).where(and(eq(contractors.id, id), eq(contractors.householdId, household.id)));
+  await db.delete(contractorHomes).where(and(eq(contractorHomes.contractorId, id), eq(contractorHomes.householdId, household.id)));
+  const [left] = await db.select({ h: contractorHomes.householdId }).from(contractorHomes).where(eq(contractorHomes.contractorId, id)).limit(1);
+  if (!left) await db.delete(contractors).where(eq(contractors.id, id));
   refresh();
 }
 

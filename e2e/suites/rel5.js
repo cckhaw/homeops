@@ -68,7 +68,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  // ---------------- move-out pack
  await p.goto(BASE+'/dashboard/pack'); assert(await p.locator('a:has-text("Download pack")').count()===1,'owner sees the pack page');
  await p.check('text=Trusted contractors'); assert((await p.locator('a:has-text("Download pack")').getAttribute('href')).includes('contractors=1'),'options change the download link');
- await q("insert into contractors(household_id,name,trade) values ($1,'Pack Plumber','Plumber')",[hid]);
+ await q("with c as (insert into contractors(name,trade) values ('Pack Plumber','Plumber') returning id) insert into contractor_homes(contractor_id,household_id) select id,$1 from c",[hid]);
  const res=await ctx.request.get(BASE+'/api/pack?contractors=1'); assert(res.status()===200 && /zip/.test(res.headers()['content-type']),'pack downloads as a zip');
  const files=unzipSync(new Uint8Array(await res.body())); const names=Object.keys(files);
  assert(['README.txt','summary.html','assets.csv','service-history.csv','contractors.csv'].every(n=>names.includes(n)),`zip has the summary and spreadsheets (${names.join(', ')})`);
