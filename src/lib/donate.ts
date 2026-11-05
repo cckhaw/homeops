@@ -1,6 +1,21 @@
-export const MIN_DONATION_CENTS = 100; // $1
-export const MAX_DONATION_CENTS = 50_000; // $500
+export const MIN_DONATION_CENTS = 100; // 1.00 in the donation currency
+export const MAX_DONATION_CENTS = 50_000; // 500.00
 export const COFFEE_PRESETS = [3, 5, 10];
+
+/** ISO currency code from STRIPE_CURRENCY (e.g. "SGD"); falls back to USD when unset or not a 3-letter code. */
+export function donationCurrency(): string {
+  const c = (process.env.STRIPE_CURRENCY ?? '').trim().toUpperCase();
+  return /^[A-Z]{3}$/.test(c) ? c : 'USD';
+}
+
+/** Amount in the donation currency, e.g. "SGD 5" or "$5" (symbol only where unambiguous). */
+export function formatDonation(amount: number, currency = donationCurrency()): string {
+  try {
+    return new Intl.NumberFormat('en', { style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amount);
+  } catch {
+    return `${currency} ${amount}`;
+  }
+}
 
 /** Donations are on when Stripe is configured, or a hosted Stripe Payment Link / Buy Me a Coffee URL is supplied. */
 export function donationsEnabled(): boolean {

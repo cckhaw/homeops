@@ -2,23 +2,25 @@ import Link from 'next/link';
 import { Coffee, Heart, Lock } from 'lucide-react';
 import Logo from '@/components/Logo';
 import GlassCard from '@/components/GlassCard';
-import { COFFEE_PRESETS, donationsEnabled } from '@/lib/donate';
+import { COFFEE_PRESETS, MAX_DONATION_CENTS, MIN_DONATION_CENTS, donationCurrency, donationsEnabled, formatDonation } from '@/lib/donate';
 import { SubmitButton } from '@/components/AppleButton';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Buy me a coffee' };
 
-const errors: Record<string, string> = {
-  amount: 'Please choose an amount between $1 and $500.',
+const errors = (cur: string): Record<string, string> => ({
+  amount: `Please choose an amount between ${formatDonation(MIN_DONATION_CENTS / 100, cur)} and ${formatDonation(MAX_DONATION_CENTS / 100, cur)}.`,
   stripe: 'Stripe could not start the checkout. Please try again in a moment.',
   unavailable: 'Donations are not available right now.',
   rate: 'Too many attempts. Please wait a few minutes and try again.',
-};
+});
 
 export default async function SupportPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const sp = await searchParams;
   const enabled = donationsEnabled();
-  const error = sp.error ? errors[sp.error] ?? errors.stripe : null;
+  const currency = donationCurrency();
+  const errs = errors(currency);
+  const error = sp.error ? errs[sp.error] ?? errs.stripe : null;
 
   return (
     <div className="min-h-dvh">
@@ -48,7 +50,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
                     <label key={amt} className="cursor-pointer">
                       <input type="radio" name="amount" value={amt} defaultChecked={i === 1} className="peer sr-only" />
                       <span className="flex min-h-[56px] flex-col items-center justify-center rounded-xl border text-[19px] font-bold transition hairline peer-checked:border-tint peer-checked:bg-tint/10 peer-checked:text-tint peer-focus-visible:ring-2 peer-focus-visible:ring-tint/50">
-                        ${amt}
+                        {formatDonation(amt, currency)}
                         <span className="text-[11px] font-medium text-secondary">{'☕'.repeat(i + 1)}</span>
                       </span>
                     </label>
@@ -56,7 +58,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
                 </div>
               </fieldset>
               <label className="block">
-                <span className="field-label">…or enter your own amount (USD)</span>
+                <span className="field-label">…or enter your own amount ({currency})</span>
                 <input name="custom" inputMode="decimal" placeholder="e.g. 7.50" className="input" autoComplete="off" />
               </label>
               {error && <p role="alert" className="text-center text-[15px] text-bad">{error}</p>}
