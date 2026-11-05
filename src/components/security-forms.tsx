@@ -1,26 +1,28 @@
 'use client';
 
-import { useState, useTransition, useActionState } from 'react';
+import { useState, useTransition } from 'react';
+import { useServerForm } from './useServerForm';
+import { CopyTextButton } from './misc';
 import { Copy, Lock, ShieldCheck } from 'lucide-react';
 import AppleButton, { SubmitButton } from './AppleButton';
 import { Field, Msg } from './forms';
 import { PasswordField } from './auth-forms';
 import {
   beginTwoFactor, changePassword, confirmTwoFactor, disableTwoFactor, removePassportPassword, saveReminderSettings,
-  deleteMyAccount, sendTestReminder, setPassportPassword, unlockPassport, type FormState,
+  deleteMyAccount, sendTestReminder, setCalendarFeed, setPassportPassword, unlockPassport, type FormState,
 } from '@/app/security-actions';
 
 export function PasswordChangeForm({ hasPassword }: { hasPassword: boolean }) {
-  const [state, action] = useActionState(changePassword, undefined);
+  const { state, pending, formProps } = useServerForm(changePassword);
   const [pw, setPw] = useState('');
   return (
-    <form action={action} className="space-y-3">
+    <form {...formProps} className="space-y-3">
       {hasPassword && <PasswordField name="current" label="Current password" autoComplete="current-password" />}
       <PasswordField label={hasPassword ? 'New password' : 'Set a password'} showRule value={pw} onChange={setPw} />
       <PasswordField name="confirm" label="Confirm new password" />
       <p className="px-1 text-[13px] text-secondary">You&apos;ll be signed out everywhere after changing your password.</p>
       <Msg state={state} />
-      <SubmitButton>{hasPassword ? 'Change password' : 'Set password'}</SubmitButton>
+      <SubmitButton pending={pending}>{hasPassword ? 'Change password' : 'Set password'}</SubmitButton>
     </form>
   );
 }
@@ -126,12 +128,12 @@ export function TwoFactorSettings({ enabled, recoveryLeft }: { enabled: boolean;
 }
 
 export function ReminderForm({ on, lead, warranty, emailReady }: { on: boolean; lead: number; warranty: number; emailReady: boolean }) {
-  const [state, action] = useActionState(saveReminderSettings, undefined);
+  const { state, pending: saving, formProps } = useServerForm(saveReminderSettings);
   const [test, setTest] = useState<FormState>();
   const [pending, start] = useTransition();
   return (
     <div className="space-y-4">
-      <form action={action} className="space-y-4">
+      <form {...formProps} className="space-y-4">
         <label className="flex min-h-[44px] items-center justify-between gap-4">
           <span>
             <span className="block text-[17px] font-semibold">E-mail me maintenance and warranty reminders</span>
@@ -152,7 +154,7 @@ export function ReminderForm({ on, lead, warranty, emailReady }: { on: boolean; 
         </Field>
         {!emailReady && <p className="rounded-xl bg-warn/10 px-3 py-2 text-[14px] text-warn">E-mail sending isn&apos;t configured on this site yet, so reminders can&apos;t be delivered.</p>}
         <Msg state={state} />
-        <SubmitButton>Save</SubmitButton>
+        <SubmitButton pending={saving}>Save</SubmitButton>
       </form>
       <div className="border-t pt-4 hairline">
         <AppleButton type="button" variant="secondary" disabled={pending} onClick={() => start(async () => setTest(await sendTestReminder()))}>Send me a test reminder</AppleButton>
@@ -163,7 +165,7 @@ export function ReminderForm({ on, lead, warranty, emailReady }: { on: boolean; 
 }
 
 export function PassportPasswordForm({ hasPassword }: { hasPassword: boolean }) {
-  const [state, action] = useActionState(setPassportPassword, undefined);
+  const { state, pending, formKey, formProps } = useServerForm(setPassportPassword, { resetOnSuccess: true });
   const [pw, setPw] = useState('');
   return (
     <div className="space-y-3">
@@ -171,12 +173,12 @@ export function PassportPasswordForm({ hasPassword }: { hasPassword: boolean }) 
         <Lock className={`h-4 w-4 ${hasPassword ? 'text-ok' : 'text-secondary'}`} aria-hidden />
         <span>{hasPassword ? 'Visitors need a password to view this passport.' : 'Anyone with the link can view. Add a password for extra privacy.'}</span>
       </div>
-      <form action={action} className="space-y-3">
+      <form key={formKey} {...formProps} className="space-y-3">
         <PasswordField label={hasPassword ? 'New passport password' : 'Passport password'} showRule value={pw} onChange={setPw} />
         <PasswordField name="confirm" label="Confirm password" />
         <Msg state={state} />
         <div className="flex flex-wrap gap-3">
-          <SubmitButton>{hasPassword ? 'Change password' : 'Set password'}</SubmitButton>
+          <SubmitButton pending={pending}>{hasPassword ? 'Change password' : 'Set password'}</SubmitButton>
         </div>
       </form>
       {hasPassword && (
@@ -190,23 +192,24 @@ export function PassportPasswordForm({ hasPassword }: { hasPassword: boolean }) 
 
 /** Shown to visitors of a password-protected passport. */
 export function PassportGate({ token, name }: { token: string; name?: string }) {
-  const [state, action] = useActionState(unlockPassport.bind(null, token), undefined);
+  const { state, pending, formProps } = useServerForm(unlockPassport.bind(null, token));
   return (
-    <form action={action} className="space-y-3">
+    <form {...formProps} className="space-y-3">
       <PasswordField label={name ? `Password for ${name}` : 'Password'} autoComplete="off" />
       <Msg state={state} />
-      <SubmitButton full>View passport</SubmitButton>
+      <SubmitButton full pending={pending}>View passport</SubmitButton>
     </form>
   );
 }
 
 export function DeleteAccountForm({ hasPassword, needsCode }: { hasPassword: boolean; needsCode: boolean }) {
-  const [state, action] = useActionState(deleteMyAccount, undefined);
+  const { state, pending, formProps } = useServerForm(deleteMyAccount);
   return (
     <form
-      action={action}
+      {...formProps}
       onSubmit={(e) => {
-        if (!window.confirm('Delete your account and personal data permanently? This cannot be undone.')) e.preventDefault();
+        if (!window.confirm('Delete your account and personal data permanently? This cannot be undone.')) return e.preventDefault();
+        formProps.onSubmit(e);
       }}
       className="space-y-3"
     >
@@ -223,7 +226,47 @@ export function DeleteAccountForm({ hasPassword, needsCode }: { hasPassword: boo
         <input name="confirm" autoComplete="off" className="input" placeholder="DELETE" />
       </Field>
       <Msg state={state} />
-      <SubmitButton variant="destructive">Delete my account</SubmitButton>
+      <SubmitButton variant="destructive" pending={pending}>Delete my account</SubmitButton>
     </form>
+  );
+}
+
+export function CalendarFeed({ token, baseUrl }: { token: string | null; baseUrl: string }) {
+  const [msg, setMsg] = useState<FormState>();
+  const [pending, start] = useTransition();
+  const run = (mode: 'enable' | 'regenerate' | 'disable') => start(async () => setMsg(await setCalendarFeed(mode)));
+  const url = token ? `${baseUrl}/api/calendar/${token}/homeops.ics` : '';
+  const webcal = url.replace(/^https?:/, 'webcal:');
+  return (
+    <div className="space-y-4">
+      <p className="text-[14px] text-secondary">
+        Add your maintenance schedule and warranty end dates to Apple Calendar, Google Calendar or Outlook. It shows tasks assigned to you or not yet claimed, and updates itself.
+      </p>
+      {!token ? (
+        <AppleButton type="button" disabled={pending} onClick={() => run('enable')}>Create my calendar link</AppleButton>
+      ) : (
+        <div className="space-y-3">
+          <p className="break-all rounded-xl bg-label/5 px-3 py-2.5 font-mono text-[12px]" data-testid="calendar-url">{url}</p>
+          <div className="flex flex-wrap gap-3">
+            <CopyTextButton text={url} label="Copy link" />
+            <AppleButton href={webcal} variant="secondary">Subscribe on this device</AppleButton>
+          </div>
+          <details className="rounded-xl border p-3 text-[14px] hairline">
+            <summary className="min-h-[44px] cursor-pointer py-2.5 font-semibold">How to add it</summary>
+            <ul className="list-disc space-y-1.5 pb-2 pl-5 text-secondary">
+              <li><strong className="text-label">iPhone / Mac:</strong> tap “Subscribe on this device”, or Calendar → File → New Calendar Subscription and paste the link.</li>
+              <li><strong className="text-label">Google Calendar:</strong> Other calendars → + → From URL → paste the link.</li>
+              <li><strong className="text-label">Outlook:</strong> Add calendar → Subscribe from web → paste the link.</li>
+            </ul>
+          </details>
+          <p className="text-[13px] text-secondary">Anyone with this link can see your schedule, so keep it private. If it leaks, make a new one.</p>
+          <div className="flex flex-wrap gap-3 border-t pt-3 hairline">
+            <AppleButton type="button" variant="secondary" disabled={pending} onClick={() => run('regenerate')}>Make a new link</AppleButton>
+            <AppleButton type="button" variant="destructive" disabled={pending} onClick={() => run('disable')}>Turn off</AppleButton>
+          </div>
+        </div>
+      )}
+      <Msg state={msg} />
+    </div>
   );
 }

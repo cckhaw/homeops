@@ -4,9 +4,8 @@ import { assets, maintenanceTasks } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
 import { getPrefs } from '@/lib/prefs';
 import { daysUntil } from '@/lib/utils';
-import AssetCard from '@/components/AssetCard';
+import AssetList from '@/components/AssetList';
 import PageHeader from '@/components/PageHeader';
-import GlassCard from '@/components/GlassCard';
 import { AddAssetSheet } from '@/components/forms';
 
 export const metadata = { title: 'Assets' };
@@ -27,15 +26,7 @@ export default async function AssetsPage() {
   return (
     <>
       <PageHeader title="Assets" subtitle="Your digital asset passport" action={<AddAssetSheet />} />
-      {list.length === 0 ? (
-        <GlassCard className="py-10 text-center text-secondary">No assets yet. Tap “Add asset” to create your first passport entry.</GlassCard>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-          {list.map((a) => (
-            <AssetCard key={a.id} asset={a} overdueTasks={overdue.get(a.id) ?? 0} locale={locale} />
-          ))}
-        </div>
-      )}
+      <AssetList assets={list} overdue={Object.fromEntries(overdue)} locale={locale} />
     </>
   );
 }

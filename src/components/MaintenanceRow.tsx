@@ -17,12 +17,17 @@ type Props = {
   completedAt?: string | null;
   assetName?: string | null;
   assetId?: string | null;
+  assignedTo?: string | null;
+  /** Display names, resolved by the page. */
+  assigneeName?: string | null;
+  completedByName?: string | null;
+  members?: { id: string; name: string }[];
   /** When provided (and the task is pending) an edit button is shown. */
   assets?: { id: string; name: string }[];
   canDelete?: boolean;
 };
 
-export default function MaintenanceRow({ id, title, dueDate, frequency, completed, completedAt, assetName, assetId = null, assets, canDelete = true }: Props) {
+export default function MaintenanceRow({ id, title, dueDate, frequency, completed, completedAt, assetName, assetId = null, assignedTo = null, assigneeName, completedByName, members, assets, canDelete = true }: Props) {
   const { locale } = usePrefs();
   const [pending, start] = useTransition();
   const [editing, setEditing] = useState(false);
@@ -52,10 +57,11 @@ export default function MaintenanceRow({ id, title, dueDate, frequency, complete
       <div className="min-w-0 flex-1 py-2">
         <p className={cn('truncate text-[17px]', completed && 'text-secondary line-through')}>{title}</p>
         <p className={cn('truncate text-[13px]', overdue ? 'font-medium text-bad' : soon ? 'font-medium text-warn' : 'text-secondary')}>
-          {completed ? `Done ${formatDate(completedAt ?? null, undefined, locale)}` : relativeDue(dueDate, locale)}
+          {completed ? `Done ${formatDate(completedAt ?? null, undefined, locale)}${completedByName ? ` by ${completedByName}` : ''}` : relativeDue(dueDate, locale)}
           {' · '}
           {FREQUENCY_LABEL[frequency] ?? frequency}
           {assetName ? ` · ${assetName}` : ''}
+          {!completed && assigneeName ? ` · ${assigneeName}` : ''}
         </p>
       </div>
       {assets && !completed && (
@@ -64,7 +70,7 @@ export default function MaintenanceRow({ id, title, dueDate, frequency, complete
             <Pencil className="h-[18px] w-[18px]" aria-hidden />
           </button>
           <Sheet title="Edit task" open={editing} onClose={() => setEditing(false)}>
-            <TaskEditForm task={{ id, title, dueDate, frequency, assetId }} assets={assets} onDone={() => setEditing(false)} />
+            <TaskEditForm task={{ id, title, dueDate, frequency, assetId, assignedTo }} assets={assets} members={members} onDone={() => setEditing(false)} />
           </Sheet>
         </>
       )}

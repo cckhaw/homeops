@@ -23,6 +23,9 @@ export const profiles = pgTable('profiles', {
   locale: text('locale'), // date/number format, e.g. 'en-MY'; null = detect from the browser
   suspendedAt: timestamp('suspended_at'),
   lastLoginAt: timestamp('last_login_at'),
+  welcomeSeenAt: timestamp('welcome_seen_at'),
+  checklistDismissedAt: timestamp('checklist_dismissed_at'),
+  calendarToken: text('calendar_token').unique(), // secret path for the personal .ics feed
 });
 
 export const households = pgTable('households', {
@@ -34,6 +37,7 @@ export const households = pgTable('households', {
   passportPasswordHash: text('passport_password_hash'),
   currency: text('currency'), // ISO 4217, e.g. 'MYR'; null = derived from the owner's locale
   climate: text('climate').default('temperate').notNull(), // 'temperate' | 'tropical' → seasonal task templates
+  icon: text('icon').default('house').notNull(), // one of HOME_ICONS
   passportFailed: integer('passport_failed').default(0).notNull(),
   passportLockedUntil: timestamp('passport_locked_until'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -92,6 +96,8 @@ export const maintenanceTasks = pgTable(
     title: text('title').notNull(),
     frequency: text('frequency').notNull(), // monthly, quarterly, biannually, yearly
     dueDate: date('due_date').notNull(),
+    assignedTo: uuid('assigned_to').references(() => profiles.id, { onDelete: 'set null' }),
+    completedBy: uuid('completed_by').references(() => profiles.id, { onDelete: 'set null' }),
     status: text('status').default('pending'), // pending, completed
     completedAt: timestamp('completed_at'),
     createdAt: timestamp('created_at').defaultNow().notNull(),

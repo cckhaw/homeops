@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useActionState } from 'react';
+import { useState } from 'react';
+import { useServerForm } from './useServerForm';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { Eye, EyeOff, Check } from 'lucide-react';
@@ -152,20 +153,20 @@ export function RegisterForm({ emailReady }: { emailReady: boolean }) {
 }
 
 export function ForgotForm() {
-  const [state, action] = useActionState(requestPasswordReset, undefined);
+  const { state, pending, formProps } = useServerForm(requestPasswordReset);
   return (
-    <form action={action} className="space-y-3">
+    <form {...formProps} className="space-y-3">
       <Field label="E-mail">
         <input name="email" type="email" required autoComplete="username" className="input" placeholder="you@example.com" />
       </Field>
       <Msg state={state} />
-      <SubmitButton full>Send reset link</SubmitButton>
+      <SubmitButton full pending={pending}>Send reset link</SubmitButton>
     </form>
   );
 }
 
 export function ResetForm({ token }: { token: string }) {
-  const [state, action] = useActionState<(FormState & { done?: boolean }) | undefined, FormData>(completePassword.bind(null, token), undefined);
+  const { state, pending, formProps } = useServerForm<FormState & { done?: boolean }>(completePassword.bind(null, token));
   const [pw, setPw] = useState('');
   if (state?.done) {
     return (
@@ -176,11 +177,11 @@ export function ResetForm({ token }: { token: string }) {
     );
   }
   return (
-    <form action={action} className="space-y-3">
+    <form {...formProps} className="space-y-3">
       <PasswordField label="New password" showRule value={pw} onChange={setPw} />
       <PasswordField name="confirm" label="Confirm new password" />
       <Msg state={state} />
-      <SubmitButton full>Save password</SubmitButton>
+      <SubmitButton full pending={pending}>Save password</SubmitButton>
     </form>
   );
 }

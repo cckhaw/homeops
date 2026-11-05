@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { asc, inArray } from 'drizzle-orm';
+import { asc, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db';
-import { assets, householdMembers, maintenanceTasks, serviceRecords } from '@/db/schema';
+import { assets, householdMembers, maintenanceTasks, profiles, serviceRecords } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth';
 import { listMemberships } from '@/lib/household';
 import { siteBaseUrl } from '@/lib/donate';
@@ -38,6 +38,11 @@ export async function GET(req: Request) {
 
   const base = siteBaseUrl(new URL(req.url).origin);
   const dl = (id: string, kind: 'receipt' | 'manual' | 'photo', has: string | null) => (has ? `${base}/api/files/${id}/${kind}` : null);
+  // Members of the user's homes, by id → display name (assignments are exported as names, never as account ids or e-mails).
+  const memberRows = ids.length
+    ? await db.select({ id: profiles.id, fullName: profiles.fullName, email: profiles.email }).from(householdMembers).innerJoin(profiles, eq(profiles.id, householdMembers.userId)).where(inArray(householdMembers.householdId, ids))
+    : [];
+  const people = new Map(memberRows.map((m) => [m.id, m.fullName?.trim() || m.email.split('@')[0]]));
   const stamp = new Date().toISOString().slice(0, 10);
   const headers = { 'Cache-Control': 'private, no-store' };
   const homeName = new Map(memberships.map((m) => [m.household.id, m.household.name]));
@@ -74,7 +79,9 @@ export async function GET(req: Request) {
         .filter((a) => a.householdId === h.id)
         .map(({ householdId: _h, receiptUrl, manualUrl, photoUrl, ...a }) => ({ ...a, receiptDownload: dl(a.id, 'receipt', receiptUrl), manualDownload: dl(a.id, 'manual', manualUrl), photoDownload: dl(a.id, 'photo', photoUrl) })),
       serviceRecords: records.filter((r) => r.householdId === h.id).map(({ householdId: _h, ...r }) => r),
-      maintenanceTasks: tasks.filter((t) => t.householdId === h.id).map(({ householdId: _h, ...t }) => t),
+      maintenanceTasks: tasks
+        .filter((t) => t.householdId === h.id)
+        .map(({ householdId: _h, assignedTo, completedBy, ...t }) => ({ ...t, assignedTo: assignedTo ? people.get(assignedTo) ?? null : null, completedBy: completedBy ? people.get(completedBy) ?? null : null })),
     })),
   };
   return new NextResponse(JSON.stringify(body, null, 2), {

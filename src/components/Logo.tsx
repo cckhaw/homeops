@@ -33,11 +33,11 @@ export function LogoMark({ size = 40, className, color = LOGO_COLOR }: { size?: 
  * "HomeOps" wordmark: bold geometric type where the O becomes a little house —
  * a roof sits on top of it and a four-pane window fills the counter.
  */
-export function Wordmark({ size = 40, className }: { size?: number; className?: string }) {
+export function Wordmark({ size = 40, className, color = LOGO_COLOR }: { size?: number; className?: string; color?: string }) {
   return (
     <span
       className={cn('inline-block select-none whitespace-nowrap font-bold leading-none tracking-tight', className)}
-      style={{ fontFamily: 'var(--font-brand), -apple-system, "SF Pro Display", sans-serif', fontSize: size, color: LOGO_COLOR }}
+      style={{ fontFamily: 'var(--font-brand), -apple-system, "SF Pro Display", sans-serif', fontSize: size, color }}
       aria-hidden
     >
       Home
@@ -61,11 +61,11 @@ export function Wordmark({ size = 40, className }: { size?: number; className?: 
 }
 
 /** Mark + wordmark lockup. */
-export default function Logo({ size = 40, wordmark = true, className }: { size?: number; wordmark?: boolean; className?: string }) {
+export default function Logo({ size = 40, wordmark = true, className, color = LOGO_COLOR }: { size?: number; wordmark?: boolean; className?: string; color?: string }) {
   return (
     <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <LogoMark size={size} />
-      {wordmark && <Wordmark size={size * 0.62} />}
+      <LogoMark size={size} color={color} />
+      {wordmark && <Wordmark size={size * 0.62} color={color} />}
     </span>
   );
 }

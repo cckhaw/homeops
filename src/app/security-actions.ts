@@ -20,7 +20,7 @@ import {
   totpUri, verifyPassword, verifyTotp,
 } from '@/lib/security';
 import { randomUUID } from 'crypto';
-import { HOME_COOKIE, ensureMembership } from '@/lib/household';
+import { HOME_COOKIE, ensureMembership, newToken } from '@/lib/household';
 import { audit } from '@/lib/audit';
 import { eraseAccount } from '@/lib/account-erase';
 
@@ -175,6 +175,38 @@ export async function disableTwoFactor(password: string, code: string): Promise<
   await db.update(profiles).set({ totpEnabled: false, totpSecret: null, totpLastStep: null, recoveryCodes: null }).where(eq(profiles.id, user.id));
   revalidatePath('/dashboard/settings');
   return { ok: true };
+}
+
+// ------------------------------------------------------------------ Onboarding
+
+export async function markWelcomeSeen() {
+  const user = await requireUser();
+  if (!user.welcomeSeenAt) await db.update(profiles).set({ welcomeSeenAt: new Date() }).where(eq(profiles.id, user.id));
+  revalidatePath('/dashboard');
+}
+
+export async function dismissChecklist() {
+  const user = await requireUser();
+  await db.update(profiles).set({ checklistDismissedAt: new Date() }).where(eq(profiles.id, user.id));
+  revalidatePath('/dashboard');
+}
+
+/** "Replay the welcome tour" in Settings: shows the tour and the checklist again. */
+export async function replayWelcome() {
+  const user = await requireUser();
+  await db.update(profiles).set({ welcomeSeenAt: null, checklistDismissedAt: null }).where(eq(profiles.id, user.id));
+  redirect('/dashboard');
+}
+
+// ------------------------------------------------------------------ Calendar feed
+
+/** Turn the personal .ics feed on, replace its secret link (the old one stops working), or switch it off. */
+export async function setCalendarFeed(mode: 'enable' | 'regenerate' | 'disable'): Promise<FormState> {
+  const user = await requireUser();
+  const token = mode === 'disable' ? null : mode === 'enable' && user.calendarToken ? user.calendarToken : newToken(32);
+  await db.update(profiles).set({ calendarToken: token }).where(eq(profiles.id, user.id));
+  revalidatePath('/dashboard/settings');
+  return { ok: mode === 'disable' ? 'Calendar link turned off.' : mode === 'regenerate' ? 'New link created. Old links no longer work.' : 'Calendar link is ready.' };
 }
 
 // ------------------------------------------------------------------ E-mail reminders

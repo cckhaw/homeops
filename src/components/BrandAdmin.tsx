@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState, useActionState } from 'react';
-import { Pencil, Plus, RotateCcw, Search } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useServerForm } from './useServerForm';
+import { Pencil, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import AppleButton, { SubmitButton } from './AppleButton';
 import BrandLogo from './BrandLogo';
 import { ConfirmButton, Sheet } from './misc';
@@ -25,7 +26,7 @@ function PreviewTile({ src, label }: { src: string | null; label: string }) {
 }
 
 function BrandForm({ brand, onDone }: { brand?: BrandRecord; onDone: () => void }) {
-  const [state, action] = useActionState<BrandState, FormData>(saveBrand.bind(null, brand?.id ?? ''), undefined);
+  const { state, pending, formProps } = useServerForm<NonNullable<BrandState>>(saveBrand.bind(null, brand?.id ?? '') as never);
   const [name, setName] = useState(brand?.name ?? '');
   const [domain, setDomain] = useState(brand?.domain ?? '');
   const [link, setLink] = useState('');
@@ -38,7 +39,7 @@ function BrandForm({ brand, onDone }: { brand?: BrandRecord; onDone: () => void 
   const preview = link.startsWith('https://') ? link : (brand?.logoUrl ? recordLogoSrc(brand, 128) : null) ?? (d ? faviconUrl(d, 128) : null);
 
   return (
-    <form action={action} className="space-y-4">
+    <form {...formProps} className="space-y-4">
       <div className="flex items-center gap-3">
         <PreviewTile src={preview} label={name} />
         <p className="text-[14px] text-secondary">A logo is found automatically from the website address. Upload or link an image to use your own instead.</p>
@@ -64,7 +65,7 @@ function BrandForm({ brand, onDone }: { brand?: BrandRecord; onDone: () => void 
         )}
       </div>
       <Msg state={state} />
-      <SubmitButton full>{brand ? 'Save changes' : 'Add brand'}</SubmitButton>
+      <SubmitButton full pending={pending}>{brand ? 'Save changes' : 'Add brand'}</SubmitButton>
     </form>
   );
 }
@@ -103,7 +104,7 @@ export default function BrandAdmin({ brands }: { brands: BrandRecord[] }) {
                 </button>
                 {b.id && (
                   <form action={deleteBrand.bind(null, b.id)}>
-                    <ConfirmButton message={`Delete “${b.name}”? Assets already using it keep the name as plain text.`}>Delete</ConfirmButton>
+                    <ConfirmButton message={`Delete “${b.name}”? Assets already using it keep the name as plain text.`} label={`Delete ${b.name}`} className="!px-0 w-11"><Trash2 className="h-[18px] w-[18px]" aria-hidden /></ConfirmButton>
                   </form>
                 )}
               </li>

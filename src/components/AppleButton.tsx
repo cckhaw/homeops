@@ -42,8 +42,9 @@ export default function AppleButton({ variant = 'primary', href, full, className
 }
 
 /** Submit button that shows a spinner while its parent <form> action is pending. */
-export function SubmitButton({ children, variant = 'primary', full, className, ...rest }: Props) {
-  const { pending } = useFormStatus();
+export function SubmitButton({ children, variant = 'primary', full, className, pending: pendingProp, ...rest }: Props & { pending?: boolean }) {
+  const { pending: formPending } = useFormStatus();
+  const pending = pendingProp ?? formPending;
   return (
     <AppleButton type="submit" variant={variant} full={full} disabled={pending || rest.disabled} className={className} {...rest}>
       {pending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}

@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 const KEY = 'homeops-sidebar';
 
 /** Layout frame: collapsible sidebar + full-width content area. */
-export default function AppShell({ isAdmin, homes, activeId, donate, children }: { isAdmin: boolean; donate?: boolean; homes: { id: string; name: string }[]; activeId: string; children: React.ReactNode }) {
+export default function AppShell({ isAdmin, homes, activeId, donate, children }: { isAdmin: boolean; donate?: boolean; homes: { id: string; name: string; icon: string }[]; activeId: string; children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
     try {

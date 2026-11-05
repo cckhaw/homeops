@@ -4,8 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { HomeSwitcher, ThemeToggle } from './misc';
+import { HomeSwitcher, ThemeToggle, type SwitcherHome } from './misc';
 import Logo, { LogoMark } from './Logo';
+
+// Inside the signed-in app the logo takes the user's accent colour; public pages keep the default brand blue.
+const ACCENT = 'rgb(var(--tint))';
 
 const items = [
   { href: '/dashboard', label: 'Home', icon: Home, exact: true },
@@ -21,7 +24,7 @@ const sideExtra = [
 
 type Props = {
   isAdmin: boolean;
-  homes: { id: string; name: string }[];
+  homes: SwitcherHome[];
   activeId: string;
   collapsed: boolean;
   onToggle: () => void;
@@ -51,7 +54,6 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
       </Link>
     );
   };
-  const activeName = homes.find((h) => h.id === activeId)?.name ?? 'HomeOps';
 
   return (
     <>
@@ -64,16 +66,12 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
       >
         <div className={cn('mb-4 flex items-center pt-1', collapsed ? 'justify-center' : 'justify-between px-1')}>
           <Link href="/dashboard" aria-label="HomeOps" className="flex items-center">
-            {collapsed ? <LogoMark size={40} /> : <Logo size={36} />}
+            {collapsed ? <LogoMark size={40} color={ACCENT} /> : <Logo size={36} color={ACCENT} />}
           </Link>
         </div>
-        {collapsed ? (
-          <Link href="/dashboard/homes" title={`${activeName} — switch home`} aria-label={`${activeName}, switch home`} className="mb-3 grid min-h-[44px] place-items-center rounded-xl text-secondary hover:bg-label/5">
-            <Building2 className="h-5 w-5" aria-hidden />
-          </Link>
-        ) : (
-          <div className="mb-3"><HomeSwitcher homes={homes} activeId={activeId} /></div>
-        )}
+        <div className={cn('mb-3', collapsed && 'flex justify-center')}>
+          <HomeSwitcher homes={homes} activeId={activeId} layout={collapsed ? 'rail' : 'sidebar'} />
+        </div>
         <nav className="flex flex-1 flex-col gap-1" aria-label="Primary">
           {items.map((i) => link(i.href, i.label, i.icon, i.exact))}
           <div className="my-2 border-t hairline" />
@@ -102,7 +100,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
 
       {/* Mobile top bar */}
       <header className="glass fixed inset-x-0 top-0 z-30 flex items-center gap-2 border-x-0 border-t-0 px-3 py-1.5 md:hidden" style={{ paddingTop: 'max(env(safe-area-inset-top), 0.375rem)' }}>
-        <div className="min-w-0 flex-1"><HomeSwitcher homes={homes} activeId={activeId} className="input min-h-[44px] w-full py-1.5 text-[16px] font-semibold" /></div>
+        <div className="min-w-0 flex-1"><HomeSwitcher homes={homes} activeId={activeId} layout="bar" /></div>
         <ThemeToggle />
         <Link href="/dashboard/settings" aria-label="Settings" className="grid h-11 w-11 place-items-center rounded-xl text-secondary hover:bg-label/5">
           <Settings className="h-5 w-5" aria-hidden />
