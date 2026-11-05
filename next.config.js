@@ -6,6 +6,9 @@ const nextConfig = {
   devIndicators: false,
   eslint: { ignoreDuringBuilds: true },
   experimental: { serverActions: { bodySizeLimit: '12mb' } },
+  async rewrites() {
+    return [{ source: '/.well-known/apple-developer-domainassociation.txt', destination: '/api/apple-domain-association' }];
+  },
   async headers() {
     return [
       {

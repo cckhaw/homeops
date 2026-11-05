@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, BarChart3, ScrollText, Settings, Tags, Users } from 'lucide-react';
+import { ArrowLeft, BarChart3, Bug, ScrollText, Settings, Tags, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [
@@ -10,6 +10,7 @@ const links = [
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/brands', label: 'Brands', icon: Tags },
   { href: '/admin/audit', label: 'Audit', icon: ScrollText },
+  { href: '/admin/errors', label: 'Errors', icon: Bug },
   { href: '/admin/settings', label: 'Config', icon: Settings },
 ];
 

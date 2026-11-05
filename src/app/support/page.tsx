@@ -12,6 +12,7 @@ const errors: Record<string, string> = {
   amount: 'Please choose an amount between $1 and $500.',
   stripe: 'Stripe could not start the checkout. Please try again in a moment.',
   unavailable: 'Donations are not available right now.',
+  rate: 'Too many attempts. Please wait a few minutes and try again.',
 };
 
 export default async function SupportPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {

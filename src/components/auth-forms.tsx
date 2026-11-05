@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useServerForm } from './useServerForm';
+import TurnstileWidget from './TurnstileWidget';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { Eye, EyeOff, Check } from 'lucide-react';
@@ -51,21 +52,28 @@ const loginErrors: Record<string, string> = {
   INVALID_CODE: 'That code is not correct.',
   SUSPENDED: 'This account has been suspended. Please contact support.',
   CredentialsSignin: 'Incorrect e-mail or password.',
+  RATE_LIMITED: 'Too many attempts from this network. Please wait a few minutes and try again.',
+  CAPTCHA_REQUIRED: 'Please complete the security check, then sign in again.',
 };
 
-export function LoginForm({ callbackUrl, notice }: { callbackUrl: string; notice?: string | null }) {
+export function LoginForm({ callbackUrl, notice, captchaSiteKey }: { callbackUrl: string; notice?: string | null; captchaSiteKey?: string | null }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const [needCode, setNeedCode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [needCaptcha, setNeedCaptcha] = useState(false);
+  const [captcha, setCaptcha] = useState('');
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const res = await signIn('credentials', { email, password, code, redirect: false, callbackUrl });
+    const res = await signIn('credentials', { email, password, code, captcha, redirect: false, callbackUrl });
+    if (needCaptcha) setCaptchaReset((n) => n + 1); // a Turnstile token works once
+    if (res?.error === 'CAPTCHA_REQUIRED' && captchaSiteKey) setNeedCaptcha(true);
     if (res?.error === 'TWO_FACTOR_REQUIRED') {
       setNeedCode(true);
       setBusy(false);
@@ -101,6 +109,7 @@ export function LoginForm({ callbackUrl, notice }: { callbackUrl: string; notice
           <span className="mt-1.5 block px-1 text-[13px] text-secondary">Open your authenticator app and enter the current code.</span>
         </Field>
       )}
+      {needCaptcha && captchaSiteKey && <TurnstileWidget siteKey={captchaSiteKey} resetKey={captchaReset} onToken={setCaptcha} />}
       {error && <p role="alert" className="px-1 text-[15px] text-bad">{error}</p>}
       <AppleButton type="submit" full disabled={busy}>{needCode ? 'Verify and sign in' : 'Sign in'}</AppleButton>
       <p className="text-center text-[14px]">
@@ -110,10 +119,11 @@ export function LoginForm({ callbackUrl, notice }: { callbackUrl: string; notice
   );
 }
 
-export function RegisterForm({ emailReady }: { emailReady: boolean }) {
+export function RegisterForm({ emailReady, captchaSiteKey }: { emailReady: boolean; captchaSiteKey?: string | null }) {
   const [state, setState] = useState<FormState>();
   const [pw, setPw] = useState('');
   const [busy, setBusy] = useState(false);
+  const [captchaReset, setCaptchaReset] = useState(0);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -128,6 +138,7 @@ export function RegisterForm({ emailReady }: { emailReady: boolean }) {
     }
     setState(res);
     setBusy(false);
+    setCaptchaReset((n) => n + 1);
   }
 
   return (
@@ -146,19 +157,25 @@ export function RegisterForm({ emailReady }: { emailReady: boolean }) {
           <PasswordField name="confirm" label="Confirm password" />
         </>
       )}
+      {captchaSiteKey && <TurnstileWidget siteKey={captchaSiteKey} resetKey={captchaReset} />}
       <Msg state={state} />
       <AppleButton type="submit" full disabled={busy}>{emailReady ? 'Continue' : 'Create account'}</AppleButton>
     </form>
   );
 }
 
-export function ForgotForm() {
-  const { state, pending, formProps } = useServerForm(requestPasswordReset);
+export function ForgotForm({ captchaSiteKey }: { captchaSiteKey?: string | null }) {
+  const { state, pending, formKey, formProps } = useServerForm(requestPasswordReset, { resetOnSuccess: false });
+  const [captchaReset, setCaptchaReset] = useState(0);
+  useEffect(() => {
+    if (state) setCaptchaReset((n) => n + 1); // the token was used by that submit: get a fresh one
+  }, [state]);
   return (
-    <form {...formProps} className="space-y-3">
+    <form key={formKey} {...formProps} className="space-y-3">
       <Field label="E-mail">
         <input name="email" type="email" required autoComplete="username" className="input" placeholder="you@example.com" />
       </Field>
+      {captchaSiteKey && <TurnstileWidget siteKey={captchaSiteKey} resetKey={captchaReset} />}
       <Msg state={state} />
       <SubmitButton full pending={pending}>Send reset link</SubmitButton>
     </form>

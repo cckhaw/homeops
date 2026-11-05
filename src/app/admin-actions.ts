@@ -2,9 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNotNull } from 'drizzle-orm';
 import { db } from '@/db';
-import { profiles } from '@/db/schema';
+import { errorLog, profiles } from '@/db/schema';
 import { issueToken } from '@/lib/accounts';
 import { eraseAccount } from '@/lib/account-erase';
 import { audit } from '@/lib/audit';
@@ -95,4 +95,27 @@ export async function adminDeleteUser(userId: string, _: AdminState, fd: FormDat
   revalidatePath('/admin/audit');
   // The user's page no longer exists: go back to the list with a confirmation.
   redirect(`/admin/users?deleted=${encodeURIComponent(t.user.email)}`);
+}
+
+// ------------------------------------------------------------------ Error log
+
+export async function resolveError(id: string) {
+  await requireAdmin();
+  await db.update(errorLog).set({ resolvedAt: new Date() }).where(eq(errorLog.id, id));
+  revalidatePath('/admin/errors');
+  revalidatePath('/admin');
+}
+
+export async function reopenError(id: string) {
+  await requireAdmin();
+  await db.update(errorLog).set({ resolvedAt: null }).where(eq(errorLog.id, id));
+  revalidatePath('/admin/errors');
+  revalidatePath('/admin');
+}
+
+export async function clearResolvedErrors() {
+  const admin = await requireAdmin();
+  await db.delete(errorLog).where(and(isNotNull(errorLog.resolvedAt)));
+  await audit(admin, 'errors.clear', 'Cleared resolved errors from the log');
+  revalidatePath('/admin/errors');
 }

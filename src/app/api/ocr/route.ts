@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { getCurrentUser } from '@/lib/auth';
+import { enforce } from '@/lib/rate-limit';
 import { CATEGORIES, addMonthsISO } from '@/lib/ocr-helpers';
 
 export const runtime = 'nodejs';
@@ -18,6 +19,10 @@ Use null for anything not present on the document. Never guess serial numbers.`;
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
+
+  // Each scan costs money: a short burst limit and a daily cap per user.
+  const limited = (await enforce('ocr-minute', user.id, 6, 60)) ?? (await enforce('ocr-day', user.id, 60, 86_400));
+  if (limited) return NextResponse.json({ error: 'You have scanned a lot of receipts. Please try again later.' }, { status: 429 });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
