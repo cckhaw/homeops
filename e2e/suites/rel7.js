@@ -3,6 +3,7 @@ const { chromium } = require('playwright'); const { encode } = require('next-aut
 const BASE='http://localhost:3100', S=process.argv[2]||'.'; const pool=new Pool({connectionString:'postgresql://postgres@localhost:5544/homeops'});
 const assert=(c,m)=>{ if(!c){console.error('FAIL',m);process.exitCode=1}else console.log('ok  ',m)};
 const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
+const openEdit=async(pg)=>{ const d=pg.locator('details').first(); if(!(await d.evaluate(e=>e.open))) await d.locator('summary').click(); };
 (async()=>{
  const browser=await chromium.launch(); const errs=[];
  const sess=async(email,home)=>{ const sv=(await q('select session_version v from profiles where email=$1',[email]))[0].v; const t=await encode({token:{email,sub:email,sv},secret:'localtestsecretlocaltestsecret1234'}); const c=await browser.newContext({viewport:{width:1280,height:900}}); await c.addCookies([{name:'next-auth.session-token',value:t,url:BASE}]); if(home) await c.addCookies([{name:'homeops_home',value:home,url:BASE}]); return c; };
@@ -41,22 +42,22 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  const ctxV=await sess('vic@test.dev',B); const pv=await ctxV.newPage(); await pv.goto(BASE+'/dashboard/contractors');
  assert(await pv.locator('[data-testid=contractor]:has-text("Ah Seng Plumbing")').count()===1,'a member of the Beach Condo sees it');
  assert(await pv.locator('[data-testid=covers]').count()===0,"and isn't told the names of homes they aren't in (single-home members see no home chips)");
- await pv.click('summary:has-text("Edit")'); await pv.locator('details textarea[name=notes]').fill('Edited by Vic'); await pv.click('details button:has-text("Save changes")'); await pv.waitForTimeout(1200);
+ await openEdit(pv); await pv.locator('details textarea[name=notes]').fill('Edited by Vic'); await pv.click('details button:has-text("Save changes")'); await pv.waitForTimeout(1200);
  assert((await q('select notes n from contractors where id=$1',[cid]))[0].n==='Edited by Vic' && (await q('select household_id h from contractor_homes where contractor_id=$1',[cid])).length===2,"editing keeps the link to the home they can't see");
  // removing it from the only home Vic belongs to leaves it covering the Main House
- await pv.click('summary:has-text("Edit")'); pv.once('dialog',d=>d.accept()); await pv.click('details button:has-text("Delete")'); await pv.waitForTimeout(1200);
+ await openEdit(pv); pv.once('dialog',d=>d.accept()); await pv.click('details button:has-text("Delete")'); await pv.waitForTimeout(1200);
  const left=await q('select household_id h from contractor_homes where contractor_id=$1',[cid]); assert(left.length===1 && left[0].h===A && (await q('select count(*)::int c from contractors'))[0].c===1,'deleting from one home keeps the contractor for the other');
  assert((await q('select provider p from service_records'))[0].p==='Ah Seng Plumbing','past repairs keep the name');
  await p.goto(BASE+'/dashboard/contractors'); assert(await p.locator('[data-testid=contractor]:has-text("Ah Seng Plumbing")').count()===1,'the Main House still has it');
 
  // ---- editing which homes it covers
- await p.click('summary:has-text("Edit")'); await p.locator('details label:has(input[value="'+B+'"]) span').click(); await p.click('details button:has-text("Save changes")'); await p.waitForTimeout(1200);
+ await openEdit(p); await p.locator('details label:has(input[value="'+B+'"]) span').click(); await p.click('details button:has-text("Save changes")'); await p.waitForTimeout(1200);
  assert((await q('select household_id h from contractor_homes where contractor_id=$1',[cid])).length===2,'ticking another home adds it');
- await p.goto(BASE+'/dashboard/contractors'); await p.click('summary:has-text("Edit")'); await p.locator('details label:has(input[value="'+A+'"]) span').click(); await p.click('details button:has-text("Save changes")'); await p.waitForTimeout(1200);
+ await p.goto(BASE+'/dashboard/contractors'); await openEdit(p); await p.locator('details label:has(input[value="'+A+'"]) span').click(); await p.click('details button:has-text("Save changes")'); await p.waitForTimeout(1200);
  const l2=await q('select household_id h from contractor_homes where contractor_id=$1',[cid]); assert(l2.length===1&&l2[0].h===B,'unticking a home removes it');
  await p.goto(BASE+'/dashboard/contractors'); assert(await p.locator('text=No contractors yet').count()===1,'it no longer shows in the home it was removed from');
  // delete from the last home removes it entirely
- await pb.goto(BASE+'/dashboard/contractors'); await pb.click('summary:has-text("Edit")'); pb.once('dialog',d=>d.accept()); await pb.click('details button:has-text("Delete")'); await pb.waitForTimeout(1200);
+ await pb.goto(BASE+'/dashboard/contractors'); await openEdit(pb); pb.once('dialog',d=>d.accept()); await pb.click('details button:has-text("Delete")'); await pb.waitForTimeout(1200);
  assert((await q('select count(*)::int c from contractors'))[0].c===0,'deleting from the last home deletes the contractor');
 
  // ---- orphans are cleaned up by the daily job

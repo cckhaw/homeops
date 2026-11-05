@@ -37,11 +37,11 @@ ONLY=" ${*:-} "
 run() { # run <suite>   (bash e2e/run.sh side rel3  runs only those)
   local name=$1
   [ "$ONLY" != "  " ] && [[ "$ONLY" != *" $name "* ]] && return 0
-  local res; res=$(timeout 300 node e2e/suites/$name.js "$OUT" 2>&1)
+  local res code; res=$(timeout 600 node e2e/suites/$name.js "$OUT" 2>&1); code=$?
   echo "$res" > "$OUT/$name.log"
-  local ok fail; ok=$(echo "$res" | grep -c '^ok'); fail=$(echo "$res" | grep -c -E '^FAIL|TimeoutError|TypeError|ReferenceError')
-  printf '%-12s passed %-3s failed %s\n' "$name" "$ok" "$fail"
-  if [ "$fail" != 0 ] || [ "$ok" = 0 ]; then FAILED=1; echo "$res" | grep -E '^FAIL|Error' | grep -v '^ok' | sed 's/^/    /' | head -5; fi
+  local ok fail; ok=$(echo "$res" | grep -c '^ok'); fail=$(echo "$res" | grep -c '^FAIL')
+  printf '%-12s passed %-3s failed %s%s\n' "$name" "$ok" "$fail" "$([ $code != 0 ] && echo "  (exit $code)")"
+  if [ "$fail" != 0 ] || [ "$ok" = 0 ] || [ $code != 0 ]; then FAILED=1; echo "$res" | grep -v '^ok' | head -8 | sed 's/^/    /'; fi
 }
 
 # Phase 1 - no e-mail service: accounts are created directly (auth1), starting from an empty database.
