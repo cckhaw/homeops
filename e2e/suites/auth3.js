@@ -4,7 +4,7 @@ const assert=(c,m)=>{ if(!c){console.error('FAIL',m);process.exitCode=1}else con
 (async()=>{
  const browser=await chromium.launch(); const ctx=await browser.newContext({viewport:{width:390,height:844}}); const page=await ctx.newPage(); const errs=[]; page.on('pageerror',e=>errs.push(e.message));
  await page.goto(BASE+'/login'); await page.fill('input[type=email]','admin@test.dev'); await page.locator('input[type=password]').fill('a brand new passphrase here'); await page.click('button:has-text("Sign in")'); await page.waitForURL(BASE+'/dashboard');
- await page.goto(BASE+'/dashboard/passport'); await page.waitForSelector('[data-testid=passport-path]'); const ppath=(await page.textContent('[data-testid=passport-path]')).trim();
+ await page.goto(BASE+'/dashboard/passport'); if(await page.locator('button:has-text("Create share link")').count()) await page.click('button:has-text("Create share link")'); await page.waitForSelector('[data-testid=passport-path]'); const ppath=(await page.textContent('[data-testid=passport-path]')).trim();
  const anon=await browser.newContext({viewport:{width:390,height:844}}); const ap=await anon.newPage();
  await ap.goto(BASE+ppath); assert(await ap.locator('text=This passport is protected').count()===0,'no password: passport is public');
  const fill=async(v)=>{ await page.locator('form:has(input[name=confirm]) input[name=password]').fill(v); await page.locator('form:has(input[name=confirm]) input[name=confirm]').fill(v); };

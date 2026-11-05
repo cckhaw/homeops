@@ -45,9 +45,9 @@ run() { # run <suite>   (bash e2e/run.sh side rel3  runs only those)
 }
 
 # Phase 1 - no e-mail service: accounts are created directly (auth1), starting from an empty database.
-node e2e/setup.js >/dev/null && start && run auth1
+node e2e/setup.js >/dev/null && start && run auth1 && run legal
 # Phase 2 - e-mail configured: confirmation links, resets, 2FA (auth2/auth3 build on each other), starting empty.
-node e2e/setup.js >/dev/null && start $MAIL && run auth2 && run auth3 && run legal
+node e2e/setup.js >/dev/null && start $MAIL && run auth2 && run auth3
 # Phase 3 - seeded users (admin/una/vic), mail on.
 node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
 for s in brands e2e2 e2e3 side formkeep features adminfeat; do run $s; done

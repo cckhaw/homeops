@@ -67,6 +67,6 @@ const PW='correct horse battery staple';
  assert((await anon.request.get(BASE+'/api/passport/'+ppath.split('/').pop())).status()===200,'JSON API works after unlocking');
  await ap.screenshot({path:S+'/passport-gate-ok.png'});
  await page.locator('form:has(input[name=confirm]) input[name=password]').fill('another secret 987654'); await page.locator('form:has(input[name=confirm]) input[name=confirm]').fill('another secret 987654'); await page.click('button:has-text("Change password")'); await page.waitForSelector('text=Password set');
- await ap.reload(); await ap.waitForSelector('text=This passport is protected'); assert(true,'changing the passport password revokes existing unlocks');
+ await page.waitForTimeout(1500); await ap.reload(); await ap.waitForSelector('text=This passport is protected'); assert(true,'changing the passport password revokes existing unlocks');
  console.log('page errors:',errs); await browser.close(); await pool.end();
 })().catch(e=>{console.error(e);process.exit(1)});
