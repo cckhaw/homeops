@@ -44,6 +44,9 @@ export default async function SettingsPage() {
       </GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Current home</h2>
       <GlassCard className="mb-8"><HouseholdForm name={household.name} address={household.address} disabled={role === 'member'} /></GlassCard>
+      {user.isAdmin && (
+        <AppleButton href="/admin" variant="secondary" full className="mb-3">Admin portal</AppleButton>
+      )}
       {donationsEnabled() && (
         <AppleButton href="/support" variant="secondary" full className="mb-3">☕ Buy me a coffee</AppleButton>
       )}

@@ -31,7 +31,7 @@ type Props = {
 export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, donate }: Props) {
   const path = usePathname();
   const active = (href: string, exact?: boolean) => (exact ? path === href : path === href || path.startsWith(href + '/'));
-  const link = (href: string, label: string, Icon: typeof Home, exact?: boolean) => {
+  const link = (href: string, label: string, Icon: typeof Home, exact?: boolean, muted?: boolean) => {
     const on = active(href, exact);
     return (
       <Link
@@ -43,7 +43,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
         className={cn(
           'flex min-h-[44px] items-center rounded-xl text-[15px] font-medium transition',
           collapsed ? 'justify-center' : 'gap-3 px-3',
-          on ? 'bg-tint/10 text-tint' : 'text-label hover:bg-label/5',
+          on ? 'bg-tint/10 text-tint' : muted ? 'text-secondary hover:bg-label/5 hover:text-label' : 'text-label hover:bg-label/5',
         )}
       >
         <Icon className="h-5 w-5 shrink-0" aria-hidden />
@@ -66,11 +66,6 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
           <Link href="/dashboard" aria-label="HomeOps" className="flex items-center">
             {collapsed ? <LogoMark size={40} /> : <Logo size={36} />}
           </Link>
-          {!collapsed && (
-            <button onClick={onToggle} aria-label="Collapse sidebar" title="Collapse sidebar" className="grid h-11 w-11 place-items-center rounded-xl text-secondary hover:bg-label/5">
-              <PanelLeftClose className="h-5 w-5" aria-hidden />
-            </button>
-          )}
         </div>
         {collapsed ? (
           <Link href="/dashboard/homes" title={`${activeName} — switch home`} aria-label={`${activeName}, switch home`} className="mb-3 grid min-h-[44px] place-items-center rounded-xl text-secondary hover:bg-label/5">
@@ -83,16 +78,25 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
           {items.map((i) => link(i.href, i.label, i.icon, i.exact))}
           <div className="my-2 border-t hairline" />
           {sideExtra.map((i) => link(i.href, i.label, i.icon))}
-          {isAdmin && link('/admin', 'Admin portal', ShieldCheck)}
-          {donate && link('/support', 'Buy me a coffee', Coffee)}
         </nav>
-        <div className={cn('flex gap-1', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
+
+        {/* Separate from the main menu: owner tools, support, then display controls */}
+        {(isAdmin || donate) && (
+          <nav className="mt-2 flex flex-col gap-1 border-t pt-2 hairline" aria-label="More">
+            {isAdmin && link('/admin', 'Admin portal', ShieldCheck, false, true)}
+            {donate && link('/support', 'Buy me a coffee', Coffee, false, true)}
+          </nav>
+        )}
+        <div className={cn('mt-2 flex gap-1 border-t pt-2 hairline', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
           <ThemeToggle />
-          {collapsed && (
-            <button onClick={onToggle} aria-label="Expand sidebar" title="Expand sidebar" className="grid h-11 w-11 place-items-center rounded-xl text-secondary hover:bg-label/5">
-              <PanelLeftOpen className="h-5 w-5" aria-hidden />
-            </button>
-          )}
+          <button
+            onClick={onToggle}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="grid h-11 w-11 place-items-center rounded-xl text-secondary hover:bg-label/5"
+          >
+            {collapsed ? <PanelLeftOpen className="h-5 w-5" aria-hidden /> : <PanelLeftClose className="h-5 w-5" aria-hidden />}
+          </button>
         </div>
       </aside>
 
