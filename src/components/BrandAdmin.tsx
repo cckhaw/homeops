@@ -53,7 +53,7 @@ function BrandForm({ brand, onDone }: { brand?: BrandRecord; onDone: () => void 
       <div className="space-y-3 rounded-2xl bg-label/5 p-4">
         <p className="text-[15px] font-semibold">Custom logo (optional)</p>
         <Field label="Upload an image (PNG, JPG, WebP or GIF, under 1 MB)">
-          <input name="logoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="block w-full text-[15px] file:mr-3 file:min-h-[44px] file:rounded-xl file:border-0 file:bg-tint/10 file:px-4 file:font-semibold file:text-tint" />
+          <input name="logoFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" className="file-input" />
         </Field>
         <Field label="…or paste a link to an image">
           <input name="logoLink" value={link} onChange={(e) => setLink(e.target.value)} className="input" placeholder="https://…/logo.png" inputMode="url" autoCapitalize="none" />

@@ -37,7 +37,7 @@ export function Msg({ state }: { state: FormState }) {
 
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="field-label">{label}</span>
       {children}
     </label>
@@ -122,7 +122,7 @@ export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: strin
               setHasFile(!!e.target.files?.length);
               setScanMsg(undefined);
             }}
-            className="block w-full text-[15px] file:mr-3 file:min-h-[44px] file:rounded-xl file:border-0 file:bg-tint/10 file:px-4 file:font-semibold file:text-tint"
+            className="file-input"
           />
         </Field>
         {hasFile && (
@@ -153,7 +153,7 @@ export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: strin
                 input.files = dt.files;
               }
             }}
-            className="block w-full text-[15px] file:mr-3 file:min-h-[44px] file:rounded-xl file:border-0 file:bg-tint/10 file:px-4 file:font-semibold file:text-tint"
+            className="file-input"
           />
         </Field>
         {hasPhoto && (
@@ -199,7 +199,7 @@ export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: strin
           name="manual"
           type="file"
           accept="application/pdf,image/*"
-          className="block w-full text-[15px] file:mr-3 file:min-h-[44px] file:rounded-xl file:border-0 file:bg-tint/10 file:px-4 file:font-semibold file:text-tint"
+          className="file-input"
         />
       </Field>
       <Field label="Notes">

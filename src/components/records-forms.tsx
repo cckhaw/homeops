@@ -46,7 +46,7 @@ export function DocumentForm({ id, initial = {} }: { id?: string; initial?: DocI
         </Field>
         <Field label="Expires (optional — we remind you)"><input name="expiresOn" type="date" defaultValue={initial.expiresOn ?? ''} className="input" /></Field>
         <Field label={id ? 'Replace file (PDF or photo)' : 'File (PDF or photo, up to 10 MB)'}>
-          <input name="file" type="file" required={!id} accept="image/*,application/pdf" className="block w-full text-[15px] file:mr-3 file:min-h-[44px] file:rounded-xl file:border-0 file:bg-tint/10 file:px-4 file:font-semibold file:text-tint" />
+          <input name="file" type="file" required={!id} accept="image/*,application/pdf" className="file-input" />
         </Field>
       </div>
       <Field label="Notes"><textarea name="notes" maxLength={1000} rows={2} defaultValue={initial.notes ?? ''} className="input" placeholder="Policy number, who to call…" /></Field>
