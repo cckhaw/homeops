@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { switchHome } from '@/app/actions';
 import { applyMode, readMode } from '@/lib/theme';
 import AppleButton from './AppleButton';
+import HomePicker, { PICKER_THRESHOLD } from './HomePicker';
 
 /** Re-fetches server data periodically and on focus so household members see each other's changes. */
 export function LiveRefresh({ intervalMs = 20_000 }: { intervalMs?: number }) {
@@ -144,6 +145,18 @@ export type SwitcherHome = { id: string; name: string; icon: string };
 export function HomeSwitcher({ homes, activeId, layout = 'sidebar' }: { homes: SwitcherHome[]; activeId: string; layout?: 'sidebar' | 'rail' | 'bar' }) {
   const [pending, start] = useTransition();
   const active = homes.find((h) => h.id === activeId);
+  // Many homes: a row of icons stops working, so use one button that opens a searchable list instead.
+  if (homes.length > PICKER_THRESHOLD) {
+    if (layout === 'rail') return <HomePicker homes={homes} activeId={activeId} compact />;
+    if (layout === 'bar') {
+      return (
+        <div className="flex min-w-0 items-center gap-2">
+          <HomePicker homes={homes} activeId={activeId} />
+        </div>
+      );
+    }
+    return <HomePicker homes={homes} activeId={activeId} />;
+  }
   // The collapsed rail is narrow: show the active home and a few others, the rest are one tap away on "My homes".
   const shown = layout === 'rail' && homes.length > 6 ? [active, ...homes.filter((h) => h.id !== activeId)].filter((h): h is SwitcherHome => !!h).slice(0, 6) : homes;
 

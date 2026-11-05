@@ -78,6 +78,7 @@ export const assets = pgTable(
     serialNumber: text('serial_number'),
     installDate: date('install_date'),
     warrantyExpiry: date('warranty_expiry'),
+    purchaseCents: integer('purchase_cents'), // what it cost to buy/install, for the yearly spend report
     receiptUrl: text('receipt_url'),
     manualUrl: text('manual_url'),
     photoUrl: text('photo_url'),

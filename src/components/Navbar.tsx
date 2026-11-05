@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { BarChart3, Home, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HomeSwitcher, ThemeToggle, type SwitcherHome } from './misc';
 import Logo, { LogoMark } from './Logo';
@@ -18,6 +18,7 @@ const items = [
   { href: '/dashboard/passport', label: 'Passport', icon: BadgeCheck },
 ];
 const sideExtra = [
+  { href: '/dashboard/reports', label: 'Spending', icon: BarChart3 },
   { href: '/dashboard/homes', label: 'My homes', icon: Building2 },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];

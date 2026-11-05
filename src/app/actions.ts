@@ -80,6 +80,7 @@ export async function createAsset(_: FormState, fd: FormData): Promise<FormState
       serialNumber: optStr(fd, 'serialNumber', 120),
       installDate: isoDate(fd, 'installDate'),
       warrantyExpiry: isoDate(fd, 'warrantyExpiry'),
+      purchaseCents: parseCurrencyToCents(str(fd, 'purchase', 20)),
       notes: optStr(fd, 'notes', 2000),
       receiptUrl: receipt.url,
       manualUrl: manual.url,
@@ -118,6 +119,7 @@ export async function updateAsset(assetId: string, _: FormState, fd: FormData): 
     serialNumber: optStr(fd, 'serialNumber', 120),
     installDate: isoDate(fd, 'installDate'),
     warrantyExpiry: isoDate(fd, 'warrantyExpiry'),
+    purchaseCents: parseCurrencyToCents(str(fd, 'purchase', 20)),
     notes: optStr(fd, 'notes', 2000),
   };
   const receipt = await uploadFile(fileOf(fd, 'receipt'), `receipts/${household.id}`);

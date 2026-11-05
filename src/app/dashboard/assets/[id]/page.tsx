@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { and, asc, desc, eq } from 'drizzle-orm';
-import { ArrowLeft, BookOpen, FileText, Trash2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, FileText, QrCode, Trash2 } from 'lucide-react';
 import { db } from '@/db';
 import { assets, maintenanceTasks, serviceRecords } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
@@ -65,6 +65,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
         <Fact label="Warranty" value={warranty.label} className={tone} />
         <Fact label="Installed" value={formatDate(asset.installDate, undefined, locale)} />
         <Fact label="Serial" value={asset.serialNumber ?? '—'} />
+        {asset.purchaseCents != null && <Fact label="Purchase price" value={formatCurrency(asset.purchaseCents, currency, locale)} />}
       </GlassCard>
 
       <div className="grid items-start gap-x-8 xl:grid-cols-2">
@@ -73,6 +74,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
         <GlassCard className="flex flex-wrap gap-3">
           {asset.receiptUrl ? <AppleButton href={`/api/files/${asset.id}/receipt`} variant="secondary"><FileText className="h-4 w-4" aria-hidden /> Receipt</AppleButton> : <span className="text-[15px] text-secondary">No receipt uploaded.</span>}
           {asset.manualUrl && <AppleButton href={`/api/files/${asset.id}/manual`} variant="secondary"><BookOpen className="h-4 w-4" aria-hidden /> Manual</AppleButton>}
+          <AppleButton href={`/dashboard/assets/${asset.id}/label`} variant="secondary"><QrCode className="h-4 w-4" aria-hidden /> QR label</AppleButton>
         </GlassCard>
       </Section>
 
@@ -115,7 +117,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
       </div>
       <div>
       <Section title="Edit details">
-        <GlassCard><AssetForm assetId={asset.id} hasPhoto={!!asset.photoUrl} initial={{ name: asset.name, category: asset.category, make: asset.make ?? null, model: asset.model ?? asset.makeModel, serialNumber: asset.serialNumber, installDate: asset.installDate, warrantyExpiry: asset.warrantyExpiry, notes: asset.notes }} /></GlassCard>
+        <GlassCard><AssetForm assetId={asset.id} hasPhoto={!!asset.photoUrl} initial={{ name: asset.name, category: asset.category, make: asset.make ?? null, model: asset.model ?? asset.makeModel, serialNumber: asset.serialNumber, installDate: asset.installDate, warrantyExpiry: asset.warrantyExpiry, purchase: asset.purchaseCents != null ? (asset.purchaseCents / 100).toFixed(2) : '', notes: asset.notes }} /></GlassCard>
       </Section>
 
       <form action={removeAsset} className="mt-2">
