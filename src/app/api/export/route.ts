@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { assets, householdMembers, maintenanceTasks, serviceRecords } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth';
 import { listMemberships } from '@/lib/household';
+import { siteBaseUrl } from '@/lib/donate';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,15 +36,17 @@ export async function GET(req: Request) {
       ])
     : [[], [], [], []];
 
+  const base = siteBaseUrl(new URL(req.url).origin);
+  const dl = (id: string, kind: 'receipt' | 'manual', has: string | null) => (has ? `${base}/api/files/${id}/${kind}` : null);
   const stamp = new Date().toISOString().slice(0, 10);
   const headers = { 'Cache-Control': 'private, no-store' };
   const homeName = new Map(memberships.map((m) => [m.household.id, m.household.name]));
 
   if (new URL(req.url).searchParams.get('format') === 'csv') {
-    const cols = ['home', 'name', 'category', 'make', 'model', 'serial_number', 'install_date', 'warranty_expiry', 'notes', 'receipt_url', 'manual_url'];
+    const cols = ['home', 'name', 'category', 'make', 'model', 'serial_number', 'install_date', 'warranty_expiry', 'notes', 'receipt_download', 'manual_download'];
     const lines = [cols.join(',')].concat(
       homeAssets.map((a) =>
-        [homeName.get(a.householdId), a.name, a.category, a.make ?? a.makeModel, a.model, a.serialNumber, a.installDate, a.warrantyExpiry, a.notes, a.receiptUrl, a.manualUrl].map(cell).join(','),
+        [homeName.get(a.householdId), a.name, a.category, a.make ?? a.makeModel, a.model, a.serialNumber, a.installDate, a.warrantyExpiry, a.notes, dl(a.id, 'receipt', a.receiptUrl), dl(a.id, 'manual', a.manualUrl)].map(cell).join(','),
       ),
     );
     return new NextResponse('﻿' + lines.join('\r\n') + '\r\n', {
@@ -67,7 +70,9 @@ export async function GET(req: Request) {
       yourRole: role,
       createdAt: h.createdAt,
       memberCount: memberCounts.filter((m) => m.householdId === h.id).length,
-      assets: homeAssets.filter((a) => a.householdId === h.id).map(({ householdId: _h, ...a }) => a),
+      assets: homeAssets
+        .filter((a) => a.householdId === h.id)
+        .map(({ householdId: _h, receiptUrl, manualUrl, ...a }) => ({ ...a, receiptDownload: dl(a.id, 'receipt', receiptUrl), manualDownload: dl(a.id, 'manual', manualUrl) })),
       serviceRecords: records.filter((r) => r.householdId === h.id).map(({ householdId: _h, ...r }) => r),
       maintenanceTasks: tasks.filter((t) => t.householdId === h.id).map(({ householdId: _h, ...t }) => t),
     })),

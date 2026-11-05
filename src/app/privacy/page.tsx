@@ -110,7 +110,7 @@ export default async function PrivacyPage() {
         <ul>
           <li>Data is transmitted over encrypted connections (HTTPS) and stored in a managed Neon Postgres database that is encrypted at rest by the provider.</li>
           <li>Passwords are hashed with scrypt; two-factor secrets are encrypted; accounts lock temporarily after repeated failed sign-ins; changing your password signs out every other session.</li>
-          <li>Uploaded receipts and manuals are stored in Vercel Blob. Each file has a long, unguessable web address, but <strong>anyone who has that exact link can open the file</strong>, so please keep links private. Files are removed when you delete the home they belong to or your account (see &ldquo;Your rights&rdquo;).</li>
+          <li>Uploaded receipts and manuals are stored in a <strong>private</strong> Vercel Blob bucket. They have no public web address: a file can only be opened by a signed-in member of the household it belongs to. Files are removed when you replace them, delete the asset or home, or delete your account (see &ldquo;Your rights&rdquo;). The only uploads that are publicly viewable are brand logos added by the site owner.</li>
           <li>No online service can be guaranteed perfectly secure. If a breach affecting your data occurs, we will tell affected users and the relevant authorities where the law requires.</li>
         </ul>
       </Section>

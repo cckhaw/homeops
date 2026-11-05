@@ -9,7 +9,7 @@ import { ConfirmButton, Sheet } from './misc';
 import { Field, Msg } from './forms';
 import GlassCard from './GlassCard';
 import { deleteBrand, restoreDefaultBrands, saveBrand, type BrandState } from '@/app/brand-actions';
-import { faviconUrl, normalizeDomain, type BrandRecord } from '@/lib/brands';
+import { faviconUrl, normalizeDomain, recordLogoSrc, type BrandRecord } from '@/lib/brands';
 
 function PreviewTile({ src, label }: { src: string | null; label: string }) {
   const [bad, setBad] = useState(false);
@@ -36,7 +36,7 @@ function BrandForm({ brand, onDone }: { brand?: BrandRecord; onDone: () => void 
   }, [state]);
 
   const d = normalizeDomain(domain);
-  const preview = link.startsWith('https://') ? link : brand?.logoUrl ?? (d ? faviconUrl(d, 128) : null);
+  const preview = link.startsWith('https://') ? link : (brand?.logoUrl ? recordLogoSrc(brand, 128) : null) ?? (d ? faviconUrl(d, 128) : null);
 
   return (
     <form action={action} className="space-y-4">

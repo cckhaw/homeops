@@ -61,8 +61,8 @@ export default async function AssetDetail({ params }: { params: { id: string } }
       <div>
       <Section title="Documents">
         <GlassCard className="flex flex-wrap gap-3">
-          {asset.receiptUrl ? <AppleButton href={asset.receiptUrl} variant="secondary"><FileText className="h-4 w-4" aria-hidden /> Receipt</AppleButton> : <span className="text-[15px] text-secondary">No receipt uploaded.</span>}
-          {asset.manualUrl && <AppleButton href={asset.manualUrl} variant="secondary"><BookOpen className="h-4 w-4" aria-hidden /> Manual</AppleButton>}
+          {asset.receiptUrl ? <AppleButton href={`/api/files/${asset.id}/receipt`} variant="secondary"><FileText className="h-4 w-4" aria-hidden /> Receipt</AppleButton> : <span className="text-[15px] text-secondary">No receipt uploaded.</span>}
+          {asset.manualUrl && <AppleButton href={`/api/files/${asset.id}/manual`} variant="secondary"><BookOpen className="h-4 w-4" aria-hidden /> Manual</AppleButton>}
         </GlassCard>
       </Section>
 

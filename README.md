@@ -21,7 +21,7 @@ npm run dev
 | `CRON_SECRET` | for reminders | Authorises the daily `/api/cron/reminders` Vercel Cron job |
 | `STRIPE_SECRET_KEY` | optional | Turns on the public `/support` "Buy me a coffee" page (Stripe Checkout, $1–$500). Use a restricted key with *Checkout Sessions: write*. `STRIPE_CURRENCY` (default `usd`) |
 | `DONATE_URL` | optional | Instead of the key: an `https://` Stripe Payment Link to redirect donors to |
-| `BLOB_READ_WRITE_TOKEN` | optional | Receipt / manual uploads (Vercel Blob) |
+| `BLOB_STORE_ID` / `BLOB_READ_WRITE_TOKEN` | optional | File storage (Vercel Blob; created by connecting a store). Stores are private: receipts/manuals are only served to signed-in household members, brand logos via a public proxy. Check it in Admin → Site config → Test file storage. |
 | `ANTHROPIC_API_KEY` | optional | Receipt OCR (`/api/ocr`) |
 
 ## Deployment (production only)
