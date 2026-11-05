@@ -47,7 +47,8 @@ export default async function PrivacyPage() {
         <ul>
           <li>Your e-mail address and, optionally, a display name.</li>
           <li>Your sign-in credentials. Passwords are never stored in readable form: we keep only a salted one-way hash. If you turn on two-factor authentication we store its secret in encrypted form and your recovery codes as hashes.</li>
-          <li>If you choose to sign in with Google (an optional feature): your name, e-mail address and profile picture as provided by Google.</li>
+          <li>If you choose to sign in with Google or Apple (optional features): your name and e-mail address (and, for Google, profile picture) as provided by them.</li>
+          <li>Abuse protection and diagnostics: short-lived request counters (keyed by a one-way hash of your IP address or e-mail, deleted automatically) to limit repeated attempts, and technical error reports (message, page route, stack trace, never your personal data) stored in our own database to fix bugs.</li>
           <li>Your preferences, such as reminder e-mail settings.</li>
         </ul>
         <p><strong>Household data you choose to add</strong></p>
@@ -87,6 +88,8 @@ export default async function PrivacyPage() {
           <li><strong>Resend</strong>: delivers account and reminder e-mails (receives your e-mail address and the message).</li>
           <li><strong>Stripe</strong>: processes optional donations.</li>
           <li><strong>Anthropic</strong>: reads receipts on request (see above).</li>
+          <li><strong>Apple</strong>: optional &ldquo;Sign in with Apple&rdquo;. Apple tells us your name (first time only) and an e-mail address, which may be Apple&apos;s private relay address if you choose to hide yours.</li>
+          <li><strong>Cloudflare Turnstile</strong>: when enabled by the site owner, a privacy-friendly security check on sign-up, sign-in and password-reset forms, used to block automated abuse. It receives your IP address and basic browser signals; there is no advertising or tracking.</li>
           <li><strong>Google</strong>: optional sign-in. In addition, to show brand logos on your assets, your browser asks Google&apos;s public favicon service for the logo of the brand&apos;s website. This tells Google that your browser requested that logo, together with your IP address, but nothing from your account. If a logo can&apos;t load, a letter tile is shown instead.</li>
         </ul>
         <p>

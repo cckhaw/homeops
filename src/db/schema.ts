@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, date, integer, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, date, integer, index, uniqueIndex, primaryKey } from 'drizzle-orm/pg-core';
 
 export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey(),
@@ -190,6 +190,36 @@ export const auditLog = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => ({ byTime: index('audit_log_time_idx').on(t.createdAt) }),
+);
+
+/** Fixed-window request counters for abuse protection. `key` is a salted hash — no IP address or e-mail is stored. */
+export const rateLimits = pgTable(
+  'rate_limits',
+  {
+    key: text('key').notNull(),
+    windowStart: timestamp('window_start').notNull(),
+    count: integer('count').default(0).notNull(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.key, t.windowStart] }) }),
+);
+
+/** Our own error tracking (no third party): one row per distinct error, with an occurrence counter. */
+export const errorLog = pgTable(
+  'error_log',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    fingerprint: text('fingerprint').notNull().unique(),
+    source: text('source').notNull(), // 'server' | 'client'
+    route: text('route'), // route pattern such as /dashboard/assets/[id] — never a real URL
+    message: text('message').notNull(), // sanitised: no e-mail addresses, tokens or ids
+    stack: text('stack'),
+    count: integer('count').default(1).notNull(),
+    firstSeenAt: timestamp('first_seen_at').defaultNow().notNull(),
+    lastSeenAt: timestamp('last_seen_at').defaultNow().notNull(),
+    notifiedAt: timestamp('notified_at'),
+    resolvedAt: timestamp('resolved_at'),
+  },
+  (t) => ({ bySeen: index('error_log_seen_idx').on(t.lastSeenAt) }),
 );
 
 export type Profile = typeof profiles.$inferSelect;

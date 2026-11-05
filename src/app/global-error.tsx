@@ -1,7 +1,13 @@
 'use client';
 
+import { useEffect } from 'react';
+import { reportClientError } from '@/app/error-actions';
+
 // Last-resort boundary: replaces the root layout, so it brings its own <html>, <body> and inline styles.
-export default function GlobalError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  useEffect(() => {
+    if (!error.digest) void reportClientError(error.message, window.location.pathname);
+  }, [error]);
   return (
     <html lang="en">
       <body style={{ margin: 0, minHeight: '100dvh', display: 'grid', placeItems: 'center', padding: 24, fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, Arial, sans-serif', background: '#f5f5f7', color: '#1d1d1f', textAlign: 'center' }}>

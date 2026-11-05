@@ -16,6 +16,8 @@ npm run dev
 | `DATABASE_URL` | yes | Neon connection string (set by the Vercel–Neon integration) |
 | `NEXTAUTH_SECRET`, `NEXTAUTH_URL` | yes | Session signing / canonical URL |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | optional (Google button appears only when both set) | OAuth redirect URI: `<NEXTAUTH_URL>/api/auth/callback/google` |
+| `APPLE_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | optional (Apple button appears only when all four set) | Sign in with Apple. `APPLE_ID` is the **Services ID**; `APPLE_PRIVATE_KEY` is the `.p8` file contents. Return URL: `<NEXTAUTH_URL>/api/auth/callback/apple`. Optional `APPLE_DOMAIN_ASSOCIATION` = contents of Apple's domain-verification file (served at `/.well-known/apple-developer-domainassociation.txt`). |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | optional | Free Cloudflare Turnstile CAPTCHA on register / forgot-password, and on login after repeated failures. Off when unset. Rate limiting works regardless. |
 | `ADMIN_EMAILS` | recommended | Comma-separated emails promoted to admin on sign-in |
 | `RESEND_API_KEY`, `EMAIL_FROM` | yes (recommended) | Sends account-confirmation, forgot-password and reminder e-mails. Verify your sending domain in Resend; `EMAIL_FROM` must use it. Without it, sign-up works without e-mail confirmation and admin promotion/reset/reminders are unavailable. |
 | `CRON_SECRET` | for reminders | Authorises the daily `/api/cron/reminders` Vercel Cron job |

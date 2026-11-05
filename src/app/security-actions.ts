@@ -22,6 +22,8 @@ import {
 import { randomUUID } from 'crypto';
 import { HOME_COOKIE, ensureMembership, newToken } from '@/lib/household';
 import { audit } from '@/lib/audit';
+import { enforce, enforceIp, getClientIp } from '@/lib/rate-limit';
+import { CAPTCHA_FAILED, verifyTurnstile } from '@/lib/turnstile';
 import { eraseAccount } from '@/lib/account-erase';
 
 export type FormState = { error?: string; ok?: string } | undefined;
@@ -39,6 +41,10 @@ export async function registerAccount(_: FormState, fd: FormData): Promise<FormS
   const email = normalizeEmail(str(fd, 'email', 254));
   const name = str(fd, 'name', 120).trim() || null;
   if (!isEmail(email)) return { error: 'Enter a valid e-mail address.' };
+  const ip = await getClientIp();
+  const limited = (await enforce('register-ip', ip, 10, 3600)) ?? (await enforce('register-email', email, 3, 3600));
+  if (limited) return { error: limited };
+  if (!(await verifyTurnstile(fd.get('cf-turnstile-response'), ip))) return { error: CAPTCHA_FAILED };
 
   if (!emailConfigured()) {
     const password = str(fd, 'password', 200);
@@ -82,6 +88,10 @@ export async function requestPasswordReset(_: FormState, fd: FormData): Promise<
   const email = normalizeEmail(str(fd, 'email', 254));
   if (!isEmail(email)) return { error: 'Enter a valid e-mail address.' };
   if (!emailConfigured()) return { error: 'Password reset e-mail is not set up on this site yet. Please contact the site owner.' };
+  const ip = await getClientIp();
+  const limited = (await enforce('reset-ip', ip, 10, 3600)) ?? (await enforce('reset-email', email, 3, 3600));
+  if (limited) return { error: limited };
+  if (!(await verifyTurnstile(fd.get('cf-turnstile-response'), ip))) return { error: CAPTCHA_FAILED };
 
   const generic = { ok: 'If an account exists for that address, we have sent a reset link. It expires in 1 hour.' };
   const recent = await db
@@ -262,6 +272,8 @@ export async function removePassportPassword() {
 
 /** Public: visitor enters the passport password. */
 export async function unlockPassport(token: string, _: FormState, fd: FormData): Promise<FormState> {
+  const tooMany = await enforceIp('passport-unlock', 30, 600);
+  if (tooMany) return { error: tooMany };
   const [home] = await db.select().from(households).where(eq(households.passportToken, token));
   if (!home?.passportPasswordHash) return { error: 'This passport is not available.' };
   if (home.passportLockedUntil && home.passportLockedUntil > new Date()) return { error: 'Too many attempts. Please try again in a few minutes.' };

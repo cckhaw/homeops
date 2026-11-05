@@ -43,6 +43,13 @@
       "when": 1793860546680,
       "tag": "0005_flowery_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793862133765,
+      "tag": "0006_open_hiroim",
+      "breakpoints": true
     }
   ]
 }

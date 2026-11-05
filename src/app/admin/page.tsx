@@ -1,6 +1,7 @@
+import Link from 'next/link';
 import { count, gte, sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { assets, households, maintenanceTasks, profiles } from '@/db/schema';
+import { assets, errorLog, households, maintenanceTasks, profiles } from '@/db/schema';
 import { getLimits } from '@/lib/settings';
 import { toggleUnlimitedTier } from '@/app/actions';
 import GlassCard from '@/components/GlassCard';
@@ -10,7 +11,7 @@ import AppleButton from '@/components/AppleButton';
 export default async function AdminHome() {
   const since = new Date(Date.now() - 29 * 86_400_000);
   since.setHours(0, 0, 0, 0);
-  const [[u], [h], [a], [t], signups, limits] = await Promise.all([
+  const [[u], [h], [a], [t], signups, limits, [openErrors]] = await Promise.all([
     db.select({ n: count() }).from(profiles),
     db.select({ n: count() }).from(households),
     db.select({ n: count() }).from(assets),
@@ -21,6 +22,7 @@ export default async function AdminHome() {
       .where(gte(profiles.createdAt, since))
       .groupBy(sql`to_char(${profiles.createdAt}, 'YYYY-MM-DD')`),
     getLimits(),
+    db.select({ n: count() }).from(errorLog).where(sql`${errorLog.resolvedAt} is null`),
   ]);
 
   const perDay = new Map(signups.map((s) => [s.day, s.n]));
@@ -41,6 +43,16 @@ export default async function AdminHome() {
         <Stat label="Active assets" value={a.n} />
         <Stat label="Tasks completed" value={t.n} />
       </div>
+
+      <Link href="/admin/errors" className="mb-6 block rounded-apple transition active:scale-[0.99]">
+        <GlassCard className="flex items-center justify-between gap-4 p-4">
+          <div>
+            <p className="text-[19px] font-bold">Open errors</p>
+            <p className="text-[14px] text-secondary">{openErrors.n === 0 ? 'Nothing needs attention.' : 'Recorded since you last resolved them.'}</p>
+          </div>
+          <span className={`text-[28px] font-bold ${openErrors.n ? 'text-bad' : 'text-ok'}`}>{openErrors.n}</span>
+        </GlassCard>
+      </Link>
 
       <GlassCard className="mb-6">
         <div className="mb-3 flex items-baseline justify-between">

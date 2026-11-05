@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { MAX_DONATION_CENTS, MIN_DONATION_CENTS, parseDollarsToCents, siteBaseUrl } from '@/lib/donate';
+import { enforceIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -11,6 +12,7 @@ const back = (base: string, error: string) => NextResponse.redirect(`${base}/sup
  */
 export async function POST(req: Request) {
   const base = siteBaseUrl(new URL(req.url).origin);
+  if (await enforceIp('donate', 15, 3600)) return back(base, 'rate');
   const form = await req.formData().catch(() => null);
   const custom = String(form?.get('custom') ?? '').trim();
   const cents = parseDollarsToCents(custom || String(form?.get('amount') ?? ''));
