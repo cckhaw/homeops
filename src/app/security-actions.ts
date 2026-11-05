@@ -14,6 +14,8 @@ import { registerFailure, requireHousehold, requireUser } from '@/lib/auth';
 import { emailConfigured, emailLayout, sendEmail } from '@/lib/email';
 import { siteBaseUrl } from '@/lib/donate';
 import { sendReminderDigests } from '@/lib/reminders';
+import { pushConfigured } from '@/lib/push';
+import { whatsappConfigured } from '@/lib/whatsapp';
 import { passportCookieName, passportCookieValue } from '@/lib/passport';
 import {
   decryptSecret, encryptSecret, generateRecoveryCodes, generateTotpSecret, hashCode, hashPassword, passwordPolicyError,
@@ -239,10 +241,12 @@ export async function saveReminderSettings(_: FormState, fd: FormData): Promise<
 
 export async function sendTestReminder(): Promise<FormState> {
   const user = await requireUser();
-  if (!emailConfigured()) return { error: 'E-mail is not set up on this site yet (missing RESEND_API_KEY).' };
+  const channels = [emailConfigured() && 'e-mail', pushConfigured() && 'push', whatsappConfigured() && user.notifyWhatsapp && user.whatsappVerifiedAt && 'WhatsApp'].filter(Boolean);
+  if (!channels.length) return { error: 'No reminder channel is available yet: e-mail is not set up on this site, and push / WhatsApp are not turned on.' };
   const r = await sendReminderDigests({ onlyUserId: user.id, force: true });
-  return r.emails
-    ? { ok: `Sent — ${r.tasks} task${r.tasks === 1 ? '' : 's'} and ${r.warranties} warrant${r.warranties === 1 ? 'y' : 'ies'} included.` }
+  const via = [r.emails && 'e-mail', r.push && 'push', r.whatsapp && 'WhatsApp'].filter(Boolean).join(', ');
+  return via
+    ? { ok: `Sent by ${via} — ${r.tasks} task${r.tasks === 1 ? '' : 's'}, ${r.warranties} warrant${r.warranties === 1 ? 'y' : 'ies'} and ${r.documents ?? 0} document${r.documents === 1 ? '' : 's'} included.` }
     : { ok: 'Nothing is due in your reminder windows, so there was nothing to send.' };
 }
 

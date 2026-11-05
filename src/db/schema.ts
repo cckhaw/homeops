@@ -26,6 +26,13 @@ export const profiles = pgTable('profiles', {
   welcomeSeenAt: timestamp('welcome_seen_at'),
   checklistDismissedAt: timestamp('checklist_dismissed_at'),
   calendarToken: text('calendar_token').unique(), // secret path for the personal .ics feed
+  // WhatsApp reminders: opt-in, number confirmed with a one-time code sent to it
+  notifyWhatsapp: boolean('notify_whatsapp').default(false).notNull(),
+  whatsappNumber: text('whatsapp_number'), // international digits, no '+'
+  whatsappVerifiedAt: timestamp('whatsapp_verified_at'),
+  whatsappCodeHash: text('whatsapp_code_hash'),
+  whatsappCodeExpires: timestamp('whatsapp_code_expires'),
+  whatsappCodeAttempts: integer('whatsapp_code_attempts').default(0).notNull(),
 });
 
 export const households = pgTable('households', {
@@ -289,4 +296,19 @@ export const utilityBills = pgTable(
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (t) => ({ one: uniqueIndex('utility_bills_one').on(t.householdId, t.kind, t.period) }),
+);
+
+/** Web Push subscriptions: one per browser/device the user turned notifications on for. */
+export const pushSubscriptions = pgTable(
+  'push_subscriptions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+    endpoint: text('endpoint').notNull().unique(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    label: text('label'), // e.g. "Chrome on Android" — shown so people can tell devices apart
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => ({ byUser: index('push_subscriptions_user_idx').on(t.userId) }),
 );

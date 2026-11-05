@@ -40,3 +40,43 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+/* Web Push: show the reminder, and open the right page when it is tapped. */
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = { body: event.data ? event.data.text() : '' };
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'HomeOps', {
+      body: data.body || '',
+      icon: '/icons/192',
+      badge: '/icons/192',
+      tag: 'homeops-reminders',
+      data: { url: data.url || '/dashboard' },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  // Only ever open pages of this site, whatever the payload says.
+  let target = new URL('/dashboard', self.location.origin);
+  try {
+    const u = new URL((event.notification.data && event.notification.data.url) || '/dashboard', self.location.origin);
+    if (u.origin === self.location.origin) target = u;
+  } catch (e) {}
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
+      for (const w of wins) {
+        if (w.url.startsWith(self.location.origin) && 'focus' in w) {
+          if ('navigate' in w) w.navigate(target.href);
+          return w.focus();
+        }
+      }
+      return self.clients.openWindow(target.href);
+    }),
+  );
+});

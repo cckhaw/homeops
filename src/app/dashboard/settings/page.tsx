@@ -14,6 +14,12 @@ import { donationsEnabled } from '@/lib/donate';
 import { emailConfigured } from '@/lib/email';
 import { CalendarFeed, DeleteAccountForm, PasswordChangeForm, ReminderForm, TwoFactorSettings } from '@/components/security-forms';
 import { siteBaseUrl } from '@/lib/donate';
+import { eq } from 'drizzle-orm';
+import { db } from '@/db';
+import { pushSubscriptions } from '@/db/schema';
+import { vapidPublicKey } from '@/lib/push';
+import { whatsappConfigured } from '@/lib/whatsapp';
+import { PushSettings, WhatsappSettings } from '@/components/notify-forms';
 
 export const metadata = { title: 'Settings' };
 
@@ -21,6 +27,7 @@ export default async function SettingsPage() {
   const { user, household, role } = await requireHousehold();
   const prefs = await getPrefs();
   const detected = pickLocale((await headers()).get('accept-language'));
+  const devices = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, user.id)).orderBy(pushSubscriptions.createdAt);
   return (
     <>
       <PageHeader title="Settings" />
@@ -31,7 +38,9 @@ export default async function SettingsPage() {
       <h2 className="mb-2 px-1 text-[22px] font-bold">Language &amp; region</h2>
       <GlassCard className="mb-8"><LocaleForm locale={user.locale} detected={detected} /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Notifications</h2>
-      <GlassCard className="mb-8"><ReminderForm on={user.notifyReminders} lead={user.reminderLeadDays} warranty={user.warrantyLeadDays} emailReady={emailConfigured()} /></GlassCard>
+      <GlassCard className="mb-4"><ReminderForm on={user.notifyReminders} lead={user.reminderLeadDays} warranty={user.warrantyLeadDays} emailReady={emailConfigured()} /></GlassCard>
+      <GlassCard className="mb-4"><PushSettings publicKey={vapidPublicKey()} devices={devices.map((d) => ({ id: d.id, label: d.label, createdAt: d.createdAt.toISOString() }))} /></GlassCard>
+      <GlassCard className="mb-8"><WhatsappSettings configured={whatsappConfigured()} number={user.whatsappNumber} verified={!!user.whatsappVerifiedAt} enabled={user.notifyWhatsapp} awaitingCode={!!user.whatsappCodeHash && !!user.whatsappCodeExpires && user.whatsappCodeExpires.getTime() > Date.now()} /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Calendar</h2>
       <GlassCard className="mb-8"><CalendarFeed token={user.calendarToken} baseUrl={siteBaseUrl('http://localhost:3000')} /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Account</h2>
