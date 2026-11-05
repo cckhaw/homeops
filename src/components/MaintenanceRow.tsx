@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { Check, Pencil, Trash2 } from 'lucide-react';
 import { Sheet } from './misc';
 import { TaskEditForm } from './forms';
+import { usePrefs } from './PrefsProvider';
 import { deleteTask, toggleTask } from '@/app/actions';
 import { cn, daysUntil, FREQUENCY_LABEL, formatDate, relativeDue } from '@/lib/utils';
 
@@ -22,6 +23,7 @@ type Props = {
 };
 
 export default function MaintenanceRow({ id, title, dueDate, frequency, completed, completedAt, assetName, assetId = null, assets, canDelete = true }: Props) {
+  const { locale } = usePrefs();
   const [pending, start] = useTransition();
   const [editing, setEditing] = useState(false);
   const days = daysUntil(dueDate) ?? 0;
@@ -50,7 +52,7 @@ export default function MaintenanceRow({ id, title, dueDate, frequency, complete
       <div className="min-w-0 flex-1 py-2">
         <p className={cn('truncate text-[17px]', completed && 'text-secondary line-through')}>{title}</p>
         <p className={cn('truncate text-[13px]', overdue ? 'font-medium text-bad' : soon ? 'font-medium text-warn' : 'text-secondary')}>
-          {completed ? `Done ${formatDate(completedAt ?? null)}` : relativeDue(dueDate)}
+          {completed ? `Done ${formatDate(completedAt ?? null, undefined, locale)}` : relativeDue(dueDate, locale)}
           {' · '}
           {FREQUENCY_LABEL[frequency] ?? frequency}
           {assetName ? ` · ${assetName}` : ''}

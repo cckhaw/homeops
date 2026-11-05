@@ -7,6 +7,9 @@ export function cn(...inputs: ClassValue[]) {
 // ---------- Constants ----------
 export const CATEGORIES = [
   'HVAC',
+  'Air Conditioner',
+  'Water Purifier',
+  'Air Purifier',
   'Water Heater',
   'Refrigerator',
   'Dishwasher',
@@ -74,17 +77,17 @@ export function daysUntil(iso: string | null | undefined): number | null {
   return Math.round((parseISODate(iso).getTime() - today.getTime()) / 86_400_000);
 }
 
-export function formatDate(iso: string | Date | null | undefined, opts?: Intl.DateTimeFormatOptions): string {
+export function formatDate(iso: string | Date | null | undefined, opts?: Intl.DateTimeFormatOptions, locale = 'en-US'): string {
   if (!iso) return '—';
   const d = typeof iso === 'string' ? parseISODate(iso.slice(0, 10)) : iso;
-  return d.toLocaleDateString('en-US', opts ?? { month: 'short', day: 'numeric', year: 'numeric' });
+  return d.toLocaleDateString(locale, opts ?? { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-export function formatMonth(iso: string): string {
-  return parseISODate(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+export function formatMonth(iso: string, locale = 'en-US'): string {
+  return parseISODate(iso).toLocaleDateString(locale, { month: 'long', year: 'numeric' });
 }
 
-export function relativeDue(iso: string): string {
+export function relativeDue(iso: string, locale = 'en-US'): string {
   const n = daysUntil(iso);
   if (n === null) return '';
   if (n === 0) return 'Due today';
@@ -92,13 +95,14 @@ export function relativeDue(iso: string): string {
   if (n === -1) return '1 day overdue';
   if (n < 0) return `${-n} days overdue`;
   if (n < 45) return `Due in ${n} days`;
-  return `Due ${formatDate(iso, { month: 'short', day: 'numeric' })}`;
+  return `Due ${formatDate(iso, { month: 'short', day: 'numeric' }, locale)}`;
 }
 
 // ---------- Money ----------
-export function formatCurrency(cents: number | null | undefined): string {
+/** `cents` is the amount × 100 (kept uniform for every currency; Intl applies each currency's own decimals). */
+export function formatCurrency(cents: number | null | undefined, currency = 'USD', locale = 'en-US'): string {
   if (cents === null || cents === undefined) return '—';
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
+  return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(cents / 100);
 }
 
 export function parseCurrencyToCents(input: string | null | undefined): number | null {
@@ -110,12 +114,12 @@ export function parseCurrencyToCents(input: string | null | undefined): number |
 // ---------- Warranty & health ----------
 export type WarrantyState = { label: string; tone: 'ok' | 'warn' | 'bad' | 'none' };
 
-export function warrantyState(expiry: string | null | undefined): WarrantyState {
+export function warrantyState(expiry: string | null | undefined, locale = 'en-US'): WarrantyState {
   const n = daysUntil(expiry);
   if (n === null) return { label: 'No warranty on file', tone: 'none' };
-  if (n < 0) return { label: `Expired ${formatDate(expiry)}`, tone: 'bad' };
+  if (n < 0) return { label: `Expired ${formatDate(expiry, undefined, locale)}`, tone: 'bad' };
   if (n <= 90) return { label: `Expires in ${n} day${n === 1 ? '' : 's'}`, tone: 'warn' };
-  return { label: `Covered until ${formatDate(expiry)}`, tone: 'ok' };
+  return { label: `Covered until ${formatDate(expiry, undefined, locale)}`, tone: 'ok' };
 }
 
 export function healthScore(input: {
@@ -138,10 +142,10 @@ export function healthScore(input: {
 }
 
 // ---------- Seasonal maintenance templates ----------
-export type TaskTemplate = { title: string; frequency: Frequency; month: number; day: number };
+export type TaskTemplate = { title: string; frequency: Frequency; month?: number; day?: number; offsetDays?: number };
 
-/** Seeded for every new household; due on the next occurrence of month/day. */
-export const SEASONAL_TEMPLATES: TaskTemplate[] = [
+/** Four seasons: furnace, gutters, frost. Seeded for temperate homes (the default). */
+export const TEMPERATE_TEMPLATES: TaskTemplate[] = [
   { title: 'Test smoke & CO detectors', frequency: 'biannually', month: 3, day: 10 },
   { title: 'Service A/C before summer', frequency: 'yearly', month: 4, day: 1 },
   { title: 'Replace HVAC air filter', frequency: 'quarterly', month: 1, day: 15 },
@@ -152,6 +156,33 @@ export const SEASONAL_TEMPLATES: TaskTemplate[] = [
   { title: 'Winterize outdoor faucets', frequency: 'yearly', month: 10, day: 25 },
   { title: 'Flush water heater', frequency: 'yearly', month: 1, day: 20 },
 ];
+
+/** Year-round heat and humidity, monsoon rains: aircon care, drains, damp, termites and mosquito prevention. */
+export const TROPICAL_TEMPLATES: TaskTemplate[] = [
+  { title: 'Clean air-conditioner filters', frequency: 'monthly', offsetDays: 14 },
+  { title: 'Aircon servicing (chemical wash)', frequency: 'biannually', offsetDays: 45 },
+  { title: 'Check for stagnant water (mosquito prevention)', frequency: 'monthly', offsetDays: 7 },
+  { title: 'Clean roof gutters & drains before monsoon', frequency: 'biannually', month: 10, day: 1 },
+  { title: 'Inspect roof & ceiling for leaks', frequency: 'yearly', month: 10, day: 15 },
+  { title: 'Termite inspection', frequency: 'yearly', month: 3, day: 1 },
+  { title: 'Clean water tank & check filters', frequency: 'biannually', offsetDays: 60 },
+  { title: 'Test smoke detectors', frequency: 'biannually', month: 3, day: 10 },
+  { title: 'Test earth-leakage breaker (RCCB)', frequency: 'quarterly', offsetDays: 30 },
+  { title: 'Check for mould & damp (wardrobes, bathrooms)', frequency: 'quarterly', offsetDays: 21 },
+  { title: 'Inspect water heater', frequency: 'yearly', offsetDays: 90 },
+];
+
+/** Kept for existing imports: the default (temperate) set. */
+export const SEASONAL_TEMPLATES = TEMPERATE_TEMPLATES;
+
+export const templatesFor = (climate: string | null | undefined): TaskTemplate[] =>
+  climate === 'tropical' ? TROPICAL_TEMPLATES : TEMPERATE_TEMPLATES;
+
+/** First due date for a template: a fixed month/day (next occurrence) or N days from now. */
+export function templateDueDate(t: TaskTemplate, from = new Date()): string {
+  if (t.month && t.day) return nextOccurrence(t.month, t.day, from);
+  return addDays(toISODate(from), t.offsetDays ?? 30);
+}
 
 /**
  * Next date for a yearly month/day. If this year's date passed within `graceDays`,
@@ -192,5 +223,17 @@ export const CATEGORY_TASKS: Record<string, AssetTaskTemplate[]> = {
   Electrical: [{ title: 'Test GFCI outlets', frequency: 'quarterly', offsetDays: 30 }],
   'Garage Door': [{ title: 'Lubricate & test auto-reverse', frequency: 'biannually', offsetDays: 45 }],
   'Water Softener': [{ title: 'Refill salt & clean brine tank', frequency: 'quarterly', offsetDays: 30 }],
+  'Air Conditioner': [
+    { title: 'Clean filters', frequency: 'monthly', offsetDays: 14 },
+    { title: 'Professional servicing (chemical wash)', frequency: 'biannually', offsetDays: 60 },
+  ],
+  'Water Purifier': [
+    { title: 'Replace filters', frequency: 'biannually', offsetDays: 90 },
+    { title: 'Sanitise & service', frequency: 'yearly', offsetDays: 150 },
+  ],
+  'Air Purifier': [
+    { title: 'Clean pre-filter', frequency: 'monthly', offsetDays: 14 },
+    { title: 'Replace HEPA filter', frequency: 'yearly', offsetDays: 180 },
+  ],
   'Smoke & CO Detector': [{ title: 'Test & replace batteries', frequency: 'biannually', offsetDays: 30 }],
 };

@@ -29,6 +29,13 @@
       "when": 1793840743881,
       "tag": "0003_cultured_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793858168735,
+      "tag": "0004_big_black_bolt",
+      "breakpoints": true
     }
   ]
 }

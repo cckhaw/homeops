@@ -16,12 +16,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ assetId: s
   const { assetId, kind } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
-  if (!UUID.test(assetId) || !['receipt', 'manual'].includes(kind)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!UUID.test(assetId) || !['receipt', 'manual', 'photo'].includes(kind)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const [asset] = await db.select().from(assets).where(eq(assets.id, assetId));
   // Same response for "doesn't exist" and "not yours", so ids can't be probed.
   if (!asset || !(await isMember(user.id, asset.householdId))) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const url = kind === 'receipt' ? asset.receiptUrl : asset.manualUrl;
+  const url = kind === 'receipt' ? asset.receiptUrl : kind === 'manual' ? asset.manualUrl : asset.photoUrl;
   if (!url) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const file = await openBlob(url).catch(() => null);
@@ -30,7 +30,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ assetId: s
     headers: {
       'Content-Type': file.blob.contentType || 'application/octet-stream',
       'Content-Disposition': 'inline',
-      'Cache-Control': 'private, no-store',
+      // Photos are shown in lists: let the browser cache them briefly. Documents are never cached.
+      'Cache-Control': kind === 'photo' ? 'private, max-age=300' : 'private, no-store',
       'X-Content-Type-Options': 'nosniff',
       'Content-Security-Policy': "sandbox; default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'",
     },

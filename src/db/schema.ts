@@ -19,6 +19,10 @@ export const profiles = pgTable('profiles', {
   sessionVersion: integer('session_version').default(0).notNull(),
   notifyReminders: boolean('notify_reminders').default(false).notNull(),
   reminderLeadDays: integer('reminder_lead_days').default(3).notNull(),
+  warrantyLeadDays: integer('warranty_lead_days').default(30).notNull(), // 0 = no warranty reminders
+  locale: text('locale'), // date/number format, e.g. 'en-MY'; null = detect from the browser
+  suspendedAt: timestamp('suspended_at'),
+  lastLoginAt: timestamp('last_login_at'),
 });
 
 export const households = pgTable('households', {
@@ -28,6 +32,8 @@ export const households = pgTable('households', {
   ownerId: uuid('owner_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
   passportToken: text('passport_token').unique(),
   passportPasswordHash: text('passport_password_hash'),
+  currency: text('currency'), // ISO 4217, e.g. 'MYR'; null = derived from the owner's locale
+  climate: text('climate').default('temperate').notNull(), // 'temperate' | 'tropical' → seasonal task templates
   passportFailed: integer('passport_failed').default(0).notNull(),
   passportLockedUntil: timestamp('passport_locked_until'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -70,6 +76,7 @@ export const assets = pgTable(
     warrantyExpiry: date('warranty_expiry'),
     receiptUrl: text('receipt_url'),
     manualUrl: text('manual_url'),
+    photoUrl: text('photo_url'),
     notes: text('notes'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
@@ -152,6 +159,32 @@ export const brands = pgTable('brands', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+/** One warranty e-mail per asset and kind ('lead' = entered the reminder window, 'final' = within 7 days). */
+export const assetReminders = pgTable(
+  'asset_reminders',
+  {
+    userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+    assetId: uuid('asset_id').references(() => assets.id, { onDelete: 'cascade' }).notNull(),
+    kind: text('kind').notNull(),
+    sentAt: timestamp('sent_at').defaultNow().notNull(),
+  },
+  (t) => ({ pk: uniqueIndex('asset_reminders_pk').on(t.userId, t.assetId, t.kind) }),
+);
+
+/** Who did what in the admin portal (and key account events). Actor is kept as text if the account is later deleted. */
+export const auditLog = pgTable(
+  'audit_log',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    actorId: uuid('actor_id').references(() => profiles.id, { onDelete: 'set null' }),
+    actorEmail: text('actor_email'),
+    action: text('action').notNull(),
+    summary: text('summary').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => ({ byTime: index('audit_log_time_idx').on(t.createdAt) }),
+);
 
 export type Profile = typeof profiles.$inferSelect;
 export type Household = typeof households.$inferSelect;

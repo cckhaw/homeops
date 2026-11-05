@@ -15,7 +15,9 @@ import {
   serviceRecords,
 } from '@/db/schema';
 import { requireAdmin, requireHousehold, requireUser } from '@/lib/auth';
-import { HOME_COOKIE, createHousehold, isMember, listMemberships, newToken } from '@/lib/household';
+import { audit } from '@/lib/audit';
+import { HOME_COOKIE, addMissingClimateTasks, createHousehold, isMember, listMemberships, newToken } from '@/lib/household';
+import { isSupportedCurrency, isSupportedLocale } from '@/lib/locale';
 import { getLimits, setSetting } from '@/lib/settings';
 import { uploadFile } from '@/lib/storage';
 import { deleteBlobs } from '@/lib/blob';
@@ -63,6 +65,8 @@ export async function createAsset(_: FormState, fd: FormData): Promise<FormState
   if (receipt.error) return { error: receipt.error };
   const manual = await uploadFile(fileOf(fd, 'manual'), `manuals/${household.id}`);
   if (manual.error) return { error: manual.error };
+  const photo = await uploadFile(fileOf(fd, 'photo'), `photos/${household.id}`);
+  if (photo.error) return { error: photo.error };
 
   const [asset] = await db
     .insert(assets)
@@ -78,6 +82,7 @@ export async function createAsset(_: FormState, fd: FormData): Promise<FormState
       notes: optStr(fd, 'notes', 2000),
       receiptUrl: receipt.url,
       manualUrl: manual.url,
+      photoUrl: photo.url,
     })
     .returning();
 
@@ -120,20 +125,24 @@ export async function updateAsset(assetId: string, _: FormState, fd: FormData): 
   const manual = await uploadFile(fileOf(fd, 'manual'), `manuals/${household.id}`);
   if (manual.error) return { error: manual.error };
   if (manual.url) patch.manualUrl = manual.url;
+  const photo = await uploadFile(fileOf(fd, 'photo'), `photos/${household.id}`);
+  if (photo.error) return { error: photo.error };
+  if (photo.url) patch.photoUrl = photo.url;
+  else if (fd.get('removePhoto') === 'on') patch.photoUrl = null;
 
-  const [before] = await db.select({ r: assets.receiptUrl, m: assets.manualUrl }).from(assets).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
+  const [before] = await db.select({ r: assets.receiptUrl, m: assets.manualUrl, p: assets.photoUrl }).from(assets).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
   await db.update(assets).set(patch).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
   // Files that were replaced are no longer needed: remove them from storage.
-  await deleteBlobs([receipt.url && before?.r, manual.url && before?.m]);
+  await deleteBlobs([receipt.url && before?.r, manual.url && before?.m, (photo.url || fd.get('removePhoto') === 'on' ? before?.p : null)]);
   revalidatePath('/dashboard', 'layout');
   return { ok: 'Saved.' };
 }
 
 export async function deleteAsset(assetId: string) {
   const { household } = await requireHousehold();
-  const [gone] = await db.select({ r: assets.receiptUrl, m: assets.manualUrl }).from(assets).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
+  const [gone] = await db.select({ r: assets.receiptUrl, m: assets.manualUrl, p: assets.photoUrl }).from(assets).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
   await db.delete(assets).where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
-  await deleteBlobs([gone?.r, gone?.m]);
+  await deleteBlobs([gone?.r, gone?.m, gone?.p]);
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard/assets');
 }
@@ -376,9 +385,9 @@ export async function deleteHome(householdId: string) {
   const user = await requireUser();
   const [h] = await db.select().from(households).where(and(eq(households.id, householdId), eq(households.ownerId, user.id)));
   if (!h) return;
-  const files = await db.select({ r: assets.receiptUrl, m: assets.manualUrl }).from(assets).where(eq(assets.householdId, h.id));
+  const files = await db.select({ r: assets.receiptUrl, m: assets.manualUrl, p: assets.photoUrl }).from(assets).where(eq(assets.householdId, h.id));
   await db.delete(households).where(eq(households.id, h.id));
-  await deleteBlobs(files.flatMap((f) => [f.r, f.m]));
+  await deleteBlobs(files.flatMap((f) => [f.r, f.m, f.p]));
   (await cookies()).delete(HOME_COOKIE);
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard/homes');
@@ -423,18 +432,42 @@ export async function updateHousehold(_: FormState, fd: FormData): Promise<FormS
   if (!canManage(role)) return { error: 'Only owners and admins can edit the home.' };
   const name = str(fd, 'name', 120);
   if (!name) return { error: 'The home needs a name.' };
+  const currency = str(fd, 'currency', 3);
+  const climate = str(fd, 'climate', 12);
   await db
     .update(households)
-    .set({ name, address: optStr(fd, 'address', 240) })
+    .set({
+      name,
+      address: optStr(fd, 'address', 240),
+      currency: isSupportedCurrency(currency) ? currency : null,
+      ...(climate === 'tropical' || climate === 'temperate' ? { climate } : {}),
+    })
     .where(eq(households.id, household.id));
   revalidatePath('/dashboard', 'layout');
   return { ok: 'Home updated.' };
 }
 
+/** Adds the suggested seasonal tasks for this home's climate that are not on its schedule yet. */
+export async function addClimateTasks(): Promise<FormState> {
+  const { household, role } = await requireHousehold();
+  if (!canManage(role)) return { error: 'Only owners and admins can add suggested tasks.' };
+  const n = await addMissingClimateTasks(household.id, household.climate);
+  revalidatePath('/dashboard', 'layout');
+  return { ok: n ? `Added ${n} suggested task${n === 1 ? '' : 's'}.` : 'Your schedule already has all the suggested tasks.' };
+}
+
+export async function saveLocale(_: FormState, fd: FormData): Promise<FormState> {
+  const user = await requireUser();
+  const locale = str(fd, 'locale', 12);
+  await db.update(profiles).set({ locale: isSupportedLocale(locale) ? locale : null }).where(eq(profiles.id, user.id));
+  revalidatePath('/dashboard', 'layout');
+  return { ok: 'Saved.' };
+}
+
 // ------------------------------------------------------------------ Admin
 
 export async function saveSiteSettings(_: FormState, fd: FormData): Promise<FormState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const clamp = (k: string, fallback: string) => {
     const n = Number.parseInt(str(fd, k, 6), 10);
     return String(Number.isFinite(n) && n > 0 ? Math.min(n, 100000) : fallback);
@@ -442,19 +475,23 @@ export async function saveSiteSettings(_: FormState, fd: FormData): Promise<Form
   await setSetting('unlimited_free_tier', fd.get('unlimited_free_tier') === 'on' ? 'true' : 'false');
   await setSetting('free_asset_limit', clamp('free_asset_limit', '10'));
   await setSetting('free_member_limit', clamp('free_member_limit', '3'));
+  await audit(admin, 'settings.update', `unlimited=${fd.get('unlimited_free_tier') === 'on'}, asset limit=${clamp('free_asset_limit', '10')}, member limit=${clamp('free_member_limit', '3')}`);
   revalidatePath('/admin', 'layout');
   return { ok: 'Settings saved — live immediately.' };
 }
 
 export async function toggleUnlimitedTier(next: boolean) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   await setSetting('unlimited_free_tier', next ? 'true' : 'false');
+  await audit(admin, 'settings.update', `unlimited free tier turned ${next ? 'ON' : 'OFF'}`);
   revalidatePath('/admin', 'layout');
 }
 
 export async function setUserAdmin(userId: string, makeAdmin: boolean) {
   const me = await requireAdmin();
   if (me.id === userId) return; // cannot change your own role (prevents locking everyone out)
+  const [target] = await db.select({ email: profiles.email }).from(profiles).where(eq(profiles.id, userId));
   await db.update(profiles).set({ isAdmin: makeAdmin }).where(eq(profiles.id, userId));
+  await audit(me, makeAdmin ? 'user.admin_grant' : 'user.admin_revoke', `${makeAdmin ? 'Granted' : 'Removed'} admin ${makeAdmin ? 'to' : 'from'} ${target?.email ?? userId}`);
   revalidatePath('/admin/users');
 }

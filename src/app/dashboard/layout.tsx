@@ -5,19 +5,23 @@ import { requireHousehold } from '@/lib/auth';
 import { donationsEnabled } from '@/lib/donate';
 import { BrandsProvider } from '@/components/BrandsProvider';
 import { getBrands } from '@/lib/brand-store';
+import { PrefsProvider } from '@/components/PrefsProvider';
+import { getPrefs } from '@/lib/prefs';
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, household, homes } = await requireHousehold();
-  const brands = await getBrands();
+  const [brands, prefs] = await Promise.all([getBrands(), getPrefs()]);
   return (
     <BrandsProvider brands={brands}>
+      <PrefsProvider prefs={prefs}>
       <AccentScope />
       <AppShell isAdmin={!!user.isAdmin} homes={homes} activeId={household.id} donate={donationsEnabled()}>
         {children}
       </AppShell>
       <LiveRefresh />
+      </PrefsProvider>
     </BrandsProvider>
   );
 }

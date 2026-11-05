@@ -2,7 +2,10 @@ import Link from 'next/link';
 import { requireHousehold } from '@/lib/auth';
 import GlassCard from '@/components/GlassCard';
 import PageHeader from '@/components/PageHeader';
-import { HouseholdForm, ProfileForm } from '@/components/forms';
+import { HouseholdForm, LocaleForm, ProfileForm } from '@/components/forms';
+import { getPrefs } from '@/lib/prefs';
+import { headers } from 'next/headers';
+import { pickLocale } from '@/lib/locale';
 import SignOutButton from './SignOutButton';
 import AppearanceSettings from '@/components/AppearanceSettings';
 import AppleButton from '@/components/AppleButton';
@@ -14,6 +17,8 @@ export const metadata = { title: 'Settings' };
 
 export default async function SettingsPage() {
   const { user, household, role } = await requireHousehold();
+  const prefs = await getPrefs();
+  const detected = pickLocale((await headers()).get('accept-language'));
   return (
     <>
       <PageHeader title="Settings" />
@@ -21,8 +26,10 @@ export default async function SettingsPage() {
       <div>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Appearance</h2>
       <GlassCard className="mb-8"><AppearanceSettings /></GlassCard>
+      <h2 className="mb-2 px-1 text-[22px] font-bold">Language &amp; region</h2>
+      <GlassCard className="mb-8"><LocaleForm locale={user.locale} detected={detected} /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Notifications</h2>
-      <GlassCard className="mb-8"><ReminderForm on={user.notifyReminders} lead={user.reminderLeadDays} emailReady={emailConfigured()} /></GlassCard>
+      <GlassCard className="mb-8"><ReminderForm on={user.notifyReminders} lead={user.reminderLeadDays} warranty={user.warrantyLeadDays} emailReady={emailConfigured()} /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Account</h2>
       <GlassCard className="mb-8"><ProfileForm fullName={user.fullName} email={user.email} /></GlassCard>
       </div>
@@ -43,7 +50,7 @@ export default async function SettingsPage() {
         </details>
       </GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Current home</h2>
-      <GlassCard className="mb-8"><HouseholdForm name={household.name} address={household.address} disabled={role === 'member'} /></GlassCard>
+      <GlassCard className="mb-8"><HouseholdForm name={household.name} address={household.address} disabled={role === 'member'} currency={prefs.currency} climate={household.climate} /></GlassCard>
       {user.isAdmin && (
         <AppleButton href="/admin" variant="secondary" full className="mb-3">Admin portal</AppleButton>
       )}

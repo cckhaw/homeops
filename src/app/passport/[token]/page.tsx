@@ -12,6 +12,7 @@ import AppleButton from '@/components/AppleButton';
 import BrandLogo from '@/components/BrandLogo';
 import { BrandsProvider } from '@/components/BrandsProvider';
 import { getBrands } from '@/lib/brand-store';
+import { getPublicPrefs } from '@/lib/prefs';
 import { makeModelLabel } from '@/lib/brands';
 
 export const dynamic = 'force-dynamic';
@@ -49,7 +50,7 @@ export default async function PublicPassport({ params: paramsPromise }: { params
   }
   const p = await loadPassport(params.token);
   if (!p) notFound();
-  const brands = await getBrands();
+  const [brands, { locale, currency }] = await Promise.all([getBrands(), getPublicPrefs(home)]);
   const toneText = { ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', none: 'text-secondary' } as const;
 
   return (
@@ -77,7 +78,7 @@ export default async function PublicPassport({ params: paramsPromise }: { params
         <div className="mb-8 grid items-start gap-3 md:grid-cols-2">
           {p.assets.length === 0 && <GlassCard className="text-secondary">No assets recorded yet.</GlassCard>}
           {p.assets.map((a) => {
-            const w = warrantyState(a.warrantyExpiry);
+            const w = warrantyState(a.warrantyExpiry, locale);
             const history = p.records.filter((r) => r.assetId === a.id);
             return (
               <GlassCard key={a.id}>
@@ -90,14 +91,14 @@ export default async function PublicPassport({ params: paramsPromise }: { params
                   <span className="shrink-0 rounded-full bg-label/5 px-2.5 py-1 text-[13px] font-semibold">{a.health}/100</span>
                 </div>
                 <dl className="mt-3 grid grid-cols-2 gap-2 text-[14px]">
-                  <div><dt className="text-secondary">Installed</dt><dd>{formatDate(a.installDate)}</dd></div>
+                  <div><dt className="text-secondary">Installed</dt><dd>{formatDate(a.installDate, undefined, locale)}</dd></div>
                   <div><dt className="text-secondary">Warranty</dt><dd className={toneText[w.tone]}>{w.label}</dd></div>
                 </dl>
                 {history.length > 0 && (
                   <ul className="mt-3 space-y-1.5 border-t pt-3 text-[14px] hairline">
                     {history.map((r) => (
                       <li key={r.id} className="flex gap-2"><Wrench className="mt-0.5 h-4 w-4 shrink-0 text-secondary" aria-hidden />
-                        <span>{r.description} <span className="text-secondary">· {formatDate(r.serviceDate)}{r.costCents != null ? ` · ${formatCurrency(r.costCents)}` : ''}</span></span>
+                        <span>{r.description} <span className="text-secondary">· {formatDate(r.serviceDate, undefined, locale)}{r.costCents != null ? ` · ${formatCurrency(r.costCents, currency, locale)}` : ''}</span></span>
                       </li>
                     ))}
                   </ul>
@@ -116,7 +117,7 @@ export default async function PublicPassport({ params: paramsPromise }: { params
               {p.completed.slice(0, 40).map((t) => (
                 <li key={t.id} className="flex items-center justify-between gap-3 py-3 text-[15px]">
                   <span className="min-w-0 truncate">{t.title}</span>
-                  <span className="shrink-0 text-secondary">{formatDate(t.completedAt)}</span>
+                  <span className="shrink-0 text-secondary">{formatDate(t.completedAt, undefined, locale)}</span>
                 </li>
               ))}
             </ul>
