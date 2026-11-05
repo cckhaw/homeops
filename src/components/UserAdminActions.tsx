@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
+import { useServerForm } from './useServerForm';
 import AppleButton, { SubmitButton } from './AppleButton';
 import { Msg } from './forms';
 import { adminDeleteUser, adminSendReset, adminSetSuspended, adminSignOutUser, adminUnlockUser, type AdminState } from '@/app/admin-actions';
@@ -18,7 +19,7 @@ export default function UserAdminActions(props: {
   const [msg, setMsg] = useState<AdminState>();
   const [pending, start] = useTransition();
   const run = (fn: () => Promise<AdminState | void>) => start(async () => setMsg((await fn()) ?? { ok: 'Done.' }));
-  const [delState, delAction] = useActionState<AdminState, FormData>(adminDeleteUser.bind(null, props.userId), undefined);
+  const del = useServerForm<NonNullable<AdminState>>(adminDeleteUser.bind(null, props.userId) as never);
 
   return (
     <div className="space-y-5">
@@ -47,17 +48,17 @@ export default function UserAdminActions(props: {
 
       {!props.isSelf && (
         <form
-          action={delAction}
           onSubmit={(e) => {
-            if (!window.confirm(`Permanently delete ${props.email}? This cannot be undone.`)) e.preventDefault();
+            if (!window.confirm(`Permanently delete ${props.email}? This cannot be undone.`)) return e.preventDefault();
+            del.formProps.onSubmit(e);
           }}
           className="space-y-3 rounded-2xl border p-4 hairline"
         >
           <p className="text-[15px] font-semibold text-bad">Delete this account</p>
           <p className="text-[14px] text-secondary">Erases the account and any home only this user belongs to. Shared homes stay with the other members. Type the e-mail address to confirm.</p>
           <input name="confirm" autoComplete="off" className="input" placeholder={props.email} aria-label="Type the e-mail address to confirm" />
-          <Msg state={delState} />
-          <SubmitButton variant="destructive">Delete account</SubmitButton>
+          <Msg state={del.state} />
+          <SubmitButton variant="destructive" pending={del.pending}>Delete account</SubmitButton>
         </form>
       )}
     </div>

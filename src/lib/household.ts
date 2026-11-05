@@ -1,8 +1,8 @@
-import { and, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq } from 'drizzle-orm';
 import { randomBytes } from 'crypto';
 import { cookies, headers } from 'next/headers';
 import { db } from '@/db';
-import { households, householdMembers, maintenanceTasks } from '@/db/schema';
+import { households, householdMembers, maintenanceTasks, profiles } from '@/db/schema';
 import { templateDueDate, templatesFor } from '@/lib/utils';
 import { climateForLocale, currencyForLocale, pickLocale, type Climate } from '@/lib/locale';
 
@@ -98,4 +98,17 @@ export async function isMember(userId: string, householdId: string) {
     .from(householdMembers)
     .where(and(eq(householdMembers.userId, userId), eq(householdMembers.householdId, householdId)));
   return !!m;
+}
+
+export const displayName = (p: { fullName: string | null; email: string }) => p.fullName?.trim() || p.email.split('@')[0];
+
+/** Everyone in a home, for assignment menus and "done by" labels. */
+export async function listMembers(householdId: string): Promise<{ id: string; name: string }[]> {
+  const rows = await db
+    .select({ id: profiles.id, fullName: profiles.fullName, email: profiles.email })
+    .from(householdMembers)
+    .innerJoin(profiles, eq(profiles.id, householdMembers.userId))
+    .where(eq(householdMembers.householdId, householdId))
+    .orderBy(asc(householdMembers.createdAt));
+  return rows.map((r) => ({ id: r.id, name: displayName(r) }));
 }

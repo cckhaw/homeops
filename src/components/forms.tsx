@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useRef, useState, useActionState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { Plus, ScanLine, Loader2 } from 'lucide-react';
 import BrandSelect from './BrandSelect';
 import { canonicalBrand } from '@/lib/brands';
 import { useBrands } from './BrandsProvider';
 import { usePrefs } from './PrefsProvider';
 import { Sheet } from './misc';
+import { useServerForm } from './useServerForm';
+import IconPicker from './IconPicker';
 import AppleButton, { SubmitButton } from './AppleButton';
 import {
   addServiceRecord,
@@ -57,8 +59,7 @@ type AssetInit = {
 
 export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: string; initial?: AssetInit; hasPhoto?: boolean }) {
   const brands = useBrands();
-  const [state, action, pending] = useActionState(assetId ? updateAsset.bind(null, assetId) : createAsset, undefined);
-  const [, startTransition] = useTransition();
+  const { state, pending, formProps } = useServerForm(assetId ? updateAsset.bind(null, assetId) : createAsset);
   const [v, setV] = useState({
     name: initial.name ?? '',
     category: initial.category ?? CATEGORIES[0],
@@ -105,14 +106,7 @@ export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: strin
   }
 
   return (
-    // Submitted via a transition (not the form `action` prop) so React 19 does not wipe the user's input
-    // (notes, chosen files) when the server returns a validation error.
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        const fd = new FormData(e.currentTarget);
-        startTransition(() => action(fd));
-      }}
+    <form {...formProps}
       className="space-y-4"
     >
       <div className="glass rounded-2xl p-4">
@@ -234,9 +228,9 @@ export function AddAssetSheet() {
 
 export function ServiceForm({ assetId }: { assetId: string }) {
   const { currency } = usePrefs();
-  const [state, action] = useActionState(addServiceRecord.bind(null, assetId), undefined);
+  const { state, pending, formKey, formProps } = useServerForm(addServiceRecord.bind(null, assetId), { resetOnSuccess: true });
   return (
-    <form action={action} className="space-y-3">
+    <form key={formKey} {...formProps} className="space-y-3">
       <Field label="What was done?">
         <input name="description" required maxLength={500} className="input" placeholder="Replaced compressor" />
       </Field>
@@ -252,15 +246,15 @@ export function ServiceForm({ assetId }: { assetId: string }) {
         </Field>
       </div>
       <Msg state={state} />
-      <SubmitButton variant="secondary">Add service record</SubmitButton>
+      <SubmitButton variant="secondary" pending={pending}>Add service record</SubmitButton>
     </form>
   );
 }
 
-export function TaskForm({ assets }: { assets: { id: string; name: string }[] }) {
-  const [state, action] = useActionState(createTask, undefined);
+export function TaskForm({ assets, members }: { assets: { id: string; name: string }[]; members: { id: string; name: string }[] }) {
+  const { state, pending, formKey, formProps } = useServerForm(createTask, { resetOnSuccess: true });
   return (
-    <form action={action} className="space-y-3">
+    <form key={formKey} {...formProps} className="space-y-3">
       <Field label="Task">
         <input name="title" required maxLength={160} className="input" placeholder="Replace water filter" />
       </Field>
@@ -284,16 +278,24 @@ export function TaskForm({ assets }: { assets: { id: string; name: string }[] })
           </select>
         </Field>
       </div>
+      {members.length > 1 && (
+        <Field label="Assign to">
+          <select name="assignedTo" defaultValue="" className="input">
+            <option value="">Anyone in the household</option>
+            {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+          </select>
+        </Field>
+      )}
       <Msg state={state} />
-      <SubmitButton variant="secondary">Add task</SubmitButton>
+      <SubmitButton variant="secondary" pending={pending}>Add task</SubmitButton>
     </form>
   );
 }
 
 export function ProfileForm({ fullName, email }: { fullName: string | null; email: string }) {
-  const [state, action] = useActionState(updateProfile, undefined);
+  const { state, pending, formProps } = useServerForm(updateProfile);
   return (
-    <form action={action} className="space-y-3">
+    <form {...formProps} className="space-y-3">
       <Field label="Name">
         <input name="fullName" maxLength={120} defaultValue={fullName ?? ''} className="input" autoComplete="name" />
       </Field>
@@ -301,21 +303,27 @@ export function ProfileForm({ fullName, email }: { fullName: string | null; emai
         <input value={email} readOnly disabled className="input opacity-60" />
       </Field>
       <Msg state={state} />
-      <SubmitButton>Save profile</SubmitButton>
+      <SubmitButton pending={pending}>Save profile</SubmitButton>
     </form>
   );
 }
 
-export function HouseholdForm({ name, address, disabled, currency, climate }: { name: string; address: string | null; disabled?: boolean; currency: string; climate: string }) {
-  const [state, action] = useActionState(updateHousehold, undefined);
+export function HouseholdForm({ name, address, disabled, currency, climate, icon }: { name: string; address: string | null; disabled?: boolean; currency: string; climate: string; icon: string }) {
+  const { state, pending: saving, formProps } = useServerForm(updateHousehold);
   const [tasksMsg, setTasksMsg] = useState<FormState>();
   const [pending, startTransition] = useTransition();
   return (
     <div className="space-y-4">
-      <form action={action} className="space-y-3">
+      <form {...formProps} className="space-y-3">
         <Field label="Home name">
           <input name="name" required maxLength={120} defaultValue={name} disabled={disabled} className="input" />
         </Field>
+        {!disabled && (
+          <div>
+            <span className="field-label">Icon (shown in the menu)</span>
+            <IconPicker value={icon} />
+          </div>
+        )}
         <Field label="Address (shown on your Home Passport)">
           <input name="address" maxLength={240} defaultValue={address ?? ''} disabled={disabled} className="input" autoComplete="street-address" />
         </Field>
@@ -333,7 +341,7 @@ export function HouseholdForm({ name, address, disabled, currency, climate }: { 
           </Field>
         </div>
         <Msg state={state} />
-        {!disabled && <SubmitButton>Save home</SubmitButton>}
+        {!disabled && <SubmitButton pending={saving}>Save home</SubmitButton>}
       </form>
       {!disabled && (
         <div className="border-t pt-4 hairline">
@@ -349,10 +357,10 @@ export function HouseholdForm({ name, address, disabled, currency, climate }: { 
 }
 
 export function LocaleForm({ locale, detected }: { locale: string | null; detected: string }) {
-  const [state, action] = useActionState(saveLocale, undefined);
+  const { state, pending, formProps } = useServerForm(saveLocale);
   const label = LOCALES.find((l) => l.code === detected)?.label ?? detected;
   return (
-    <form action={action} className="space-y-3">
+    <form {...formProps} className="space-y-3">
       <Field label="Date and number format">
         <select name="locale" defaultValue={locale ?? ''} className="input">
           <option value="">Automatic (from your browser: {label})</option>
@@ -361,15 +369,15 @@ export function LocaleForm({ locale, detected }: { locale: string | null; detect
       </Field>
       <p className="px-1 text-[13px] text-secondary">Changes how dates and amounts are written. The app itself stays in English.</p>
       <Msg state={state} />
-      <SubmitButton>Save</SubmitButton>
+      <SubmitButton pending={pending}>Save</SubmitButton>
     </form>
   );
 }
 
 export function SiteSettingsForm(props: { unlimited: boolean; assetLimit: string; memberLimit: string }) {
-  const [state, action] = useActionState(saveSiteSettings, undefined);
+  const { state, pending, formProps } = useServerForm(saveSiteSettings);
   return (
-    <form action={action} className="space-y-5">
+    <form {...formProps} className="space-y-5">
       <label className="flex min-h-[44px] items-center justify-between gap-4">
         <span>
           <span className="block text-[17px] font-semibold">Unlimited free tier</span>
@@ -387,19 +395,19 @@ export function SiteSettingsForm(props: { unlimited: boolean; assetLimit: string
       </div>
       <p className="text-[13px] text-secondary">Limits apply only while the unlimited switch is off. Changes take effect immediately.</p>
       <Msg state={state} />
-      <SubmitButton>Save settings</SubmitButton>
+      <SubmitButton pending={pending}>Save settings</SubmitButton>
     </form>
   );
 }
 
-export function TaskEditForm({ task, assets, onDone }: { task: { id: string; title: string; dueDate: string; frequency: string; assetId: string | null }; assets: { id: string; name: string }[]; onDone: () => void }) {
-  const [state, action] = useActionState(updateTask.bind(null, task.id), undefined);
+export function TaskEditForm({ task, assets, members = [], onDone }: { task: { id: string; title: string; dueDate: string; frequency: string; assetId: string | null; assignedTo?: string | null }; assets: { id: string; name: string }[]; members?: { id: string; name: string }[]; onDone: () => void }) {
+  const { state, pending, formProps } = useServerForm(updateTask.bind(null, task.id));
   useEffect(() => {
     if (state?.ok) onDone();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
   return (
-    <form action={action} className="space-y-3">
+    <form {...formProps} className="space-y-3">
       <Field label="Task">
         <input name="title" required maxLength={160} defaultValue={task.title} className="input" />
       </Field>
@@ -423,24 +431,36 @@ export function TaskEditForm({ task, assets, onDone }: { task: { id: string; tit
           ))}
         </select>
       </Field>
+      {members.length > 1 && (
+        <Field label="Assign to">
+          <select name="assignedTo" defaultValue={task.assignedTo ?? ''} className="input">
+            <option value="">Anyone in the household</option>
+            {members.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+          </select>
+        </Field>
+      )}
       <Msg state={state} />
-      <SubmitButton full>Save task</SubmitButton>
+      <SubmitButton full pending={pending}>Save task</SubmitButton>
     </form>
   );
 }
 
 export function HomeForm() {
-  const [state, action] = useActionState(createHome, undefined);
+  const { state, pending, formProps } = useServerForm(createHome);
   return (
-    <form action={action} className="space-y-3">
+    <form {...formProps} className="space-y-3">
       <Field label="Home name">
         <input name="name" required maxLength={120} className="input" placeholder="Lake cabin" />
       </Field>
+      <div>
+        <span className="field-label">Choose an icon</span>
+        <IconPicker />
+      </div>
       <Field label="Address (optional)">
         <input name="address" maxLength={240} className="input" autoComplete="street-address" />
       </Field>
       <Msg state={state} />
-      <SubmitButton>Add home</SubmitButton>
+      <SubmitButton pending={pending}>Add home</SubmitButton>
     </form>
   );
 }

@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
-import { Check, Copy, Moon, Sun, X } from 'lucide-react';
+import Link from 'next/link';
+import { Check, Copy, Moon, Plus, Sun, X } from 'lucide-react';
+import HomeIcon from './HomeIcon';
+import { cn } from '@/lib/utils';
 import { switchHome } from '@/app/actions';
 import { applyMode, readMode } from '@/lib/theme';
 import AppleButton from './AppleButton';
@@ -75,6 +78,9 @@ export function ServiceWorkerRegister() {
 
 /** iOS-style bottom sheet (centered modal on larger screens). */
 export function Sheet({ title, open, onClose, children }: { title: string; open: boolean; onClose: () => void; children: React.ReactNode }) {
+  // Portals need the document: render nothing until mounted so the first client render matches the server HTML.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
@@ -86,7 +92,7 @@ export function Sheet({ title, open, onClose, children }: { title: string; open:
       document.body.style.overflow = prev;
     };
   }, [open, onClose]);
-  if (!open || typeof document === 'undefined') return null;
+  if (!open || !mounted) return null;
   // Portal: ancestors with backdrop-filter (glass cards) would otherwise trap position:fixed.
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" role="dialog" aria-modal="true" aria-label={title}>
@@ -128,39 +134,97 @@ export function ThemeToggle({ className }: { className?: string }) {
   );
 }
 
-export function HomeSwitcher({ homes, activeId, className }: { homes: { id: string; name: string }[]; activeId: string; className?: string }) {
-  const router = useRouter();
+export type SwitcherHome = { id: string; name: string; icon: string };
+
+/**
+ * Home switcher: one icon button per home (active one filled), plus a "+" to add or manage homes.
+ * layout: 'sidebar' = wrapping grid with the active home's name underneath; 'rail' = vertical, collapsed sidebar;
+ * 'bar' = horizontally scrolling row with the active name, for the mobile top bar.
+ */
+export function HomeSwitcher({ homes, activeId, layout = 'sidebar' }: { homes: SwitcherHome[]; activeId: string; layout?: 'sidebar' | 'rail' | 'bar' }) {
   const [pending, start] = useTransition();
+  const active = homes.find((h) => h.id === activeId);
+  // The collapsed rail is narrow: show the active home and a few others, the rest are one tap away on "My homes".
+  const shown = layout === 'rail' && homes.length > 6 ? [active, ...homes.filter((h) => h.id !== activeId)].filter((h): h is SwitcherHome => !!h).slice(0, 6) : homes;
+
+  const buttons = shown.map((h) => {
+    const on = h.id === activeId;
+    return (
+      <button
+        key={h.id}
+        type="button"
+        aria-pressed={on}
+        aria-label={h.name}
+        title={h.name}
+        disabled={pending}
+        onClick={() => !on && start(() => switchHome(h.id))}
+        className={cn(
+          'grid h-11 w-11 shrink-0 place-items-center rounded-xl transition active:scale-90 disabled:opacity-60',
+          on ? 'bg-tint text-ontint shadow-sm' : 'bg-label/5 text-secondary hover:bg-label/10 hover:text-label',
+        )}
+      >
+        <HomeIcon id={h.icon} className="h-5 w-5" />
+      </button>
+    );
+  });
+  const add = (
+    <Link href="/dashboard/homes" aria-label="Add or manage homes" title="Add or manage homes" className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-dashed text-secondary transition hover:bg-label/5 hover:text-label hairline">
+      <Plus className="h-5 w-5" aria-hidden />
+    </Link>
+  );
+
+  if (layout === 'bar') {
+    return (
+      <div className="flex min-w-0 items-center gap-2">
+        <div role="group" aria-label="Your homes" className="flex min-w-0 items-center gap-1.5 overflow-x-auto">{buttons}{add}</div>
+        <span className="hidden min-w-0 truncate text-[15px] font-semibold min-[420px]:block">{active?.name}</span>
+      </div>
+    );
+  }
   return (
-    <select
-      aria-label="Switch home"
-      value={activeId}
-      disabled={pending}
-      onChange={(e) => {
-        if (e.target.value === '__manage') return router.push('/dashboard/homes');
-        start(() => switchHome(e.target.value));
-      }}
-      className={className ?? 'input min-h-[44px] py-1.5 text-[15px] font-semibold'}
-    >
-      {homes.map((h) => (
-        <option key={h.id} value={h.id}>{h.name}</option>
-      ))}
-      <option value="__manage">＋ Add or manage homes…</option>
-    </select>
+    <div>
+      <div role="group" aria-label="Your homes" className={cn('flex gap-1.5', layout === 'rail' ? 'flex-col items-center' : 'flex-wrap')}>{buttons}{add}</div>
+      {layout === 'sidebar' && active && <p className="mt-2 truncate px-1 text-[14px] font-semibold" title={active.name}>{active.name}</p>}
+    </div>
   );
 }
 
 /** Destructive submit button that asks for confirmation first. */
-export function ConfirmButton({ message, children }: { message: string; children: React.ReactNode }) {
+export function ConfirmButton({ message, children, className, label }: { message: string; children: React.ReactNode; className?: string; label?: string }) {
   return (
     <AppleButton
       type="submit"
       variant="destructive"
+      className={className}
+      aria-label={label}
       onClick={(e) => {
         if (!window.confirm(message)) e.preventDefault();
       }}
     >
       {children}
+    </AppleButton>
+  );
+}
+
+/** Copies an arbitrary string (e.g. a calendar link) to the clipboard. */
+export function CopyTextButton({ text, label = 'Copy' }: { text: string; label?: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <AppleButton
+      type="button"
+      variant="secondary"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          window.prompt('Copy this link', text);
+        }
+        setDone(true);
+        setTimeout(() => setDone(false), 1800);
+      }}
+    >
+      {done ? <Check className="h-4 w-4" aria-hidden /> : <Copy className="h-4 w-4" aria-hidden />}
+      {done ? 'Copied' : label}
     </AppleButton>
   );
 }

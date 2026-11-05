@@ -18,6 +18,7 @@ import { requireAdmin, requireHousehold, requireUser } from '@/lib/auth';
 import { audit } from '@/lib/audit';
 import { HOME_COOKIE, addMissingClimateTasks, createHousehold, isMember, listMemberships, newToken } from '@/lib/household';
 import { isSupportedCurrency, isSupportedLocale } from '@/lib/locale';
+import { isHomeIcon } from '@/lib/home-icons';
 import { getLimits, setSetting } from '@/lib/settings';
 import { uploadFile } from '@/lib/storage';
 import { deleteBlobs } from '@/lib/blob';
@@ -180,7 +181,7 @@ export async function deleteServiceRecord(recordId: string, assetId: string) {
 
 /** Completes a task and schedules its next occurrence; un-completes if already done. */
 export async function toggleTask(taskId: string) {
-  const { household } = await requireHousehold();
+  const { user, household } = await requireHousehold();
   const [task] = await db
     .select()
     .from(maintenanceTasks)
@@ -190,12 +191,12 @@ export async function toggleTask(taskId: string) {
   if (task.status === 'completed') {
     await db
       .update(maintenanceTasks)
-      .set({ status: 'pending', completedAt: null })
+      .set({ status: 'pending', completedAt: null, completedBy: null })
       .where(eq(maintenanceTasks.id, taskId));
   } else {
     await db
       .update(maintenanceTasks)
-      .set({ status: 'completed', completedAt: new Date() })
+      .set({ status: 'completed', completedAt: new Date(), completedBy: user.id })
       .where(eq(maintenanceTasks.id, taskId));
     // Roll the schedule forward from the later of due date / today so it never lands in the past.
     const base = task.dueDate > todayISO() ? task.dueDate : todayISO();
@@ -204,10 +205,18 @@ export async function toggleTask(taskId: string) {
       assetId: task.assetId,
       title: task.title,
       frequency: task.frequency,
+      assignedTo: task.assignedTo, // the next occurrence stays with the same person
       dueDate: addFrequency(base, task.frequency),
     });
   }
   revalidatePath('/dashboard', 'layout');
+}
+
+/** An assignee must belong to the home; '' means "anyone". */
+async function checkAssignee(householdId: string, raw: string | null): Promise<{ id: string | null } | { error: string }> {
+  if (!raw) return { id: null };
+  const [m] = await db.select({ id: householdMembers.userId }).from(householdMembers).where(and(eq(householdMembers.householdId, householdId), eq(householdMembers.userId, raw)));
+  return m ? { id: m.id } : { error: 'That person is not a member of this home.' };
 }
 
 export async function createTask(_: FormState, fd: FormData): Promise<FormState> {
@@ -226,7 +235,9 @@ export async function createTask(_: FormState, fd: FormData): Promise<FormState>
       .where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
     if (!a) return { error: 'Asset not found.' };
   }
-  await db.insert(maintenanceTasks).values({ householdId: household.id, assetId, title, frequency, dueDate });
+  const who = await checkAssignee(household.id, optStr(fd, 'assignedTo', 40));
+  if ('error' in who) return who;
+  await db.insert(maintenanceTasks).values({ householdId: household.id, assetId, title, frequency, dueDate, assignedTo: who.id });
   revalidatePath('/dashboard', 'layout');
   return { ok: 'Task added.' };
 }
@@ -247,9 +258,11 @@ export async function updateTask(taskId: string, _: FormState, fd: FormData): Pr
       .where(and(eq(assets.id, assetId), eq(assets.householdId, household.id)));
     if (!a) return { error: 'Asset not found.' };
   }
+  const who = await checkAssignee(household.id, optStr(fd, 'assignedTo', 40));
+  if ('error' in who) return who;
   await db
     .update(maintenanceTasks)
-    .set({ title, frequency, dueDate, assetId })
+    .set({ title, frequency, dueDate, assetId, assignedTo: who.id })
     .where(and(eq(maintenanceTasks.id, taskId), eq(maintenanceTasks.householdId, household.id)));
   revalidatePath('/dashboard', 'layout');
   return { ok: 'Task updated.' };
@@ -333,6 +346,8 @@ export async function removeMember(memberId: string) {
   const self = target.userId === user.id;
   if (!self && !canManage(role)) return;
   await db.delete(householdMembers).where(eq(householdMembers.id, memberId));
+  // Tasks that were assigned to the person who left go back to "anyone".
+  await db.update(maintenanceTasks).set({ assignedTo: null }).where(and(eq(maintenanceTasks.householdId, household.id), eq(maintenanceTasks.assignedTo, target.userId)));
   revalidatePath('/dashboard', 'layout');
   if (self) redirect('/dashboard');
 }
@@ -374,7 +389,8 @@ export async function createHome(_: FormState, fd: FormData): Promise<FormState>
   if (owned >= 25) return { error: 'You have reached the maximum number of homes.' };
   const h = await createHousehold(user.id, name);
   const address = optStr(fd, 'address', 240);
-  if (address) await db.update(households).set({ address }).where(eq(households.id, h.id));
+  const icon = str(fd, 'icon', 20);
+  await db.update(households).set({ ...(address ? { address } : {}), ...(isHomeIcon(icon) ? { icon } : {}) }).where(eq(households.id, h.id));
   await setActiveCookie(h.id);
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard');
@@ -434,10 +450,12 @@ export async function updateHousehold(_: FormState, fd: FormData): Promise<FormS
   if (!name) return { error: 'The home needs a name.' };
   const currency = str(fd, 'currency', 3);
   const climate = str(fd, 'climate', 12);
+  const icon = str(fd, 'icon', 20);
   await db
     .update(households)
     .set({
       name,
+      ...(isHomeIcon(icon) ? { icon } : {}),
       address: optStr(fd, 'address', 240),
       currency: isSupportedCurrency(currency) ? currency : null,
       ...(climate === 'tropical' || climate === 'temperate' ? { climate } : {}),
@@ -445,6 +463,16 @@ export async function updateHousehold(_: FormState, fd: FormData): Promise<FormS
     .where(eq(households.id, household.id));
   revalidatePath('/dashboard', 'layout');
   return { ok: 'Home updated.' };
+}
+
+/** Owners and admins of a home can change its icon. */
+export async function setHomeIcon(householdId: string, icon: string) {
+  const user = await requireUser();
+  if (!isHomeIcon(icon)) return;
+  const mine = (await listMemberships(user.id)).find((m) => m.household.id === householdId);
+  if (!mine || !canManage(mine.role ?? 'member')) return;
+  await db.update(households).set({ icon }).where(eq(households.id, householdId));
+  revalidatePath('/dashboard', 'layout');
 }
 
 /** Adds the suggested seasonal tasks for this home's climate that are not on its schedule yet. */

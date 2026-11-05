@@ -36,6 +36,13 @@
       "when": 1793858168735,
       "tag": "0004_big_black_bolt",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793860546680,
+      "tag": "0005_flowery_meltdown",
+      "breakpoints": true
     }
   ]
 }

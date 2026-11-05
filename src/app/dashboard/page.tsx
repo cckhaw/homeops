@@ -5,6 +5,10 @@ import { db } from '@/db';
 import { assets, maintenanceTasks } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
 import { getPrefs } from '@/lib/prefs';
+import { listMembers } from '@/lib/household';
+import WelcomeTour from '@/components/WelcomeTour';
+import OnboardingChecklist from '@/components/OnboardingChecklist';
+import { householdInvites } from '@/db/schema';
 import { daysUntil, warrantyState } from '@/lib/utils';
 import GlassCard from '@/components/GlassCard';
 import AssetCard from '@/components/AssetCard';
@@ -17,14 +21,27 @@ export const metadata = { title: 'Home' };
 export default async function DashboardPage() {
   const { user, household } = await requireHousehold();
   const { locale } = await getPrefs();
-  const [homeAssets, pending] = await Promise.all([
+  const [homeAssets, pending, members] = await Promise.all([
     db.select().from(assets).where(eq(assets.householdId, household.id)).orderBy(asc(assets.name)),
     db
       .select()
       .from(maintenanceTasks)
       .where(and(eq(maintenanceTasks.householdId, household.id), eq(maintenanceTasks.status, 'pending')))
       .orderBy(asc(maintenanceTasks.dueDate)),
+    listMembers(household.id),
   ]);
+  const people = new Map(members.map((m) => [m.id, m.name]));
+  const [[doneTask], [anyInvite]] = await Promise.all([
+    db.select({ id: maintenanceTasks.id }).from(maintenanceTasks).where(and(eq(maintenanceTasks.householdId, household.id), eq(maintenanceTasks.status, 'completed'))).limit(1),
+    db.select({ id: householdInvites.id }).from(householdInvites).where(eq(householdInvites.householdId, household.id)).limit(1),
+  ]);
+  const steps = [
+    { label: 'Add your first asset', hint: 'An appliance, a system, anything with a warranty', href: '/dashboard/assets', done: homeAssets.length > 0 },
+    { label: 'Check off a maintenance task', hint: 'Tick one on the schedule — it reschedules itself', href: '/dashboard/schedule', done: !!doneTask },
+    { label: 'Invite someone to your home', hint: 'Share the checklist with family or co-owners', href: '/dashboard/household', done: members.length > 1 || !!anyInvite },
+    { label: 'Turn on e-mail reminders', hint: 'Get a nudge before tasks and warranties run out', href: '/dashboard/settings', done: user.notifyReminders },
+  ];
+  const showChecklist = !user.checklistDismissedAt && steps.some((s) => !s.done);
 
   const assetName = new Map(homeAssets.map((a) => [a.id, a.name]));
   const overdue = pending.filter((t) => (daysUntil(t.dueDate) ?? 0) < 0);
@@ -39,7 +56,9 @@ export default async function DashboardPage() {
 
   return (
     <>
+      <WelcomeTour initiallyOpen={!user.welcomeSeenAt} />
       <PageHeader title={greeting ? `Hi, ${greeting}` : 'Welcome'} subtitle={household.name} />
+      {showChecklist && <OnboardingChecklist steps={steps} />}
 
       <section className="mb-6 grid grid-cols-3 gap-3 lg:max-w-3xl" aria-label="Summary">
         <Stat icon={Package} label="Assets" value={homeAssets.length} />
@@ -61,7 +80,7 @@ export default async function DashboardPage() {
           ) : (
             <ul className="divide-y hairline [&>li]:border-inherit">
               {urgent.map((t) => (
-                <MaintenanceRow key={t.id} id={t.id} title={t.title} dueDate={t.dueDate} frequency={t.frequency} completed={false} assetName={t.assetId ? assetName.get(t.assetId) : null} canDelete={false} assetId={t.assetId} assets={homeAssets.map((a) => ({ id: a.id, name: a.name }))} />
+                <MaintenanceRow key={t.id} id={t.id} title={t.title} dueDate={t.dueDate} frequency={t.frequency} completed={false} assetName={t.assetId ? assetName.get(t.assetId) : null} canDelete={false} assetId={t.assetId} assignedTo={t.assignedTo} assigneeName={t.assignedTo ? people.get(t.assignedTo) : null} members={members} assets={homeAssets.map((a) => ({ id: a.id, name: a.name }))} />
               ))}
             </ul>
           )}

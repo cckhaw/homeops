@@ -8,10 +8,12 @@ import { headers } from 'next/headers';
 import { pickLocale } from '@/lib/locale';
 import SignOutButton from './SignOutButton';
 import AppearanceSettings from '@/components/AppearanceSettings';
-import AppleButton from '@/components/AppleButton';
+import AppleButton, { SubmitButton } from '@/components/AppleButton';
+import { replayWelcome } from '@/app/security-actions';
 import { donationsEnabled } from '@/lib/donate';
 import { emailConfigured } from '@/lib/email';
-import { DeleteAccountForm, PasswordChangeForm, ReminderForm, TwoFactorSettings } from '@/components/security-forms';
+import { CalendarFeed, DeleteAccountForm, PasswordChangeForm, ReminderForm, TwoFactorSettings } from '@/components/security-forms';
+import { siteBaseUrl } from '@/lib/donate';
 
 export const metadata = { title: 'Settings' };
 
@@ -30,6 +32,8 @@ export default async function SettingsPage() {
       <GlassCard className="mb-8"><LocaleForm locale={user.locale} detected={detected} /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Notifications</h2>
       <GlassCard className="mb-8"><ReminderForm on={user.notifyReminders} lead={user.reminderLeadDays} warranty={user.warrantyLeadDays} emailReady={emailConfigured()} /></GlassCard>
+      <h2 className="mb-2 px-1 text-[22px] font-bold">Calendar</h2>
+      <GlassCard className="mb-8"><CalendarFeed token={user.calendarToken} baseUrl={siteBaseUrl('http://localhost:3000')} /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Account</h2>
       <GlassCard className="mb-8"><ProfileForm fullName={user.fullName} email={user.email} /></GlassCard>
       </div>
@@ -50,7 +54,7 @@ export default async function SettingsPage() {
         </details>
       </GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Current home</h2>
-      <GlassCard className="mb-8"><HouseholdForm name={household.name} address={household.address} disabled={role === 'member'} currency={prefs.currency} climate={household.climate} /></GlassCard>
+      <GlassCard className="mb-8"><HouseholdForm name={household.name} address={household.address} disabled={role === 'member'} currency={prefs.currency} climate={household.climate} icon={household.icon} /></GlassCard>
       {user.isAdmin && (
         <AppleButton href="/admin" variant="secondary" full className="mb-3">Admin portal</AppleButton>
       )}
@@ -58,6 +62,9 @@ export default async function SettingsPage() {
         <AppleButton href="/support" variant="secondary" full className="mb-3">☕ Buy me a coffee</AppleButton>
       )}
       <AppleButton href="/dashboard/homes" variant="secondary" full className="mb-3">Manage all my homes</AppleButton>
+      <form action={replayWelcome} className="mb-3">
+        <SubmitButton variant="plain" full>Replay the welcome tour</SubmitButton>
+      </form>
       <SignOutButton />
       </div>
       </div>

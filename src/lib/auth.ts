@@ -146,5 +146,5 @@ export async function requireAdmin(): Promise<Profile> {
 export const requireHousehold = cache(async () => {
   const user = await requireUser();
   const { all, active } = await resolveHomes(user.id, user.fullName);
-  return { user, household: active.household, role: active.role ?? 'member', homes: all.map((m) => ({ id: m.household.id, name: m.household.name, role: m.role ?? 'member' })) };
+  return { user, household: active.household, role: active.role ?? 'member', homes: all.map((m) => ({ id: m.household.id, name: m.household.name, role: m.role ?? 'member', icon: m.household.icon })) };
 });

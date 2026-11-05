@@ -98,7 +98,8 @@ export default async function AdminUser({ params }: { params: Promise<{ id: stri
           <GlassCard>
             <UserAdminActions userId={u.id} email={u.email} isSelf={u.id === me.id} isAdmin={!!u.isAdmin} suspended={!!u.suspendedAt} locked={locked || u.failedAttempts > 0} emailReady={emailConfigured()} />
           </GlassCard>
-          <p className="mt-3 px-1 text-[13px] text-secondary">Every action here is recorded in the <Link href="/admin/audit" className="font-semibold text-tint">audit log</Link>. Passwords, 2FA secrets and home contents are never shown.</p>
+          <p className="mt-3 px-1 text-[13px] text-secondary">Every action here is recorded in the audit log. Passwords, 2FA secrets and home contents are never shown.</p>
+          <Link href="/admin/audit" className="mt-1 flex min-h-[44px] w-fit items-center px-1 text-[15px] font-semibold text-tint">View the audit log</Link>
         </section>
       </div>
     </>

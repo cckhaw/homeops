@@ -1,5 +1,5 @@
 import { count, inArray } from 'drizzle-orm';
-import { Building2, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { db } from '@/db';
 import { assets, householdMembers } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import AppleButton from '@/components/AppleButton';
 import { HomeForm } from '@/components/forms';
 import { ConfirmButton } from '@/components/misc';
+import HomeIconButton from '@/components/HomeIconButton';
 
 export const metadata = { title: 'My homes' };
 
@@ -35,7 +36,7 @@ export default async function HomesPage() {
                 const current = h.id === household.id;
                 return (
                   <li key={h.id} className="flex flex-wrap items-center gap-3 py-3">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-tint/10 text-tint"><Building2 className="h-5 w-5" aria-hidden /></span>
+                    <HomeIconButton id={h.id} name={h.name} icon={h.icon} editable={role === 'owner' || role === 'admin'} />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-[17px] font-semibold">{h.name}</p>
                       <p className="truncate text-[13px] capitalize text-secondary">{role} · {a.get(h.id) ?? 0} assets · {m.get(h.id) ?? 1} member{(m.get(h.id) ?? 1) === 1 ? '' : 's'}</p>

@@ -46,6 +46,7 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
       .where(and(inArray(maintenanceTasks.householdId, homeIds), eq(maintenanceTasks.status, 'pending'), lte(maintenanceTasks.dueDate, addDays(today, user.reminderLeadDays))));
     const sentTasks = new Map((await db.select().from(taskReminders).where(eq(taskReminders.userId, user.id))).map((s) => [s.taskId, s.sentAt.getTime()]));
     const freshTasks = tasks
+      .filter((t) => !t.assignedTo || t.assignedTo === user.id) // a task assigned to someone else is theirs to be reminded about
       .filter((t) => shouldRemindTask(daysUntil(t.dueDate) ?? 0, sentTasks.get(t.id), Date.now(), opts.force))
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
