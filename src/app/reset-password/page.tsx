@@ -6,8 +6,9 @@ import { ResetForm } from '@/components/auth-forms';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Choose a password', robots: { index: false } };
 
-export default async function ResetPage({ searchParams }: { searchParams: { token?: string } }) {
-  const token = searchParams.token ?? '';
+export default async function ResetPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
+  const sp = await searchParams;
+  const token = sp.token ?? '';
   const row = token ? await peekToken(token) : null;
   if (!row) {
     return (

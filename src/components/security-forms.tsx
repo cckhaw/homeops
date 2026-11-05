@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { useFormState } from 'react-dom';
+import { useState, useTransition, useActionState } from 'react';
 import { Copy, Lock, ShieldCheck } from 'lucide-react';
 import AppleButton, { SubmitButton } from './AppleButton';
 import { Field, Msg } from './forms';
@@ -12,7 +11,7 @@ import {
 } from '@/app/security-actions';
 
 export function PasswordChangeForm({ hasPassword }: { hasPassword: boolean }) {
-  const [state, action] = useFormState(changePassword, undefined);
+  const [state, action] = useActionState(changePassword, undefined);
   const [pw, setPw] = useState('');
   return (
     <form action={action} className="space-y-3">
@@ -127,7 +126,7 @@ export function TwoFactorSettings({ enabled, recoveryLeft }: { enabled: boolean;
 }
 
 export function ReminderForm({ on, lead, emailReady }: { on: boolean; lead: number; emailReady: boolean }) {
-  const [state, action] = useFormState(saveReminderSettings, undefined);
+  const [state, action] = useActionState(saveReminderSettings, undefined);
   const [test, setTest] = useState<FormState>();
   const [pending, start] = useTransition();
   return (
@@ -158,7 +157,7 @@ export function ReminderForm({ on, lead, emailReady }: { on: boolean; lead: numb
 }
 
 export function PassportPasswordForm({ hasPassword }: { hasPassword: boolean }) {
-  const [state, action] = useFormState(setPassportPassword, undefined);
+  const [state, action] = useActionState(setPassportPassword, undefined);
   const [pw, setPw] = useState('');
   return (
     <div className="space-y-3">
@@ -185,7 +184,7 @@ export function PassportPasswordForm({ hasPassword }: { hasPassword: boolean }) 
 
 /** Shown to visitors of a password-protected passport. */
 export function PassportGate({ token, name }: { token: string; name?: string }) {
-  const [state, action] = useFormState(unlockPassport.bind(null, token), undefined);
+  const [state, action] = useActionState(unlockPassport.bind(null, token), undefined);
   return (
     <form action={action} className="space-y-3">
       <PasswordField label={name ? `Password for ${name}` : 'Password'} autoComplete="off" />
@@ -196,7 +195,7 @@ export function PassportGate({ token, name }: { token: string; name?: string }) 
 }
 
 export function DeleteAccountForm({ hasPassword, needsCode }: { hasPassword: boolean; needsCode: boolean }) {
-  const [state, action] = useFormState(deleteMyAccount, undefined);
+  const [state, action] = useActionState(deleteMyAccount, undefined);
   return (
     <form
       action={action}

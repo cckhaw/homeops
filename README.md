@@ -33,3 +33,6 @@ Note: uploaded files use Vercel Blob public URLs (unguessable, but not access-co
 
 ## Authentication
 E-mail + password (min. 12 characters, scrypt-hashed), optional TOTP two-factor with recovery codes, forgot-password by e-mail, lockout after 5 failed attempts, and session revocation on password change. Google sign-in is optional. `ADMIN_EMAILS` are promoted to admin only once their e-mail is verified. Home Passports can be password-protected.
+
+## Quality checks
+`npm run typecheck`, `npm test` (Vitest unit tests for password/2FA/crypto, dates and scheduling, brands, donations) and `npm run build` run on every pull request (`.github/workflows/ci.yml`) and again before every production deploy. A weekly workflow audits production dependencies for high-severity advisories.

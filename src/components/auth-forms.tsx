@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useActionState } from 'react';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import { useFormState } from 'react-dom';
 import { Eye, EyeOff, Check } from 'lucide-react';
 import AppleButton, { SubmitButton } from './AppleButton';
 import { Field, Msg } from './forms';
@@ -152,7 +151,7 @@ export function RegisterForm({ emailReady }: { emailReady: boolean }) {
 }
 
 export function ForgotForm() {
-  const [state, action] = useFormState(requestPasswordReset, undefined);
+  const [state, action] = useActionState(requestPasswordReset, undefined);
   return (
     <form action={action} className="space-y-3">
       <Field label="E-mail">
@@ -165,7 +164,7 @@ export function ForgotForm() {
 }
 
 export function ResetForm({ token }: { token: string }) {
-  const [state, action] = useFormState<(FormState & { done?: boolean }) | undefined, FormData>(completePassword.bind(null, token), undefined);
+  const [state, action] = useActionState<(FormState & { done?: boolean }) | undefined, FormData>(completePassword.bind(null, token), undefined);
   const [pw, setPw] = useState('');
   if (state?.done) {
     return (

@@ -38,6 +38,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Unit tests
+        run: npm test
+
       # The build runs on Vercel (not here) so that Neon's DATABASE_URL — a sensitive
       # env var — is available to `npm run vercel-build`, which migrates the DB first.
       - name: Deploy to production

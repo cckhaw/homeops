@@ -55,7 +55,7 @@ export async function resolveHomes(userId: string, displayName: string | null) {
   }
   let wanted: string | undefined;
   try {
-    wanted = cookies().get(HOME_COOKIE)?.value;
+    wanted = (await cookies()).get(HOME_COOKIE)?.value;
   } catch {
     // outside a request scope (e.g. scripts): fall back to the most recent home
   }

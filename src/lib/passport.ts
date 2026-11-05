@@ -17,9 +17,9 @@ export async function findPassportHome(token: string) {
 }
 
 /** True when the passport has no password, or the visitor has unlocked it. */
-export function isPassportUnlocked(home: { id: string; passportPasswordHash: string | null }): boolean {
+export async function isPassportUnlocked(home: { id: string; passportPasswordHash: string | null }): Promise<boolean> {
   if (!home.passportPasswordHash) return true;
-  const v = cookies().get(passportCookieName(home.id))?.value;
+  const v = (await cookies()).get(passportCookieName(home.id))?.value;
   return !!v && safeEqual(v, passportCookieValue(home));
 }
 

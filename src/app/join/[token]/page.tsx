@@ -11,7 +11,8 @@ import AppleButton, { SubmitButton } from '@/components/AppleButton';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Join household' };
 
-export default async function JoinPage({ params, searchParams }: { params: { token: string }; searchParams: { error?: string } }) {
+export default async function JoinPage({ params: p, searchParams: sp }: { params: Promise<{ token: string }>; searchParams: Promise<{ error?: string }> }) {
+  const [params, searchParams] = await Promise.all([p, sp]);
   const [invite] = await db
     .select({ name: households.name })
     .from(householdInvites)

@@ -16,7 +16,8 @@ import { makeModelLabel } from '@/lib/brands';
 
 const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
-export default async function AssetDetail({ params }: { params: { id: string } }) {
+export default async function AssetDetail({ params: p }: { params: Promise<{ id: string }> }) {
+  const params = await p;
   if (!isUuid(params.id)) notFound();
   const { household } = await requireHousehold();
   const [asset] = await db.select().from(assets).where(and(eq(assets.id, params.id), eq(assets.householdId, household.id)));
