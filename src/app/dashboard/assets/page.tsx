@@ -7,6 +7,8 @@ import { daysUntil } from '@/lib/utils';
 import AssetList from '@/components/AssetList';
 import PageHeader from '@/components/PageHeader';
 import { AddAssetSheet } from '@/components/forms';
+import Link from 'next/link';
+import { QrCode } from 'lucide-react';
 
 export const metadata = { title: 'Assets' };
 
@@ -27,6 +29,11 @@ export default async function AssetsPage() {
     <>
       <PageHeader title="Assets" subtitle="Your digital asset passport" action={<AddAssetSheet />} />
       <AssetList assets={list} overdue={Object.fromEntries(overdue)} locale={locale} />
+      {list.length > 0 && (
+        <Link href="/dashboard/labels" className="mt-6 inline-flex min-h-[44px] items-center gap-2 text-[15px] font-semibold text-tint">
+          <QrCode className="h-4 w-4" aria-hidden /> Print QR labels for all assets
+        </Link>
+      )}
     </>
   );
 }

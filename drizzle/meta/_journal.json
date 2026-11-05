@@ -50,6 +50,13 @@
       "when": 1793862133765,
       "tag": "0006_open_hiroim",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793864045811,
+      "tag": "0007_secret_blindfold",
+      "breakpoints": true
     }
   ]
 }

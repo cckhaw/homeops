@@ -47,6 +47,7 @@ export function Field({ label, children }: { label: string; children: React.Reac
 // ---------------------------------------------------------------- Asset form (+ receipt OCR)
 
 type AssetInit = {
+  purchase?: string | null;
   name?: string;
   category?: string;
   make?: string | null;
@@ -68,6 +69,7 @@ export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: strin
     serialNumber: initial.serialNumber ?? '',
     installDate: initial.installDate ?? '',
     warrantyExpiry: initial.warrantyExpiry ?? '',
+    purchase: initial.purchase ?? '',
   });
   const fileRef = useRef<HTMLInputElement>(null);
   const [hasFile, setHasFile] = useState(false);
@@ -184,6 +186,9 @@ export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: strin
         </Field>
         <Field label="Install / purchase date">
           <input name="installDate" type="date" className="input" value={v.installDate} onChange={set('installDate')} />
+        </Field>
+        <Field label="Purchase price (optional)">
+          <input name="purchase" inputMode="decimal" className="input" placeholder="0.00" value={v.purchase} onChange={set('purchase')} />
         </Field>
         <Field label="Warranty expires">
           <input name="warrantyExpiry" type="date" className="input" value={v.warrantyExpiry} onChange={set('warrantyExpiry')} />
