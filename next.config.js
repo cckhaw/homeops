@@ -2,6 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // The dev-mode status badge (bottom-left) would sit on top of the sidebar's collapse button.
+  devIndicators: false,
   eslint: { ignoreDuringBuilds: true },
   experimental: { serverActions: { bodySizeLimit: '12mb' } },
   async headers() {

@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { useFormState } from 'react-dom';
+import { useEffect, useRef, useState, useActionState, useTransition } from 'react';
 import { Plus, ScanLine, Loader2 } from 'lucide-react';
 import BrandSelect from './BrandSelect';
 import { canonicalBrand } from '@/lib/brands';
@@ -53,7 +52,8 @@ type AssetInit = {
 
 export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial?: AssetInit }) {
   const brands = useBrands();
-  const [state, action] = useFormState(assetId ? updateAsset.bind(null, assetId) : createAsset, undefined);
+  const [state, action, pending] = useActionState(assetId ? updateAsset.bind(null, assetId) : createAsset, undefined);
+  const [, startTransition] = useTransition();
   const [v, setV] = useState({
     name: initial.name ?? '',
     category: initial.category ?? CATEGORIES[0],
@@ -100,7 +100,16 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
   }
 
   return (
-    <form action={action} className="space-y-4">
+    // Submitted via a transition (not the form `action` prop) so React 19 does not wipe the user's input
+    // (notes, chosen files) when the server returns a validation error.
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const fd = new FormData(e.currentTarget);
+        startTransition(() => action(fd));
+      }}
+      className="space-y-4"
+    >
       <div className="glass rounded-2xl p-4">
         <Field label={assetId ? 'Replace receipt (JPG, PNG, PDF)' : 'Receipt (optional — we can read it for you)'}>
           <input
@@ -166,7 +175,10 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
         <textarea name="notes" rows={3} maxLength={2000} defaultValue={initial.notes ?? ''} className="input" />
       </Field>
       <Msg state={state} />
-      <SubmitButton full>{assetId ? 'Save changes' : 'Add to passport'}</SubmitButton>
+      <AppleButton type="submit" full disabled={pending}>
+        {pending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+        {assetId ? 'Save changes' : 'Add to passport'}
+      </AppleButton>
     </form>
   );
 }
@@ -189,7 +201,7 @@ export function AddAssetSheet() {
 // ---------------------------------------------------------------- Other forms
 
 export function ServiceForm({ assetId }: { assetId: string }) {
-  const [state, action] = useFormState(addServiceRecord.bind(null, assetId), undefined);
+  const [state, action] = useActionState(addServiceRecord.bind(null, assetId), undefined);
   return (
     <form action={action} className="space-y-3">
       <Field label="What was done?">
@@ -213,7 +225,7 @@ export function ServiceForm({ assetId }: { assetId: string }) {
 }
 
 export function TaskForm({ assets }: { assets: { id: string; name: string }[] }) {
-  const [state, action] = useFormState(createTask, undefined);
+  const [state, action] = useActionState(createTask, undefined);
   return (
     <form action={action} className="space-y-3">
       <Field label="Task">
@@ -246,7 +258,7 @@ export function TaskForm({ assets }: { assets: { id: string; name: string }[] })
 }
 
 export function ProfileForm({ fullName, email }: { fullName: string | null; email: string }) {
-  const [state, action] = useFormState(updateProfile, undefined);
+  const [state, action] = useActionState(updateProfile, undefined);
   return (
     <form action={action} className="space-y-3">
       <Field label="Name">
@@ -262,7 +274,7 @@ export function ProfileForm({ fullName, email }: { fullName: string | null; emai
 }
 
 export function HouseholdForm({ name, address, disabled }: { name: string; address: string | null; disabled?: boolean }) {
-  const [state, action] = useFormState(updateHousehold, undefined);
+  const [state, action] = useActionState(updateHousehold, undefined);
   return (
     <form action={action} className="space-y-3">
       <Field label="Home name">
@@ -278,7 +290,7 @@ export function HouseholdForm({ name, address, disabled }: { name: string; addre
 }
 
 export function SiteSettingsForm(props: { unlimited: boolean; assetLimit: string; memberLimit: string }) {
-  const [state, action] = useFormState(saveSiteSettings, undefined);
+  const [state, action] = useActionState(saveSiteSettings, undefined);
   return (
     <form action={action} className="space-y-5">
       <label className="flex min-h-[44px] items-center justify-between gap-4">
@@ -304,7 +316,7 @@ export function SiteSettingsForm(props: { unlimited: boolean; assetLimit: string
 }
 
 export function TaskEditForm({ task, assets, onDone }: { task: { id: string; title: string; dueDate: string; frequency: string; assetId: string | null }; assets: { id: string; name: string }[]; onDone: () => void }) {
-  const [state, action] = useFormState(updateTask.bind(null, task.id), undefined);
+  const [state, action] = useActionState(updateTask.bind(null, task.id), undefined);
   useEffect(() => {
     if (state?.ok) onDone();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -341,7 +353,7 @@ export function TaskEditForm({ task, assets, onDone }: { task: { id: string; tit
 }
 
 export function HomeForm() {
-  const [state, action] = useFormState(createHome, undefined);
+  const [state, action] = useActionState(createHome, undefined);
   return (
     <form action={action} className="space-y-3">
       <Field label="Home name">

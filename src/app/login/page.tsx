@@ -13,7 +13,8 @@ const errors: Record<string, string> = {
   AccessDenied: 'Sign-in was cancelled or denied.',
 };
 
-export default async function LoginPage({ searchParams }: { searchParams: { callbackUrl?: string; error?: string; changed?: string; reset?: string } }) {
+export default async function LoginPage({ searchParams: sp }: { searchParams: Promise<{ callbackUrl?: string; error?: string; changed?: string; reset?: string }> }) {
+  const searchParams = await sp;
   if (await getCurrentUser()) redirect('/dashboard');
   const cb = searchParams.callbackUrl;
   const callbackUrl = cb && cb.startsWith('/') && !cb.startsWith('//') ? cb : '/dashboard';

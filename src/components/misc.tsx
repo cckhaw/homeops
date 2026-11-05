@@ -27,7 +27,7 @@ export function LiveRefresh({ intervalMs = 20_000 }: { intervalMs?: number }) {
 
 export function CopyButton({ path, label = 'Copy link' }: { path: string; label?: string }) {
   const [done, setDone] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   return (
     <AppleButton

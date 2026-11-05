@@ -14,9 +14,10 @@ const errors: Record<string, string> = {
   unavailable: 'Donations are not available right now.',
 };
 
-export default function SupportPage({ searchParams }: { searchParams: { error?: string } }) {
+export default async function SupportPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const sp = await searchParams;
   const enabled = donationsEnabled();
-  const error = searchParams.error ? errors[searchParams.error] ?? errors.stripe : null;
+  const error = sp.error ? errors[sp.error] ?? errors.stripe : null;
 
   return (
     <div className="min-h-dvh">

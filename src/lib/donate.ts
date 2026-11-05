@@ -14,11 +14,11 @@ export function siteBaseUrl(fallbackOrigin: string): string {
   ).replace(/\/$/, '');
 }
 
-/** "5", "$5", "4.50" → cents; null if not a valid positive amount. */
+/** "5", "$5", "1,000", "4.50" → cents; null for anything else (negatives, exponents, letters, >2 decimals). */
 export function parseDollarsToCents(input: string | null | undefined): number | null {
   if (!input) return null;
-  const cleaned = input.replace(/[^0-9.]/g, '');
-  if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return null;
-  const cents = Math.round(Number.parseFloat(cleaned) * 100);
+  const trimmed = input.trim();
+  if (!/^\$?\s*\d[\d,]*(\.\d{1,2})?$/.test(trimmed)) return null;
+  const cents = Math.round(Number.parseFloat(trimmed.replace(/[$,\s]/g, '')) * 100);
   return Number.isFinite(cents) ? cents : null;
 }

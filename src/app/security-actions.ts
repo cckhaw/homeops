@@ -239,7 +239,7 @@ export async function unlockPassport(token: string, _: FormState, fd: FormData):
     return { error: 'That password is not correct.' };
   }
   if (home.passportFailed) await db.update(households).set({ passportFailed: 0 }).where(eq(households.id, home.id));
-  cookies().set(passportCookieName(home.id), passportCookieValue(home), {
+  (await cookies()).set(passportCookieName(home.id), passportCookieValue(home), {
     path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 7,
   });
   redirect(`/passport/${token}`);
@@ -289,7 +289,7 @@ export async function deleteMyAccount(_: FormState, fd: FormData): Promise<FormS
   await db.delete(loginTokens).where(eq(loginTokens.email, user.email));
   await db.delete(profiles).where(eq(profiles.id, user.id)); // cascades memberships, reminders log, invites they created
 
-  const jar = cookies();
+  const jar = await cookies();
   for (const name of ['next-auth.session-token', '__Secure-next-auth.session-token', HOME_COOKIE]) jar.delete(name);
   redirect('/?deleted=1');
 }

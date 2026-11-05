@@ -12,15 +12,16 @@ export const dynamic = 'force-dynamic';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Streams an asset's receipt or manual to a signed-in member of the home that owns it. Files have no public link. */
-export async function GET(_: Request, { params }: { params: { assetId: string; kind: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ assetId: string; kind: string }> }) {
+  const { assetId, kind } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
-  if (!UUID.test(params.assetId) || !['receipt', 'manual'].includes(params.kind)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  if (!UUID.test(assetId) || !['receipt', 'manual'].includes(kind)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-  const [asset] = await db.select().from(assets).where(eq(assets.id, params.assetId));
+  const [asset] = await db.select().from(assets).where(eq(assets.id, assetId));
   // Same response for "doesn't exist" and "not yours", so ids can't be probed.
   if (!asset || !(await isMember(user.id, asset.householdId))) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  const url = params.kind === 'receipt' ? asset.receiptUrl : asset.manualUrl;
+  const url = kind === 'receipt' ? asset.receiptUrl : asset.manualUrl;
   if (!url) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
   const file = await openBlob(url).catch(() => null);

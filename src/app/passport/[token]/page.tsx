@@ -16,10 +16,11 @@ import { makeModelLabel } from '@/lib/brands';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params }: { params: { token: string } }): Promise<Metadata> {
+export async function generateMetadata({ params: paramsPromise }: { params: Promise<{ token: string }> }): Promise<Metadata> {
+  const params = await paramsPromise;
   const home = await findPassportHome(params.token);
   if (!home) return { title: 'Passport not found', robots: { index: false } };
-  if (!isPassportUnlocked(home)) return { title: 'Home Service Passport', robots: { index: false, follow: false } };
+  if (!(await isPassportUnlocked(home))) return { title: 'Home Service Passport', robots: { index: false, follow: false } };
   const p = await loadPassport(params.token);
   if (!p) return { title: 'Passport not found', robots: { index: false } };
   return {
@@ -29,10 +30,11 @@ export async function generateMetadata({ params }: { params: { token: string } }
   };
 }
 
-export default async function PublicPassport({ params }: { params: { token: string } }) {
+export default async function PublicPassport({ params: paramsPromise }: { params: Promise<{ token: string }> }) {
+  const params = await paramsPromise;
   const home = await findPassportHome(params.token);
   if (!home) notFound();
-  if (!isPassportUnlocked(home)) {
+  if (!(await isPassportUnlocked(home))) {
     return (
       <main className="grid min-h-dvh place-items-center px-5">
         <GlassCard className="w-full max-w-sm space-y-5 p-7 text-center">

@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useFormState } from 'react-dom';
+import { useEffect, useMemo, useState, useActionState } from 'react';
 import { Pencil, Plus, RotateCcw, Search } from 'lucide-react';
 import AppleButton, { SubmitButton } from './AppleButton';
 import BrandLogo from './BrandLogo';
@@ -26,7 +25,7 @@ function PreviewTile({ src, label }: { src: string | null; label: string }) {
 }
 
 function BrandForm({ brand, onDone }: { brand?: BrandRecord; onDone: () => void }) {
-  const [state, action] = useFormState<BrandState, FormData>(saveBrand.bind(null, brand?.id ?? ''), undefined);
+  const [state, action] = useActionState<BrandState, FormData>(saveBrand.bind(null, brand?.id ?? ''), undefined);
   const [name, setName] = useState(brand?.name ?? '');
   const [domain, setDomain] = useState(brand?.domain ?? '');
   const [link, setLink] = useState('');

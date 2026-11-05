@@ -9,9 +9,10 @@ export const runtime = 'nodejs';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Public: serves an admin-uploaded brand logo (stored in the private bucket) so it can appear on public pages too. */
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-  if (!UUID.test(params.id)) return new NextResponse(null, { status: 404 });
-  const [b] = await db.select({ logoUrl: brands.logoUrl }).from(brands).where(eq(brands.id, params.id));
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  if (!UUID.test(id)) return new NextResponse(null, { status: 404 });
+  const [b] = await db.select({ logoUrl: brands.logoUrl }).from(brands).where(eq(brands.id, id));
   if (!b?.logoUrl) return new NextResponse(null, { status: 404 });
   if (!isPrivateBlobUrl(b.logoUrl)) return NextResponse.redirect(b.logoUrl, 302); // a pasted external link
 

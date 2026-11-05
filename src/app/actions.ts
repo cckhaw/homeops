@@ -309,7 +309,7 @@ export async function acceptInvite(token: string): Promise<FormState> {
       .values({ householdId: invite.householdId, userId: user.id, role: 'member' })
       .onConflictDoNothing();
   }
-  setActiveCookie(invite.householdId);
+  await setActiveCookie(invite.householdId);
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard');
 }
@@ -346,8 +346,8 @@ export async function setMemberRole(memberId: string, newRole: 'admin' | 'member
 
 // ------------------------------------------------------------------ Multiple homes
 
-function setActiveCookie(householdId: string) {
-  cookies().set(HOME_COOKIE, householdId, { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 365 });
+async function setActiveCookie(householdId: string) {
+  (await cookies()).set(HOME_COOKIE, householdId, { path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 365 });
 }
 
 export async function switchHome(householdId: string) {
@@ -366,7 +366,7 @@ export async function createHome(_: FormState, fd: FormData): Promise<FormState>
   const h = await createHousehold(user.id, name);
   const address = optStr(fd, 'address', 240);
   if (address) await db.update(households).set({ address }).where(eq(households.id, h.id));
-  setActiveCookie(h.id);
+  await setActiveCookie(h.id);
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard');
 }
@@ -379,7 +379,7 @@ export async function deleteHome(householdId: string) {
   const files = await db.select({ r: assets.receiptUrl, m: assets.manualUrl }).from(assets).where(eq(assets.householdId, h.id));
   await db.delete(households).where(eq(households.id, h.id));
   await deleteBlobs(files.flatMap((f) => [f.r, f.m]));
-  cookies().delete(HOME_COOKIE);
+  (await cookies()).delete(HOME_COOKIE);
   revalidatePath('/dashboard', 'layout');
   redirect('/dashboard/homes');
 }

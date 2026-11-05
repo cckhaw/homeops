@@ -16,7 +16,8 @@ const features = [
   { icon: BadgeCheck, title: 'A passport buyers trust', body: 'Share a read-only Home Service Passport that proves how well the home has been cared for.' },
 ];
 
-export default async function Landing({ searchParams }: { searchParams: { deleted?: string } }) {
+export default async function Landing({ searchParams: sp }: { searchParams: Promise<{ deleted?: string }> }) {
+  const searchParams = await sp;
   const user = await getCurrentUser();
   if (user) redirect('/dashboard');
 

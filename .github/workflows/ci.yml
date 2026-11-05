@@ -1,0 +1,39 @@
+name: CI
+
+# Runs on every pull request and on pushes to any branch except main (main is covered by the deploy workflow,
+# which runs the same checks before it deploys).
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+        env:
+          # Dummy values: the build must succeed without real secrets or a database.
+          NEXTAUTH_SECRET: ci-build-secret
+          NEXTAUTH_URL: http://localhost:3000
+      - name: Dependency audit (high severity and above)
+        run: npm audit --omit=dev --audit-level=high
