@@ -27,9 +27,10 @@ const VIEWS=[['desktop',{width:1280,height:900}],['tablet',{width:820,height:118
     // controls on the same visual row must be the same height
     const byRow=new Map(); for(const e of els){ const r=e.getBoundingClientRect(); const k=Math.round(r.top/6); (byRow.get(k)||byRow.set(k,[]).get(k)).push([e,r]); }
     for(const [,list] of byRow){ if(list.length>1){ const hs=list.map(([,r])=>Math.round(r.height)); if(Math.max(...hs)-Math.min(...hs)>1) out.bad.push(`row heights differ: ${list.map(([e,r])=>(e.name||e.type)+':'+Math.round(r.height)).join(', ')}`); } }
+    if(out.scroll){ out.culprits=[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>window.innerWidth+1&&e.offsetParent!==null).slice(0,4).map(e=>`${e.tagName.toLowerCase()}${e.className&&typeof e.className==='string'?'.'+e.className.split(' ').slice(0,3).join('.'):''} w=${Math.round(e.getBoundingClientRect().width)}`); }
     return out;
    });
-   assert(res.bad.length===0&&!res.scroll,`${vname} · ${name}: ${res.controls} controls aligned${res.bad.length?' — '+res.bad.slice(0,3).join('; '):''}${res.scroll?' — page scrolls sideways':''}`);
+   assert(res.bad.length===0&&!res.scroll,`${vname} · ${name}: ${res.controls} controls aligned${res.bad.length?' — '+res.bad.slice(0,3).join('; '):''}${res.scroll?' — page scrolls sideways: '+(res.culprits||[]).join(' | '):''}`);
    if(['documents','bills'].includes(name)) await p.screenshot({path:`${S}/layout-${name}-${vname}.png`,fullPage:false});
   }
   await ctx.close();
