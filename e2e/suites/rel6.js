@@ -21,7 +21,7 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
  // ---- settings UI is present
  await p.goto(BASE+'/dashboard/settings');
  assert(await p.locator('text=Push notifications').count()>0 && await p.locator('text=WhatsApp reminders').count()>0,'Settings has Push and WhatsApp sections');
- assert(await p.locator('button:has-text("Turn on for this device")').count()===1,'push can be turned on for this device');
+ await p.waitForSelector('button:has-text("Turn on for this device")',{timeout:8000}).catch(()=>{}); assert(await p.locator('button:has-text("Turn on for this device")').count()===1,'push can be turned on for this device');
 
  // ---- WhatsApp: enter number → code → confirm
  reset();

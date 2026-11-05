@@ -121,6 +121,8 @@ export function WhatsappSettings({ configured, number, verified, enabled, awaiti
   const confirm = useServerForm(confirmWhatsapp);
   const [msg, setMsg] = useState<FormState>();
   const [pending, run] = useTransition();
+  const [on, setOn] = useState(enabled); // optimistic: flips at once, reverts if the server says no
+  useEffect(() => setOn(enabled), [enabled]);
   if (!configured) return <p className="text-[14px] text-secondary">WhatsApp reminders aren&apos;t set up on this site yet.</p>;
   const asked = awaitingCode || !!start.state?.ok;
   return (
@@ -137,7 +139,7 @@ export function WhatsappSettings({ configured, number, verified, enabled, awaiti
         <div className="space-y-3">
           <label className="flex min-h-[44px] items-center justify-between gap-4">
             <span className="text-[15px]">Send reminders to <b>+{number.slice(0, 2)}••••{number.slice(-3)}</b></span>
-            <input type="checkbox" aria-label="WhatsApp reminders on" checked={enabled} disabled={pending} onChange={(e) => run(async () => setMsg(await setWhatsappReminders(e.target.checked)))} className="h-7 w-12 shrink-0 cursor-pointer accent-[rgb(var(--tint))]" />
+            <input type="checkbox" aria-label="WhatsApp reminders on" checked={on} disabled={pending} onChange={(e) => { const v = e.target.checked; setOn(v); run(async () => { const r = await setWhatsappReminders(v); if (r?.error) setOn(!v); setMsg(r); }); }} className="h-7 w-12 shrink-0 cursor-pointer accent-[rgb(var(--tint))]" />
           </label>
           <AppleButton type="button" variant="plain" disabled={pending} onClick={() => run(async () => setMsg(await removeWhatsapp()))}>Remove my number</AppleButton>
         </div>
