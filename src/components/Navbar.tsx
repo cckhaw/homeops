@@ -81,7 +81,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
         <div className={cn('mb-3', collapsed && 'flex justify-center')}>
           <HomeSwitcher homes={homes} activeId={activeId} layout={collapsed ? 'rail' : 'sidebar'} />
         </div>
-        <nav className="flex flex-1 flex-col gap-1" aria-label="Primary">
+        <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain" aria-label="Primary">
           {items.map((i) => link(i.href, i.label, i.icon, i.exact))}
           <div className="my-2 border-t hairline" />
           {records.map((i) => link(i.href, i.label, i.icon))}
@@ -91,12 +91,12 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
 
         {/* Separate from the main menu: owner tools, support, then display controls */}
         {(isAdmin || donate) && (
-          <nav className="mt-2 flex flex-col gap-1 border-t pt-2 hairline" aria-label="More">
+          <nav className="mt-2 flex shrink-0 flex-col gap-1 border-t pt-2 hairline" aria-label="More">
             {isAdmin && link('/admin', 'Admin portal', ShieldCheck, false, true)}
             {donate && link('/support', 'Buy me a coffee', Coffee, false, true)}
           </nav>
         )}
-        <div className={cn('mt-2 flex gap-1 border-t pt-2 hairline', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
+        <div className={cn('mt-2 flex shrink-0 gap-1 border-t pt-2 hairline', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
           <ThemeToggle />
           <button
             onClick={onToggle}
