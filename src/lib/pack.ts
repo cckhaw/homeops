@@ -1,7 +1,7 @@
 import 'server-only';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { assets, contractors, documents, maintenanceTasks, serviceRecords, utilityBills } from '@/db/schema';
+import { assets, documents, maintenanceTasks, serviceRecords, utilityBills } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth';
 import { resolveHomes } from '@/lib/household';
 import { resolvePrefs } from '@/lib/prefs';
@@ -9,6 +9,7 @@ import { headers } from 'next/headers';
 import { UTILITY_KINDS } from '@/lib/utilities-core';
 import { formatCurrency, formatDate, todayISO, FREQUENCY_LABEL } from '@/lib/utils';
 import type { PackData } from '@/lib/pack-core';
+import { contractorsForHome } from '@/lib/contractors';
 
 export type PackOptions = { documents: boolean; contractors: boolean; bills: boolean };
 
@@ -30,7 +31,7 @@ export async function loadPackRows(householdId: string, opts: PackOptions) {
     db.select().from(assets).where(eq(assets.householdId, householdId)).orderBy(asc(assets.name)),
     db.select().from(serviceRecords).where(eq(serviceRecords.householdId, householdId)).orderBy(asc(serviceRecords.serviceDate)),
     db.select().from(maintenanceTasks).where(eq(maintenanceTasks.householdId, householdId)).orderBy(asc(maintenanceTasks.dueDate)),
-    opts.contractors ? db.select().from(contractors).where(eq(contractors.householdId, householdId)).orderBy(asc(contractors.name)) : Promise.resolve([]),
+    opts.contractors ? contractorsForHome(householdId) : Promise.resolve([]),
     opts.documents ? db.select().from(documents).where(eq(documents.householdId, householdId)).orderBy(asc(documents.title)) : Promise.resolve([]),
     opts.bills ? db.select().from(utilityBills).where(eq(utilityBills.householdId, householdId)) : Promise.resolve([]),
   ]);

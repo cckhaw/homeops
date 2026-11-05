@@ -7,6 +7,7 @@ import { and, count, eq, gt, ne } from 'drizzle-orm';
 import { db } from '@/db';
 import {
   assets,
+  contractorHomes,
   contractors,
   householdInvites,
   householdMembers,
@@ -161,7 +162,7 @@ export async function addServiceRecord(assetId: string, _: FormState, fd: FormDa
   const description = str(fd, 'description', 500);
   if (!description) return { error: 'Describe the service performed.' };
   const wanted = str(fd, 'contractorId', 36);
-  const [picked] = wanted ? await db.select({ id: contractors.id, name: contractors.name }).from(contractors).where(and(eq(contractors.id, wanted), eq(contractors.householdId, household.id))) : [];
+  const [picked] = wanted ? await db.select({ id: contractors.id, name: contractors.name }).from(contractors).innerJoin(contractorHomes, eq(contractorHomes.contractorId, contractors.id)).where(and(eq(contractors.id, wanted), eq(contractorHomes.householdId, household.id))) : [];
   await db.insert(serviceRecords).values({
     householdId: household.id,
     assetId,

@@ -7,14 +7,19 @@ const VIEWS=[['desktop',{width:1280,height:900}],['tablet',{width:820,height:118
 (async()=>{
  const browser=await chromium.launch();
  const sv=(await q("select session_version v from profiles where email='una@test.dev'"))[0].v; const token=await encode({token:{email:'una@test.dev',sub:'una',sv},secret:'localtestsecretlocaltestsecret1234'});
+ const asv=(await q("select session_version v from profiles where email='admin@test.dev'"))[0].v; const atoken=await encode({token:{email:'admin@test.dev',sub:'admin',sv:asv},secret:'localtestsecretlocaltestsecret1234'});
  // one asset so the detail page (service form, edit form) exists
  const boot=await browser.newContext(); await boot.addCookies([{name:'next-auth.session-token',value:token,url:BASE}]); const bp=await boot.newPage(); await bp.goto(BASE+'/dashboard/assets'); await bp.click('text=Add asset'); await bp.fill('input[name=name]','Fridge'); await bp.click('button:has-text("Add to passport")'); await bp.waitForURL(/assets\/[0-9a-f-]{36}/); const assetUrl=bp.url().replace(BASE,''); await boot.close();
- const pages=[['documents','/dashboard/documents'],['bills','/dashboard/bills'],['contractors','/dashboard/contractors'],['asset page',assetUrl],['schedule','/dashboard/schedule'],['settings','/dashboard/settings'],['homes','/dashboard/homes']];
+ const pages=[['documents','/dashboard/documents'],['bills','/dashboard/bills'],['contractors','/dashboard/contractors'],['asset page',assetUrl],['asset edit',assetUrl,async(p)=>{ await p.click('summary:has-text("Edit")').catch(()=>{}); await p.click('button:has-text("Edit")').catch(()=>{}); }],
+  ['add asset sheet','/dashboard/assets',async(p)=>{ await p.click('text=Add asset'); await p.waitForSelector('input[name=installDate]'); }],
+  ['schedule','/dashboard/schedule'],['settings','/dashboard/settings'],['homes','/dashboard/homes'],['household','/dashboard/household'],['passport','/dashboard/passport'],['reports','/dashboard/reports'],['pack','/dashboard/pack'],['more','/dashboard/more'],
+  ['admin users','/admin/users'],['admin brands','/admin/brands'],['admin config','/admin/config'],['support','/support']];
  for(const [vname,vp] of VIEWS){
-  const ctx=await browser.newContext({viewport:vp}); await ctx.addCookies([{name:'next-auth.session-token',value:token,url:BASE}]); const p=await ctx.newPage();
-  for(const [name,url] of pages){
-   await p.goto(BASE+url); await p.waitForTimeout(600);
-   if(name==='asset page'){ const det=p.locator('summary:has-text("Edit")').first(); if(await det.count()) await det.click().catch(()=>{}); }
+  const mk=async(tok)=>{ const c=await browser.newContext({viewport:vp}); await c.addCookies([{name:'next-auth.session-token',value:tok,url:BASE}]); return c; };
+  const ctx=await mk(token), actx=await mk(atoken); const up=await ctx.newPage(), ap=await actx.newPage();
+  for(const [name,url,before] of pages){
+   const p=url.startsWith('/admin')?ap:up;
+   await p.goto(BASE+url); await p.waitForTimeout(600); if(before) await before(p).catch(()=>{}); await p.waitForTimeout(300);
    const res=await p.evaluate(()=>{
     const out={bad:[],rows:[],controls:0,scroll:document.documentElement.scrollWidth>window.innerWidth};
     const els=[...document.querySelectorAll('.input,.file-input')].filter(e=>e.offsetParent!==null&&e.tagName!=='TEXTAREA');
@@ -33,7 +38,7 @@ const VIEWS=[['desktop',{width:1280,height:900}],['tablet',{width:820,height:118
    assert(res.bad.length===0&&!res.scroll,`${vname} · ${name}: ${res.controls} controls aligned${res.bad.length?' — '+res.bad.slice(0,3).join('; '):''}${res.scroll?' — page scrolls sideways: '+(res.culprits||[]).join(' | '):''}`);
    if(['documents','bills'].includes(name)) await p.screenshot({path:`${S}/layout-${name}-${vname}.png`,fullPage:false});
   }
-  await ctx.close();
+  await ctx.close(); await actx.close();
  }
  await browser.close(); await pool.end();
 })();

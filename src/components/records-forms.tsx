@@ -11,7 +11,9 @@ export const TRADES = ['Plumber', 'Electrician', 'Air-con technician', 'Handyman
 
 type ContractorInit = { name?: string; trade?: string; phone?: string | null; email?: string | null; notes?: string | null };
 
-export function ContractorForm({ id, initial = {} }: { id?: string; initial?: ContractorInit }) {
+type HomeOpt = { id: string; name: string };
+
+export function ContractorForm({ id, initial = {}, homes, selected }: { id?: string; initial?: ContractorInit; homes: HomeOpt[]; selected: string[] }) {
   const { state, pending, formKey, formProps } = useServerForm(id ? updateContractor.bind(null, id) : addContractor, { resetOnSuccess: !id });
   return (
     <form key={formKey} {...formProps} className="space-y-3">
@@ -25,6 +27,22 @@ export function ContractorForm({ id, initial = {} }: { id?: string; initial?: Co
         <Field label="E-mail"><input name="email" type="email" maxLength={200} defaultValue={initial.email ?? ''} className="input" /></Field>
       </div>
       <Field label="Notes"><textarea name="notes" maxLength={1000} rows={2} defaultValue={initial.notes ?? ''} className="input" placeholder="Rates, which jobs, how they were found…" /></Field>
+      {homes.length > 1 ? (
+        <fieldset className="rounded-xl bg-label/5 p-3">
+          <legend className="px-1 text-[13px] font-medium text-secondary">Covers these homes</legend>
+          <div className="flex flex-wrap gap-2">
+            {homes.map((h) => (
+              <label key={h.id} className="relative cursor-pointer">
+                <input type="checkbox" name="homeIds" value={h.id} defaultChecked={selected.includes(h.id)} className="peer sr-only" />
+                <span className="flex min-h-[44px] items-center gap-2 rounded-xl border px-3.5 text-[15px] font-medium transition hairline peer-checked:border-tint peer-checked:bg-tint/10 peer-checked:text-tint peer-focus-visible:ring-2 peer-focus-visible:ring-tint/50">{h.name}</span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 px-1 text-[12px] text-secondary">Members of every ticked home will see this contractor and their phone number.</p>
+        </fieldset>
+      ) : (
+        <input type="hidden" name="homeIds" value={homes[0]?.id ?? ''} />
+      )}
       <Msg state={state} />
       <SubmitButton disabled={pending}>{id ? 'Save changes' : 'Add contractor'}</SubmitButton>
     </form>

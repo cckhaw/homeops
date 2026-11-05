@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import { ArrowLeft, BookOpen, FileText, QrCode, Trash2 } from 'lucide-react';
 import { db } from '@/db';
-import { assets, contractors, maintenanceTasks, serviceRecords } from '@/db/schema';
+import { assets, maintenanceTasks, serviceRecords } from '@/db/schema';
+import { contractorsForHome } from '@/lib/contractors';
 import { requireHousehold } from '@/lib/auth';
 import { getPrefs } from '@/lib/prefs';
 import { listMembers } from '@/lib/household';
@@ -31,7 +32,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
     db.select().from(maintenanceTasks).where(eq(maintenanceTasks.assetId, asset.id)).orderBy(asc(maintenanceTasks.dueDate)),
     db.select({ id: assets.id, name: assets.name }).from(assets).where(eq(assets.householdId, household.id)).orderBy(asc(assets.name)),
     listMembers(household.id),
-    db.select({ id: contractors.id, name: contractors.name, trade: contractors.trade }).from(contractors).where(eq(contractors.householdId, household.id)).orderBy(asc(contractors.name)),
+    contractorsForHome(household.id),
   ]);
   const people = new Map(members.map((m) => [m.id, m.name]));
   const editAssets = allAssets;
@@ -69,7 +70,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
         {asset.purchaseCents != null && <Fact label="Purchase price" value={formatCurrency(asset.purchaseCents, currency, locale)} />}
       </GlassCard>
 
-      <div className="grid items-start gap-x-8 xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-x-8 xl:grid-cols-2">
       <div>
       <Section title="Documents">
         <GlassCard className="flex flex-wrap gap-3">

@@ -31,7 +31,7 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" />
-      <div className="grid items-start gap-x-8 xl:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-x-8 xl:grid-cols-2">
       <div>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Appearance</h2>
       <GlassCard className="mb-8"><AppearanceSettings /></GlassCard>
