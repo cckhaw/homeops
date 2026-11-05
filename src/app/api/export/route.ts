@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { asc, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db';
-import { assets, householdMembers, maintenanceTasks, profiles, serviceRecords } from '@/db/schema';
+import { assets, householdMembers, maintenanceTasks, profiles, pushSubscriptions, serviceRecords } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth';
 import { listMemberships } from '@/lib/household';
 import { siteBaseUrl } from '@/lib/donate';
@@ -26,6 +26,7 @@ export async function GET(req: Request) {
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
 
   const memberships = await listMemberships(user.id);
+  const pushDevices = await db.select({ label: pushSubscriptions.label, createdAt: pushSubscriptions.createdAt }).from(pushSubscriptions).where(eq(pushSubscriptions.userId, user.id));
   const ids = memberships.map((m) => m.household.id);
   const [homeAssets, tasks, records, memberCounts] = ids.length
     ? await Promise.all([
@@ -67,6 +68,8 @@ export async function GET(req: Request) {
       createdAt: user.createdAt,
       twoFactorEnabled: user.totpEnabled,
       reminderEmails: { enabled: user.notifyReminders, leadDays: user.reminderLeadDays },
+      whatsappReminders: { enabled: user.notifyWhatsapp, number: user.whatsappVerifiedAt ? user.whatsappNumber : null },
+      pushDevices: pushDevices.map((d) => ({ label: d.label, addedAt: d.createdAt })),
     },
     homes: memberships.map(({ household: h, role }) => ({
       id: h.id,

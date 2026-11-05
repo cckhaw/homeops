@@ -1,8 +1,11 @@
 import 'server-only';
-import { and, eq, gte, inArray, isNotNull, lte } from 'drizzle-orm';
+import { and, eq, gte, inArray, isNotNull, lte, or } from 'drizzle-orm';
 import { db } from '@/db';
-import { assetReminders, assets, documentReminders, documents, households, householdMembers, maintenanceTasks, profiles, taskReminders } from '@/db/schema';
-import { emailLayout, escapeHtml, sendEmail } from '@/lib/email';
+import { assetReminders, assets, documentReminders, documents, households, householdMembers, maintenanceTasks, profiles, pushSubscriptions, taskReminders } from '@/db/schema';
+import { emailConfigured, emailLayout, escapeHtml, sendEmail } from '@/lib/email';
+import { digestOneLine, pushPayload, whenExpiry, whenTask, type DigestItem } from '@/lib/digest-core';
+import { pushConfigured, sendPushToUser } from '@/lib/push';
+import { sendWhatsappTemplate, whatsappConfigured } from '@/lib/whatsapp';
 import { siteBaseUrl } from '@/lib/donate';
 import { DEFAULT_LOCALE, isSupportedLocale } from '@/lib/locale';
 import { pickWarranties, shouldRemindTask, type WarrantyCandidate } from '@/lib/reminder-rules';
@@ -14,11 +17,19 @@ import { addDays, daysUntil, formatDate, todayISO } from '@/lib/utils';
  * `force` ignores the sent-log (used by "Send me a test").
  */
 export async function sendReminderDigests(opts: { onlyUserId?: string; force?: boolean } = {}) {
+  // Anyone with at least one channel on: e-mail, WhatsApp (verified), or a device registered for push.
+  const pushUsers = pushConfigured() ? [...new Set((await db.select({ id: pushSubscriptions.userId }).from(pushSubscriptions)).map((r) => r.id))] : [];
   const users = await db
     .select()
     .from(profiles)
-    .where(opts.onlyUserId ? eq(profiles.id, opts.onlyUserId) : eq(profiles.notifyReminders, true));
+    .where(
+      opts.onlyUserId
+        ? eq(profiles.id, opts.onlyUserId)
+        : or(eq(profiles.notifyReminders, true), and(eq(profiles.notifyWhatsapp, true), isNotNull(profiles.whatsappVerifiedAt)), pushUsers.length ? inArray(profiles.id, pushUsers) : undefined),
+    );
   let emails = 0;
+  let pushes = 0;
+  let whatsapps = 0;
   let totalItems = 0;
   let totalTasks = 0;
   let totalWarranties = 0;
@@ -27,7 +38,6 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
   const today = todayISO();
 
   for (const user of users) {
-    if (!opts.onlyUserId && !user.notifyReminders) continue;
     const locale = isSupportedLocale(user.locale) ? user.locale : DEFAULT_LOCALE;
     const homes = await db
       .select({ id: households.id, name: households.name })
@@ -112,9 +122,21 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
         : { label: 'Open document vault', url: `${base}/dashboard/documents` },
     );
     const subjectParts = [freshTasks.length && `${freshTasks.length} task${freshTasks.length === 1 ? '' : 's'}`, warrantyPicks.length && `${warrantyPicks.length} warrant${warrantyPicks.length === 1 ? 'y' : 'ies'} ending`, docPicks.length && `${docPicks.length} document${docPicks.length === 1 ? '' : 's'} expiring`].filter(Boolean);
-    if (!(await sendEmail(user.email, `HomeOps: ${subjectParts.join(' and ')}`, html))) continue;
-
-    emails++;
+    // ---- deliver on every channel the user turned on; the sent-log is only updated if at least one succeeded
+    const items: DigestItem[] = [
+      ...freshTasks.map((t) => ({ kind: 'task' as const, title: t.title, when: whenTask(daysUntil(t.dueDate) ?? 0), home: homeName.get(t.householdId) })),
+      ...warrantyPicks.map(({ asset }) => ({ kind: 'warranty' as const, title: asset.name, when: whenExpiry(asset.daysLeft), home: homeName.get((asset as WarrantyCandidate & { householdId: string }).householdId) })),
+      ...docPicks.map(({ asset }) => ({ kind: 'document' as const, title: asset.name, when: whenExpiry(asset.daysLeft), home: homeName.get((asset as WarrantyCandidate & { householdId: string }).householdId) })),
+    ];
+    const emailOn = emailConfigured() && (user.notifyReminders || !!opts.force);
+    const sentEmail = emailOn ? await sendEmail(user.email, `HomeOps: ${subjectParts.join(' and ')}`, html) : false;
+    const waOn = whatsappConfigured() && !!user.whatsappNumber && !!user.whatsappVerifiedAt && user.notifyWhatsapp;
+    const sentWa = waOn ? await sendWhatsappTemplate(user.whatsappNumber!, 'reminder', digestOneLine(items)) : false;
+    const pushed = pushConfigured() ? (await sendPushToUser(user.id, pushPayload(items, base))).sent : 0;
+    if (!sentEmail && !sentWa && !pushed) continue;
+    if (sentWa) whatsapps++;
+    if (pushed) pushes++;
+    if (sentEmail) emails++;
     totalItems += count;
     totalTasks += freshTasks.length;
     totalWarranties += warrantyPicks.length;
@@ -129,5 +151,5 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
       if (docMarks.length) await db.insert(documentReminders).values(docMarks).onConflictDoNothing();
     }
   }
-  return { users: users.length, emails, tasks: totalTasks, warranties: totalWarranties, documents: totalDocs, items: totalItems };
+  return { users: users.length, emails, push: pushes, whatsapp: whatsapps, tasks: totalTasks, warranties: totalWarranties, documents: totalDocs, items: totalItems };
 }

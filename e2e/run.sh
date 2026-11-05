@@ -61,6 +61,10 @@ node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
 run rel4
 node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
 run rel5
+# Push + WhatsApp: mock Meta API and an HTTPS push service (self-signed, so TLS verification is relaxed for this phase only).
+VAPID=$(node -e "const k=require('web-push').generateVAPIDKeys();console.log(k.publicKey+' '+k.privateKey)")
+node e2e/setup.js --seed >/dev/null && start $MAIL WHATSAPP_TOKEN=wa_test WHATSAPP_PHONE_ID=123456 WHATSAPP_API_URL=http://localhost:4040 VAPID_PUBLIC_KEY=${VAPID% *} VAPID_PRIVATE_KEY=${VAPID#* } VAPID_SUBJECT=mailto:t@test.dev NODE_TLS_REJECT_UNAUTHORIZED=0 && mark_seen
+run rel6
 APPLE_KEY=$(node -e "const c=require('crypto');console.log(c.generateKeyPairSync('ec',{namedCurve:'P-256'}).privateKey.export({type:'pkcs8',format:'pem'}).replace(/\n/g,'\\\\n'))")
 node e2e/setup.js --seed >/dev/null && start $MAIL TURNSTILE_SITE_KEY=1x00000000000000000000AA TURNSTILE_SECRET_KEY=secret TURNSTILE_VERIFY_URL=http://localhost:4030/ APPLE_ID=cc.test.web APPLE_TEAM_ID=TEAM123456 APPLE_KEY_ID=KEY1234567 "APPLE_PRIVATE_KEY=$APPLE_KEY" APPLE_DOMAIN_ASSOCIATION=hello-apple
 mark_seen; run rel2
