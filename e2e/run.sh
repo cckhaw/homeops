@@ -38,9 +38,9 @@ run() { # run <suite>   (bash e2e/run.sh side rel3  runs only those)
   local name=$1
   [ "$ONLY" != "  " ] && [[ "$ONLY" != *" $name "* ]] && return 0
   local res; res=$(timeout 300 node e2e/suites/$name.js "$OUT" 2>&1)
-  local ok fail; ok=$(echo "$res" | grep -c '^ok'); fail=$(echo "$res" | grep -c -E '^FAIL|Error')
+  local ok fail; ok=$(echo "$res" | grep -c '^ok'); fail=$(echo "$res" | grep -c -E '^FAIL|TimeoutError|TypeError|ReferenceError')
   printf '%-12s passed %-3s failed %s\n' "$name" "$ok" "$fail"
-  if [ "$fail" != 0 ] || [ "$ok" = 0 ]; then FAILED=1; echo "$res" | grep -E '^FAIL|Error' | sed 's/^/    /' | head -5; fi
+  if [ "$fail" != 0 ] || [ "$ok" = 0 ]; then FAILED=1; echo "$res" | grep -E '^FAIL|Error' | grep -v '^ok' | sed 's/^/    /' | head -5; fi
 }
 
 # Phase 1 - no e-mail service: accounts are created directly (auth1), starting from an empty database.
