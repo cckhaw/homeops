@@ -46,7 +46,8 @@ export async function createHousehold(userId: string, name: string) {
   const { currency, climate } = await regionalDefaults();
   const [h] = await db
     .insert(households)
-    .values({ name, ownerId: userId, passportToken: newToken(), currency, climate })
+    // Public Home Passport sharing starts OFF; an owner switches it on from the Passport page.
+    .values({ name, ownerId: userId, currency, climate })
     .returning();
   await db.insert(householdMembers).values({ householdId: h.id, userId, role: 'owner' });
   await seedDefaultTasks(h.id, climate);

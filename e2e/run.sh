@@ -38,6 +38,7 @@ run() { # run <suite>   (bash e2e/run.sh side rel3  runs only those)
   local name=$1
   [ "$ONLY" != "  " ] && [[ "$ONLY" != *" $name "* ]] && return 0
   local res; res=$(timeout 300 node e2e/suites/$name.js "$OUT" 2>&1)
+  echo "$res" > "$OUT/$name.log"
   local ok fail; ok=$(echo "$res" | grep -c '^ok'); fail=$(echo "$res" | grep -c -E '^FAIL|TimeoutError|TypeError|ReferenceError')
   printf '%-12s passed %-3s failed %s\n' "$name" "$ok" "$fail"
   if [ "$fail" != 0 ] || [ "$ok" = 0 ]; then FAILED=1; echo "$res" | grep -E '^FAIL|Error' | grep -v '^ok' | sed 's/^/    /' | head -5; fi
@@ -56,6 +57,8 @@ run rel1
 # rel3 counts money and labels, so it also needs a database no other suite has touched.
 node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
 run rel3
+node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
+run rel4
 APPLE_KEY=$(node -e "const c=require('crypto');console.log(c.generateKeyPairSync('ec',{namedCurve:'P-256'}).privateKey.export({type:'pkcs8',format:'pem'}).replace(/\n/g,'\\\\n'))")
 node e2e/setup.js --seed >/dev/null && start $MAIL TURNSTILE_SITE_KEY=1x00000000000000000000AA TURNSTILE_SECRET_KEY=secret TURNSTILE_VERIFY_URL=http://localhost:4030/ APPLE_ID=cc.test.web APPLE_TEAM_ID=TEAM123456 APPLE_KEY_ID=KEY1234567 "APPLE_PRIVATE_KEY=$APPLE_KEY" APPLE_DOMAIN_ASSOCIATION=hello-apple
 mark_seen; run rel2
