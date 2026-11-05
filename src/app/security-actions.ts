@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { and, eq, gt } from 'drizzle-orm';
 import QRCode from 'qrcode';
 import { db } from '@/db';
-import { households, loginTokens, profiles } from '@/db/schema';
+import { assets, householdMembers, households, loginTokens, profiles } from '@/db/schema';
 import {
   burnToken, createVerifiedProfile, findProfileByEmail, isEmail, issueToken, normalizeEmail, peekToken, setPassword,
 } from '@/lib/accounts';
@@ -20,7 +20,9 @@ import {
   totpUri, verifyPassword, verifyTotp,
 } from '@/lib/security';
 import { randomUUID } from 'crypto';
-import { ensureMembership } from '@/lib/household';
+import { HOME_COOKIE, ensureMembership, listMemberships } from '@/lib/household';
+import { del } from '@vercel/blob';
+import { asc, ne } from 'drizzle-orm';
 
 export type FormState = { error?: string; ok?: string } | undefined;
 const str = (fd: FormData, k: string, max = 300) => String(fd.get(k) ?? '').slice(0, max);
@@ -241,4 +243,59 @@ export async function unlockPassport(token: string, _: FormState, fd: FormData):
     path: '/', httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', maxAge: 60 * 60 * 24 * 7,
   });
   redirect(`/passport/${token}`);
+}
+
+// ------------------------------------------------------------------ Delete my account
+
+/**
+ * Permanently deletes the signed-in user's account and personal data.
+ * - Homes where they are the only member are erased entirely (assets, tasks, history, invites, uploaded files).
+ * - Homes shared with others are NOT destroyed: ownership passes to another member (an admin first) and only
+ *   the leaving user's membership and account are removed.
+ */
+export async function deleteMyAccount(_: FormState, fd: FormData): Promise<FormState> {
+  const user = await requireUser();
+  if (str(fd, 'confirm', 20).trim() !== 'DELETE') return { error: 'Type DELETE (in capitals) to confirm.' };
+  if (user.passwordHash && !(await checkCurrentPassword(user.id, str(fd, 'password', 200)))) {
+    return { error: 'Your password is incorrect (or the account is temporarily locked).' };
+  }
+  if (user.totpEnabled && user.totpSecret) {
+    const code = str(fd, 'code', 20);
+    const okTotp = verifyTotp(decryptSecret(user.totpSecret), code, user.totpLastStep) !== null;
+    const recovery: string[] = user.recoveryCodes ? JSON.parse(user.recoveryCodes) : [];
+    if (!okTotp && !recovery.includes(hashCode(code))) return { error: 'The authentication code is not correct.' };
+  }
+
+  const fileUrls: string[] = [];
+  for (const { household: h } of await listMemberships(user.id)) {
+    if (h.ownerId !== user.id) continue;
+    const others = await db
+      .select()
+      .from(householdMembers)
+      .where(and(eq(householdMembers.householdId, h.id), ne(householdMembers.userId, user.id)))
+      .orderBy(asc(householdMembers.createdAt));
+    const successor = others.find((m) => m.role === 'admin') ?? others[0];
+    if (successor) {
+      await db.update(households).set({ ownerId: successor.userId }).where(eq(households.id, h.id));
+      await db.update(householdMembers).set({ role: 'owner' }).where(eq(householdMembers.id, successor.id));
+    } else {
+      const homeAssets = await db.select({ r: assets.receiptUrl, m: assets.manualUrl }).from(assets).where(eq(assets.householdId, h.id));
+      for (const a of homeAssets) fileUrls.push(...[a.r, a.m].filter((u): u is string => !!u));
+      await db.delete(households).where(eq(households.id, h.id)); // cascades assets, tasks, records, invites, members
+    }
+  }
+
+  if (fileUrls.length && process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      await del(fileUrls);
+    } catch (e) {
+      console.error('Blob cleanup failed during account deletion', e instanceof Error ? e.message : e);
+    }
+  }
+  await db.delete(loginTokens).where(eq(loginTokens.email, user.email));
+  await db.delete(profiles).where(eq(profiles.id, user.id)); // cascades memberships, reminders log, invites they created
+
+  const jar = cookies();
+  for (const name of ['next-auth.session-token', '__Secure-next-auth.session-token', HOME_COOKIE]) jar.delete(name);
+  redirect('/?deleted=1');
 }

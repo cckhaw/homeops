@@ -8,7 +8,7 @@ import { Field, Msg } from './forms';
 import { PasswordField } from './auth-forms';
 import {
   beginTwoFactor, changePassword, confirmTwoFactor, disableTwoFactor, removePassportPassword, saveReminderSettings,
-  sendTestReminder, setPassportPassword, unlockPassport, type FormState,
+  deleteMyAccount, sendTestReminder, setPassportPassword, unlockPassport, type FormState,
 } from '@/app/security-actions';
 
 export function PasswordChangeForm({ hasPassword }: { hasPassword: boolean }) {
@@ -191,6 +191,34 @@ export function PassportGate({ token, name }: { token: string; name?: string }) 
       <PasswordField label={name ? `Password for ${name}` : 'Password'} autoComplete="off" />
       <Msg state={state} />
       <SubmitButton full>View passport</SubmitButton>
+    </form>
+  );
+}
+
+export function DeleteAccountForm({ hasPassword, needsCode }: { hasPassword: boolean; needsCode: boolean }) {
+  const [state, action] = useFormState(deleteMyAccount, undefined);
+  return (
+    <form
+      action={action}
+      onSubmit={(e) => {
+        if (!window.confirm('Delete your account and personal data permanently? This cannot be undone.')) e.preventDefault();
+      }}
+      className="space-y-3"
+    >
+      <p className="text-[14px] text-secondary">
+        This immediately and permanently erases your account. Homes only you belong to are erased completely (assets, receipts, history). Homes shared with others stay with them, and ownership passes to another member.
+      </p>
+      {hasPassword && <PasswordField name="password" label="Your password" autoComplete="current-password" />}
+      {needsCode && (
+        <Field label="Authentication or recovery code">
+          <input name="code" autoComplete="one-time-code" className="input" maxLength={12} />
+        </Field>
+      )}
+      <Field label="Type DELETE to confirm">
+        <input name="confirm" autoComplete="off" className="input" placeholder="DELETE" />
+      </Field>
+      <Msg state={state} />
+      <SubmitButton variant="destructive">Delete my account</SubmitButton>
     </form>
   );
 }
