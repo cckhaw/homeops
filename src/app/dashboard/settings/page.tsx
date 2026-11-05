@@ -40,7 +40,7 @@ export default async function SettingsPage() {
       <h2 className="mb-2 px-1 text-[22px] font-bold">Notifications</h2>
       <GlassCard className="mb-4"><ReminderForm on={user.notifyReminders} lead={user.reminderLeadDays} warranty={user.warrantyLeadDays} emailReady={emailConfigured()} /></GlassCard>
       <GlassCard className="mb-4"><PushSettings publicKey={vapidPublicKey()} devices={devices.map((d) => ({ id: d.id, label: d.label, createdAt: d.createdAt.toISOString() }))} /></GlassCard>
-      <GlassCard className="mb-8"><WhatsappSettings configured={whatsappConfigured()} number={user.whatsappNumber} verified={!!user.whatsappVerifiedAt} enabled={user.notifyWhatsapp} awaitingCode={!!user.whatsappCodeHash && !!user.whatsappCodeExpires && user.whatsappCodeExpires.getTime() > Date.now()} /></GlassCard>
+      <GlassCard className="mb-8"><WhatsappSettings configured={whatsappConfigured()} number={user.whatsappNumber} verified={!!user.whatsappVerifiedAt} enabled={user.notifyWhatsapp} awaitingCode={!!user.whatsappCodeHash} /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Calendar</h2>
       <GlassCard className="mb-8"><CalendarFeed token={user.calendarToken} baseUrl={siteBaseUrl('http://localhost:3000')} /></GlassCard>
       <h2 className="mb-2 px-1 text-[22px] font-bold">Account</h2>

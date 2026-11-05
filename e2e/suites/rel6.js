@@ -48,11 +48,11 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
  await p.fill('input[name=code]','123456'); await p.click('button:has-text("Confirm and turn on")'); await p.waitForSelector('text=Too many wrong codes'); assert(true,'after 5 wrong tries even the right code is refused');
  await q("delete from rate_limits"); reset();
  let limited=false;
- for(let i=0;i<4;i++){ await p.fill('input[name=phone]','+60 12-345 6789'); await p.click('button:has-text("Send")'); await p.waitForTimeout(900); if(await p.locator('text=/too many|slow down|try again/i').count()) limited=true; }
+ for(let i=0;i<4;i++){ await p.fill('input[name=phone]','+60 12-345 6789'); await p.click('button:has-text("Send a new code"), button:has-text("Send code")'); await p.waitForTimeout(900); if(await p.locator('text=/too many|slow down|try again/i').count()) limited=true; }
  assert(limited && readJson('whatsapp.json').length===3,'the 4th code request in an hour is refused (3 messages sent)');
  // failure from Meta
  await q("delete from rate_limits"); reset();
- await p.fill('input[name=phone]','+60 12-340 0000'); await p.click('button:has-text("Send")'); await p.waitForSelector('text=could not send'); assert(true,'a send failure is reported');
+ await p.fill('input[name=phone]','+60 12-340 0000'); await p.click('button:has-text("Send a new code"), button:has-text("Send code")'); await p.waitForSelector('text=could not send'); assert(true,'a send failure is reported');
  await q("update profiles set whatsapp_number='60123456789', whatsapp_verified_at=now(), notify_whatsapp=true, whatsapp_code_hash=null, whatsapp_code_expires=null, whatsapp_code_attempts=0 where id=$1",[uid]);
  await p.goto(BASE+'/dashboard/settings'); await p.click('button:has-text("Remove my number")'); await p.waitForTimeout(1200);
  assert((await q('select whatsapp_number n, whatsapp_verified_at v, notify_whatsapp o from profiles where id=$1',[uid]))[0].n===null,'removing the number forgets it');
