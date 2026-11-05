@@ -44,7 +44,7 @@ const PW='correct horse battery staple';
 
  // ---- reminders
  await page.goto(BASE+'/dashboard/settings'); await page.locator('input[name=notify]').check(); await page.selectOption('select[name=lead]','14'); await page.click('form:has(input[name=notify]) button:has-text("Save")'); await page.waitForSelector('text=Reminders are on');
- const mb=mails().length; await page.click('button:has-text("Send me a test reminder")'); await page.waitForSelector('text=Sent —'); const tm=mails().at(-1);
+ const mb=mails().length; await page.click('button:has-text("Send me a test reminder")'); await page.waitForSelector('text=/Sent by e-mail/'); const tm=mails().at(-1);
  assert(mails().length===mb+1 && /Maintenance/.test(tm.html) && /need.? your attention/.test(tm.html) && tm.to==='admin@test.dev','test reminder e-mail delivered with task list');
  const rq=await ctx.request; 
  const r401=await (await browser.newContext()).request.get(BASE+'/api/cron/reminders'); assert(r401.status()===401,'cron endpoint rejects requests without the secret');

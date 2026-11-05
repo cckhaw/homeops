@@ -44,7 +44,7 @@ const iso=(d)=>{const x=new Date(Date.now()+d*86400000);return `${x.getFullYear(
  // =============== B. warranty reminders
  await p.goto(BASE+'/dashboard/settings'); await p.locator('input[name=notify]').check(); await p.selectOption('select[name=warranty]','30'); await p.click('form:has(input[name=notify]) button:has-text("Save")'); await p.waitForSelector('text=Reminders are on');
  assert((await q("select warranty_lead_days w, notify_reminders n from profiles where email='siti@test.dev'"))[0].w===30,'warranty lead time saved');
- let before=mails().length; await p.click('button:has-text("Send me a test reminder")'); await p.waitForSelector('text=Sent —'); let m=mails().at(-1);
+ let before=mails().length; await p.click('button:has-text("Send me a test reminder")'); await p.waitForSelector('text=/Sent by e-mail/'); let m=mails().at(-1);
  assert(mails().length===before+1 && /Warranties ending soon/.test(m.html) && /Living room aircon/.test(m.html) && /warranty/.test(m.subject),'test e-mail lists the warranty that ends in 10 days');
  await q("update profiles set locale=null where email='siti@test.dev'");
  const cron=()=>my.request.get(BASE+'/api/cron/reminders',{headers:{authorization:'Bearer croncroncron'}}).then(r=>r.json());
