@@ -10,6 +10,8 @@ import GlassCard from '@/components/GlassCard';
 import Logo from '@/components/Logo';
 import AppleButton from '@/components/AppleButton';
 import BrandLogo from '@/components/BrandLogo';
+import { BrandsProvider } from '@/components/BrandsProvider';
+import { getBrands } from '@/lib/brand-store';
 import { makeModelLabel } from '@/lib/brands';
 
 export const dynamic = 'force-dynamic';
@@ -45,9 +47,11 @@ export default async function PublicPassport({ params }: { params: { token: stri
   }
   const p = await loadPassport(params.token);
   if (!p) notFound();
+  const brands = await getBrands();
   const toneText = { ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', none: 'text-secondary' } as const;
 
   return (
+    <BrandsProvider brands={brands}>
     <div className="min-h-dvh pb-16">
       <header className="glass sticky top-0 z-10 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-2.5">
@@ -125,6 +129,7 @@ export default async function PublicPassport({ params }: { params: { token: stri
         <p className="mt-6 text-center text-[12px] text-secondary"><Link href="/privacy" className="font-semibold text-tint">Privacy</Link> · <Link href="/terms" className="font-semibold text-tint">Terms</Link></p>
       </main>
     </div>
+    </BrandsProvider>
   );
 }
 

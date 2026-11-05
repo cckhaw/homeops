@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { brandDomain, logoUrl } from '@/lib/brands';
+import { logoSrc } from '@/lib/brands';
+import { useBrands } from './BrandsProvider';
 import { cn } from '@/lib/utils';
 
 /** Brand logo tile (e.g. the LG logo for an LG product), with a letter monogram fallback. */
 export default function BrandLogo({ make, size = 44, className }: { make: string | null | undefined; size?: number; className?: string }) {
-  const domain = brandDomain(make);
+  const brands = useBrands();
+  const src = logoSrc(brands, make, size > 48 ? 128 : 64);
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const label = (make ?? '?').trim()[0]?.toUpperCase() ?? '?';
@@ -21,10 +23,10 @@ export default function BrandLogo({ make, size = 44, className }: { make: string
     >
       {/* The monogram is always rendered underneath, so there is never a blank tile while the logo loads or if it fails. */}
       <span className="font-bold text-neutral-500" style={{ fontSize: size * 0.42 }}>{label}</span>
-      {domain && !failed && (
+      {src && !failed && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={logoUrl(domain, size > 48 ? 128 : 64)}
+          src={src}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"

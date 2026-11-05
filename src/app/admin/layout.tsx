@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowLeft, BarChart3, Settings, Users } from 'lucide-react';
+import { ArrowLeft, BarChart3, Settings, Tags, Users } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth';
 import AccentScope from '@/components/AccentScope';
 
@@ -9,6 +9,7 @@ export const metadata = { title: 'Admin', robots: { index: false } };
 const links = [
   { href: '/admin', label: 'Analytics', icon: BarChart3 },
   { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/brands', label: 'Brands', icon: Tags },
   { href: '/admin/settings', label: 'Site config', icon: Settings },
 ];
 

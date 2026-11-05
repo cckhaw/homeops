@@ -88,35 +88,55 @@ export const BRANDS: Record<string, string> = {
   Zojirushi: 'zojirushi.com',
 };
 
-export const BRAND_NAMES = Object.keys(BRANDS).sort((a, b) => a.localeCompare(b));
+export type BrandRecord = { id?: string; name: string; domain: string | null; logoUrl: string | null };
 
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-const INDEX = Object.entries(BRANDS).map(([name, domain]) => ({ key: norm(name), domain }));
+export const brandKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-/** Finds the website domain for a make, tolerating case/punctuation ("lg electronics" → lg.com). */
-export function brandDomain(make: string | null | undefined): string | null {
-  if (!make) return null;
-  const k = norm(make);
-  if (!k) return null;
-  const exact = INDEX.find((b) => b.key === k);
-  if (exact) return exact.domain;
-  const first = norm(make.trim().split(/\s+/)[0] ?? '');
-  const byFirst = INDEX.find((b) => b.key === first);
-  if (byFirst) return byFirst.domain;
-  // A typed website ("lg.com") works too.
-  if (/^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(make.trim())) return make.trim().toLowerCase();
-  return null;
+/** Built-in list: the seed for the `brands` table, and the fallback if the database is unavailable. */
+export function defaultBrands(): BrandRecord[] {
+  return Object.entries(BRANDS)
+    .map(([name, domain]) => ({ name, domain, logoUrl: null }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export function logoUrl(domain: string, size = 128): string {
+/** Finds the brand for a make, tolerating case/punctuation ("lg electronics" → LG). */
+export function findBrand(list: BrandRecord[], make: string | null | undefined): BrandRecord | null {
+  if (!make) return null;
+  const k = brandKey(make);
+  if (!k) return null;
+  const exact = list.find((b) => brandKey(b.name) === k);
+  if (exact) return exact;
+  const first = brandKey(make.trim().split(/\s+/)[0] ?? '');
+  return first ? list.find((b) => brandKey(b.name) === first) ?? null : null;
+}
+
+/** Returns the canonical brand name if `make` exactly matches a known brand (case/punctuation-insensitive), else null. */
+export function canonicalBrand(list: BrandRecord[], make: string | null | undefined): string | null {
+  if (!make) return null;
+  const k = brandKey(make);
+  return list.find((b) => brandKey(b.name) === k)?.name ?? null;
+}
+
+export function faviconUrl(domain: string, size = 128): string {
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=${size}`;
 }
 
-/** Returns the canonical brand name if `make` is a known brand (case/punctuation-insensitive), else null. */
-export function canonicalBrand(make: string | null | undefined): string | null {
-  if (!make) return null;
-  const k = norm(make);
-  return BRAND_NAMES.find((n) => norm(n) === k) ?? null;
+/** Where to load a brand's logo from: an uploaded/linked image first, then the website's icon; null → letter tile. */
+export function logoSrc(list: BrandRecord[], make: string | null | undefined, size = 64): string | null {
+  const rec = findBrand(list, make);
+  if (rec?.logoUrl) return rec.logoUrl;
+  if (rec?.domain) return faviconUrl(rec.domain, size);
+  // A typed website ("lg.com") works too.
+  if (!rec && make && /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(make.trim())) return faviconUrl(make.trim().toLowerCase(), size);
+  return null;
+}
+
+/** "https://www.LG.com/path" → "lg.com"; null if it is not a plausible hostname. */
+export function normalizeDomain(input: string | null | undefined): string | null {
+  let d = (input ?? '').trim().toLowerCase();
+  if (!d) return null;
+  d = d.replace(/^[a-z]+:\/\//, '').replace(/^www\./, '').split(/[/?#]/)[0].replace(/:\d+$/, '');
+  return /^(?=.{3,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/.test(d) ? d : null;
 }
 
 /** "LG" + "OLED65" → "LG OLED65"; falls back to the legacy combined field. */
