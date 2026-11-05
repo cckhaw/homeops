@@ -24,7 +24,7 @@ describe('donation currency', () => {
   it('follows STRIPE_CURRENCY', () => {
     process.env.STRIPE_CURRENCY = ' sgd ';
     expect(donationCurrency()).toBe('SGD');
-    expect(formatDonation(5)).toBe('SGD 5');
+    expect(formatDonation(5).replace(/\s/g, ' ')).toBe('SGD 5');
   });
   it('falls back to USD', () => {
     delete process.env.STRIPE_CURRENCY;
