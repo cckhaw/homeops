@@ -38,3 +38,14 @@ E-mail + password (min. 12 characters, scrypt-hashed), optional TOTP two-factor 
 
 ## Quality checks
 `npm run typecheck`, `npm test` (Vitest unit tests for password/2FA/crypto, dates and scheduling, brands, donations) and `npm run build` run on every pull request (`.github/workflows/ci.yml`) and again before every production deploy. A weekly workflow audits production dependencies for high-severity advisories.
+
+### Browser end-to-end suites (`e2e/`)
+Playwright suites that drive the real app against a throw-away local Postgres, with fake Resend and Turnstile servers:
+
+```bash
+# needs a local Postgres (default postgresql://postgres@localhost:5544; override with E2E_DB_URL / E2E_ADMIN_URL)
+bash e2e/run.sh            # every suite, each phase on a freshly migrated database
+bash e2e/run.sh rel4 side  # only some suites
+```
+
+The runner temporarily swaps `src/db/index.ts` for a plain `pg` connection and restores it on exit; results per suite are kept in `e2e/out/`. They are not part of CI because they need that database.
