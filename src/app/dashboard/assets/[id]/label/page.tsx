@@ -10,6 +10,7 @@ import { makeModelLabel } from '@/lib/brands';
 import PageHeader from '@/components/PageHeader';
 import PrintButton from '@/components/PrintButton';
 import QrLabel from '@/components/QrLabel';
+import { followAssetToItsHome } from '@/lib/asset-home';
 
 export const metadata = { title: 'QR label' };
 const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
@@ -17,9 +18,12 @@ const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-
 export default async function AssetLabel({ params: p }: { params: Promise<{ id: string }> }) {
   const { id } = await p;
   if (!isUuid(id)) notFound();
-  const { household } = await requireHousehold();
+  const { user, household } = await requireHousehold();
   const [asset] = await db.select().from(assets).where(and(eq(assets.id, id), eq(assets.householdId, household.id)));
-  if (!asset) notFound();
+  if (!asset) {
+    await followAssetToItsHome(user.id, id, `/dashboard/assets/${id}/label`);
+    notFound();
+  }
   const url = `${siteBaseUrl('')}/dashboard/assets/${asset.id}`;
   return (
     <>

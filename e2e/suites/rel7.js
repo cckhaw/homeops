@@ -37,6 +37,19 @@ const openEdit=async(pg)=>{ const d=pg.locator('details').first(); if(!(await d.
  await pb.goto(BASE+'/dashboard/contractors'); assert(await pb.locator('[data-testid=contractor]:has-text("1 job")').count()===1,"job counts are per home");
  await p.goto(BASE+'/dashboard/contractors'); assert(await p.locator('[data-testid=contractor]:has-text("No jobs logged yet")').count()===1,"…the other home doesn't count them");
 
+ // ---- a link or QR sticker for an asset in another of my homes switches to that home instead of "not found"
+ const condoAsset=(await q("select id from assets where name='Condo sink'"))[0].id;
+ await p.goto(BASE+'/dashboard/assets/'+condoAsset); await p.waitForSelector('h1:has-text("Condo sink")');
+ assert(p.url().endsWith('/dashboard/assets/'+condoAsset) && /Beach Condo/.test(await p.locator('aside [role=group] button[aria-pressed=true]').first().getAttribute('aria-label')),'opening an asset from another of my homes switches to it (QR stickers work)');
+ await p.goto(BASE+'/dashboard/assets'); assert(await p.locator('text=Condo sink').count()>0,'…and the home stays switched');
+ await p.goto(BASE+'/dashboard/assets/'+condoAsset+'/label'); await p.waitForSelector('figure.label'); assert(true,'the printable label works across homes too');
+ await p.context().addCookies([{name:'homeops_home',value:A,url:BASE}]); // back to Main House for the rest of the checks
+ const vctx=await sess('other@test.dev'); const vpg=await vctx.newPage(); const nf=await vpg.goto(BASE+'/dashboard/assets/'+condoAsset); assert(nf.status()===404,"someone who isn't a member still gets not found");
+ const evil=await fetch(BASE+'/api/switch-home?home='+B+'&next=https://evil.example/x',{redirect:'manual'}); assert(evil.status>=300&&evil.status<400 && !/evil\.example/.test(evil.headers.get('location')||''),'the switcher never redirects off-site');
+ const anon=await fetch(BASE+'/api/switch-home?home='+B+'&next=/dashboard',{redirect:'manual'}); assert(/\/login/.test(anon.headers.get('location')||'') && !/set-cookie/i.test([...anon.headers.keys()].join(',')),'signed-out visitors are sent to sign in, and no cookie is set');
+ // someone not in the home can't use the switcher to pick it
+ const sw=await vctx.request.get(BASE+'/api/switch-home?home='+B+'&next=/dashboard',{maxRedirects:0}).catch(e=>null); const ck=(await vctx.cookies()).find(c=>c.name==='homeops_home'); assert(!ck||ck.value!==B,'a non-member cannot select a home through the switcher');
+
  // ---- someone who only belongs to one of the homes
  await q("insert into household_members(household_id,user_id,role) values ($1,$2,'member')",[B,vid]);
  const ctxV=await sess('vic@test.dev',B); const pv=await ctxV.newPage(); await pv.goto(BASE+'/dashboard/contractors');

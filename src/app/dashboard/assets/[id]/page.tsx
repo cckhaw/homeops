@@ -5,6 +5,7 @@ import { ArrowLeft, BookOpen, FileText, QrCode, Trash2 } from 'lucide-react';
 import { db } from '@/db';
 import { assets, maintenanceTasks, serviceRecords } from '@/db/schema';
 import { contractorsForHome } from '@/lib/contractors';
+import { followAssetToItsHome } from '@/lib/asset-home';
 import { requireHousehold } from '@/lib/auth';
 import { getPrefs } from '@/lib/prefs';
 import { listMembers } from '@/lib/household';
@@ -22,10 +23,13 @@ const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-
 export default async function AssetDetail({ params: p }: { params: Promise<{ id: string }> }) {
   const params = await p;
   if (!isUuid(params.id)) notFound();
-  const { household } = await requireHousehold();
+  const { user, household } = await requireHousehold();
   const { locale, currency } = await getPrefs();
   const [asset] = await db.select().from(assets).where(and(eq(assets.id, params.id), eq(assets.householdId, household.id)));
-  if (!asset) notFound();
+  if (!asset) {
+    await followAssetToItsHome(user.id, params.id, `/dashboard/assets/${params.id}`); // e.g. a QR sticker for an asset in another of my homes
+    notFound();
+  }
 
   const [records, tasks, allAssets, members, homeContractors] = await Promise.all([
     db.select().from(serviceRecords).where(eq(serviceRecords.assetId, asset.id)).orderBy(desc(serviceRecords.serviceDate)),
