@@ -66,11 +66,11 @@ export default function HomePicker({ homes, activeId, compact, showName = true }
       <div
         role="dialog"
         aria-label="Choose a home"
-        style={pos ? { left: pos.left, top: pos.top } : undefined}
+        style={pos ? ({ '--pl': `${pos.left}px`, '--pt': `${pos.top}px` } as React.CSSProperties) : undefined}
         className={cn(
           'glass absolute flex max-h-[70dvh] flex-col overflow-hidden shadow-2xl',
           // phone: bottom sheet; md+: popover anchored under the trigger
-          'inset-x-0 bottom-0 rounded-t-3xl pb-[env(safe-area-inset-bottom)] md:inset-x-auto md:bottom-auto md:w-72 md:rounded-2xl md:pb-0',
+          'inset-x-0 bottom-0 rounded-t-3xl pb-[env(safe-area-inset-bottom)] md:inset-x-auto md:bottom-auto md:left-[var(--pl,12px)] md:top-[var(--pt,80px)] md:w-72 md:rounded-2xl md:pb-0',
         )}
       >
         <div className="flex items-center gap-2 border-b p-3 hairline">
