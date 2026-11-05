@@ -3,7 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import Logo from './Logo';
 import GlassCard from './GlassCard';
 
-export const SUPPORT_EMAIL = 'support@homeops.app';
+export const SUPPORT_EMAIL = 'me@khaw.cc';
 export const LAST_UPDATED = 'November 2026';
 
 export type LegalSection = { id: string; title: string };
