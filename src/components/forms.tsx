@@ -5,6 +5,7 @@ import { useFormState } from 'react-dom';
 import { Plus, ScanLine, Loader2 } from 'lucide-react';
 import BrandSelect from './BrandSelect';
 import { canonicalBrand } from '@/lib/brands';
+import { useBrands } from './BrandsProvider';
 import { Sheet } from './misc';
 import AppleButton, { SubmitButton } from './AppleButton';
 import {
@@ -51,6 +52,7 @@ type AssetInit = {
 };
 
 export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial?: AssetInit }) {
+  const brands = useBrands();
   const [state, action] = useFormState(assetId ? updateAsset.bind(null, assetId) : createAsset, undefined);
   const [v, setV] = useState({
     name: initial.name ?? '',
@@ -83,7 +85,7 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
         ...p,
         name: p.name || data.name || '',
         category: (CATEGORIES as readonly string[]).includes(data.category) ? data.category : p.category,
-        make: p.make || canonicalBrand(data.make) || data.make || '',
+        make: p.make || canonicalBrand(brands, data.make) || data.make || '',
         model: p.model || data.model || '',
         serialNumber: p.serialNumber || data.serialNumber || '',
         installDate: p.installDate || data.purchaseDate || '',

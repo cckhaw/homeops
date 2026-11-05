@@ -142,6 +142,17 @@ export const taskReminders = pgTable(
   (t) => ({ pk: uniqueIndex('task_reminders_pk').on(t.userId, t.taskId) }),
 );
 
+/** Brand directory managed by admins: each brand has a website domain and/or an uploaded logo. */
+export const brands = pgTable('brands', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  nameKey: text('name_key').notNull().unique(), // lower-cased alphanumerics, for case/punctuation-insensitive uniqueness
+  domain: text('domain'), // logo is fetched from this site when no logoUrl is set
+  logoUrl: text('logo_url'), // uploaded or linked logo image (takes priority over domain)
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 export type Profile = typeof profiles.$inferSelect;
 export type Household = typeof households.$inferSelect;
 export type Asset = typeof assets.$inferSelect;

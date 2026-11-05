@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDown, Pencil, Search } from 'lucide-react';
 import BrandLogo from './BrandLogo';
-import { BRAND_NAMES, canonicalBrand } from '@/lib/brands';
+import { canonicalBrand } from '@/lib/brands';
+import { useBrands } from './BrandsProvider';
 import { cn } from '@/lib/utils';
 
 /**
@@ -13,15 +14,17 @@ import { cn } from '@/lib/utils';
 export default function BrandSelect({ value, onChange, name = 'make' }: { value: string; onChange: (v: string) => void; name?: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [other, setOther] = useState(() => !!value && !canonicalBrand(value));
+  const brands = useBrands();
+  const names = useMemo(() => brands.map((b) => b.name).sort((a, b) => a.localeCompare(b)), [brands]);
+  const [other, setOther] = useState(() => !!value && !canonicalBrand(brands, value));
   const root = useRef<HTMLDivElement>(null);
-  const known = canonicalBrand(value);
+  const known = canonicalBrand(brands, value);
 
   // OCR (or editing) may set a value from outside: keep the mode consistent with it.
   useEffect(() => {
-    if (value && !canonicalBrand(value)) setOther(true);
-    if (value && canonicalBrand(value)) setOther(false);
-  }, [value]);
+    if (value && !canonicalBrand(brands, value)) setOther(true);
+    if (value && canonicalBrand(brands, value)) setOther(false);
+  }, [value, brands]);
 
   useEffect(() => {
     if (!open) return;
@@ -36,7 +39,7 @@ export default function BrandSelect({ value, onChange, name = 'make' }: { value:
   }, [open]);
 
   const q = query.trim().toLowerCase();
-  const list = useMemo(() => (q ? BRAND_NAMES.filter((b) => b.toLowerCase().includes(q)) : BRAND_NAMES), [q]);
+  const list = useMemo(() => (q ? names.filter((b) => b.toLowerCase().includes(q)) : names), [q, names]);
 
   const pick = (b: string) => {
     onChange(b);
