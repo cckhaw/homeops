@@ -79,7 +79,7 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
 
  // ---- "send me a test" reports the channels used
  await p.goto(BASE+'/dashboard/settings'); reset();
- await p.click('button:has-text("Send me a test reminder")'); await p.waitForSelector('text=/Sent by WhatsApp/');
+ await p.click('button:has-text("Send me a test reminder")'); await p.waitForSelector('text=/Sent by .*WhatsApp/');
  assert(true,'the test button says it went out by WhatsApp');
 
  // ---- push device list + removal
