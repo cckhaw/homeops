@@ -24,7 +24,7 @@ const PW='correct horse battery staple';
  await A.pg.goto(BASE+'/dashboard/assets'); await A.pg.click('text=Add asset'); await A.pg.fill('input[name=name]','Boiler'); await A.pg.locator('button[aria-haspopup=listbox]').click(); await A.pg.fill('input[aria-label="Search brands"]','Rheem'); await A.pg.click('ul li button:has-text("Rheem")');
  await A.pg.fill('input[name=serialNumber]','SN-SECRET-12345'); await A.pg.fill('textarea[name=notes]','private note about my home'); await A.pg.click('button:has-text("Add to passport")'); await A.pg.waitForURL(/assets\/[0-9a-f-]{36}/);
  // passport JSON leak check
- await A.pg.goto(BASE+'/dashboard/passport'); await A.pg.waitForSelector('[data-testid=passport-path]'); const ptoken=(await A.pg.textContent('[data-testid=passport-path]')).trim().split('/').pop();
+ await A.pg.goto(BASE+'/dashboard/passport'); if(await A.pg.locator('button:has-text("Create share link")').count()) await A.pg.click('button:has-text("Create share link")'); await A.pg.waitForSelector('[data-testid=passport-path]'); const ptoken=(await A.pg.textContent('[data-testid=passport-path]')).trim().split('/').pop();
  const pj=await (await A.c.request.get(BASE+'/api/passport/'+ptoken)).text();
  assert(pj.includes('Boiler') && !pj.includes('SN-SECRET-12345') && !pj.includes('private note') && !/receiptUrl|manualUrl|serialNumber|householdId/.test(pj),'public passport JSON omits serial numbers, notes, file links and internal ids');
  const ppage=await (await browser.newContext()).newPage(); await ppage.goto(BASE+'/passport/'+ptoken); const pt=await ppage.textContent('body'); assert(pt.includes('Boiler') && !pt.includes('SN-SECRET') && !pt.includes('alice@test.dev'),'public passport page shows no serial or e-mail');
