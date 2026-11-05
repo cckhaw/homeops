@@ -8,7 +8,7 @@ export function donationCurrency(): string {
   return /^[A-Z]{3}$/.test(c) ? c : 'USD';
 }
 
-/** "SGD 5" style amounts rendered with the currency's own symbol, e.g. "S$5" or "$5". */
+/** Amount in the donation currency, e.g. "SGD 5" or "$5" (symbol only where unambiguous). */
 export function formatDonation(amount: number, currency = donationCurrency()): string {
   try {
     return new Intl.NumberFormat('en', { style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(amount);
