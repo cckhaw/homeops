@@ -36,10 +36,13 @@ function hash(pw) {
       `insert into profiles(id,email,full_name,is_admin,email_verified_at,password_hash) values
        (gen_random_uuid(),'admin@test.dev','Ada Admin',true,now(),$1),
        (gen_random_uuid(),'una@test.dev','Una User',false,now(),$1),
-       (gen_random_uuid(),'vic@test.dev','Vic Victim',false,now(),$1)`,
+       (gen_random_uuid(),'vic@test.dev','Vic Victim',false,now(),$1),
+       (gen_random_uuid(),'user@test.dev','Una Other',false,now(),$1),
+       (gen_random_uuid(),'owner@test.dev','Olive Owner',false,now(),$1),
+       (gen_random_uuid(),'other@test.dev','Otto Other',false,now(),$1)`,
       [hash(PASSWORD)],
     );
   }
   await db.end();
-  console.log(`database "${dbName}" ready${process.argv.includes('--seed') ? ' (seeded: admin/una/vic @test.dev)' : ''}`);
+  console.log(`database "${dbName}" ready${process.argv.includes('--seed') ? ' (seeded: admin, una, vic, user, owner, other @test.dev)' : ''}`);
 })().catch((e) => { console.error(e); process.exit(1); });

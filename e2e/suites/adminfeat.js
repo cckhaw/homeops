@@ -13,7 +13,7 @@ const mails=()=>JSON.parse(fs.readFileSync(S+'/mails.json'));
  const vctx=await sess('vic@test.dev'); const vp=await vctx.newPage(); await vp.goto(BASE+'/dashboard/assets'); await vp.click('text=Add asset'); await vp.fill('input[name=name]','Victim fridge'); await vp.click('button:has-text("Add to passport")'); await vp.waitForURL(/assets\/[0-9a-f-]{36}/);
 
  // ---- list + search
- await ap.goto(BASE+'/admin/users'); assert(await ap.locator('a[href^="/admin/users/"]').count()===3,'user list shows every user as a link to a support page');
+ await ap.goto(BASE+'/admin/users'); assert(await ap.locator('a[href^="/admin/users/"]').count()===+(await q('select count(*)::int c from profiles'))[0].c,'user list shows every user as a link to a support page');
  await ap.fill('input[aria-label="Search users"]','vic'); await ap.press('input[aria-label="Search users"]','Enter'); await ap.waitForURL(/q=vic/); assert(await ap.locator('a[href^="/admin/users/"]').count()===1 && await ap.locator('text=Vic Victim').count()>0,'search by name/e-mail filters the list');
  await ap.goto(BASE+'/admin/users?q=%25'); assert(await ap.locator('a[href^="/admin/users/"]').count()===0,'a literal "%" search matches nothing (LIKE wildcards are escaped)');
  // ---- detail page

@@ -98,12 +98,12 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
 
  // ================= admin on a phone
  const adm=await sess('admin@test.dev',{width:390,height:844}); const ap=await adm.newPage(); await ap.goto(BASE+'/admin');
- const tabs=await ap.locator('nav[aria-label="Admin sections"].fixed a').allTextContents(); assert(tabs.length===5 && ['Analytics','Users','Brands','Audit','Config'].every(t=>tabs.some(x=>x.includes(t))),`phone admin has a bottom tab bar with all five sections (${tabs.join(', ')})`);
+ const tabs=await ap.locator('nav[aria-label="Admin sections"].fixed a').allTextContents(); assert(tabs.length===6 && ['Analytics','Users','Brands','Audit','Errors','Config'].every(t=>tabs.some(x=>x.includes(t))),`phone admin has a bottom tab bar with all six sections (${tabs.join(', ')})`);
  assert(!(await ap.locator('header nav[aria-label="Admin sections"]').isVisible()),'the desktop link strip is hidden on phones');
  await ap.click('nav.fixed a:has-text("Brands")'); await ap.waitForURL(/admin\/brands/); assert(await ap.locator('nav.fixed a[aria-current=page]:has-text("Brands")').count()===1,'the current section is highlighted');
  const over=await ap.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth); assert(over,'no horizontal scrolling on the brand manager');
  assert(await ap.locator('button[aria-label^="Delete "]').first().evaluate(e=>e.getBoundingClientRect().width<=48),'brand delete buttons are compact icon buttons');
- const adesk=await sess('admin@test.dev'); const dp=await adesk.newPage(); await dp.goto(BASE+'/admin'); assert(await dp.locator('header nav[aria-label="Admin sections"] a').count()===5 && !(await dp.locator('nav.fixed').isVisible()),'desktop keeps the top navigation strip');
+ const adesk=await sess('admin@test.dev'); const dp=await adesk.newPage(); await dp.goto(BASE+'/admin'); assert(await dp.locator('header nav[aria-label="Admin sections"] a').count()===6 && !(await dp.locator('nav.fixed').isVisible()),'desktop keeps the top navigation strip');
  await ap.screenshot({path:S+'/rel1-admin-m.png'});
  console.log('page errors:',errs); await browser.close(); await pool.end();
 })().catch(e=>{console.error(e);process.exit(1)});
