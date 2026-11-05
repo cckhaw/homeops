@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { BadgeCheck, Wrench } from 'lucide-react';
-import { loadPassport } from '@/lib/passport';
+import { findPassportHome, isPassportUnlocked, loadPassport } from '@/lib/passport';
+import { PassportGate } from '@/components/security-forms';
+import { Lock } from 'lucide-react';
 import { formatCurrency, formatDate, warrantyState } from '@/lib/utils';
 import GlassCard from '@/components/GlassCard';
 import Logo from '@/components/Logo';
@@ -13,6 +15,9 @@ import { makeModelLabel } from '@/lib/brands';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: { token: string } }): Promise<Metadata> {
+  const home = await findPassportHome(params.token);
+  if (!home) return { title: 'Passport not found', robots: { index: false } };
+  if (!isPassportUnlocked(home)) return { title: 'Home Service Passport', robots: { index: false, follow: false } };
   const p = await loadPassport(params.token);
   if (!p) return { title: 'Passport not found', robots: { index: false } };
   return {
@@ -23,6 +28,21 @@ export async function generateMetadata({ params }: { params: { token: string } }
 }
 
 export default async function PublicPassport({ params }: { params: { token: string } }) {
+  const home = await findPassportHome(params.token);
+  if (!home) notFound();
+  if (!isPassportUnlocked(home)) {
+    return (
+      <main className="grid min-h-dvh place-items-center px-5">
+        <GlassCard className="w-full max-w-sm space-y-5 p-7 text-center">
+          <Link href="/" aria-label="HomeOps" className="inline-block"><Logo size={36} /></Link>
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-tint/10 text-tint"><Lock className="h-7 w-7" aria-hidden /></span>
+          <h1 className="text-[24px] font-bold">This passport is protected</h1>
+          <p className="text-[15px] text-secondary">Enter the password the owner shared with you.</p>
+          <div className="text-left"><PassportGate token={params.token} /></div>
+        </GlassCard>
+      </main>
+    );
+  }
   const p = await loadPassport(params.token);
   if (!p) notFound();
   const toneText = { ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', none: 'text-secondary' } as const;
@@ -100,7 +120,7 @@ export default async function PublicPassport({ params }: { params: { token: stri
         <GlassCard className="space-y-3 text-center">
           <h2 className="text-[22px] font-bold">Keep your own home this organized</h2>
           <p className="text-secondary">Create a free Home Service Passport in minutes — scan receipts, track warranties and never miss maintenance.</p>
-          <AppleButton href="/login">Get HomeOps free</AppleButton>
+          <AppleButton href="/register">Get HomeOps free</AppleButton>
         </GlassCard>
       </main>
     </div>

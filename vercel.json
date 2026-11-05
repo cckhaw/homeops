@@ -4,5 +4,11 @@
   "git": {
     "deploymentEnabled": false
   },
-  "buildCommand": "npm run vercel-build"
+  "buildCommand": "npm run vercel-build",
+  "crons": [
+    {
+      "path": "/api/cron/reminders",
+      "schedule": "0 13 * * *"
+    }
+  ]
 }

@@ -17,7 +17,8 @@ npm run dev
 | `NEXTAUTH_SECRET`, `NEXTAUTH_URL` | yes | Session signing / canonical URL |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | optional (Google button appears only when both set) | OAuth redirect URI: `<NEXTAUTH_URL>/api/auth/callback/google` |
 | `ADMIN_EMAILS` | recommended | Comma-separated emails promoted to admin on sign-in |
-| `RESEND_API_KEY`, `EMAIL_FROM` | yes for sign-in | E-mail magic links (verify your sending domain in Resend; `EMAIL_FROM` must use it) |
+| `RESEND_API_KEY`, `EMAIL_FROM` | yes (recommended) | Sends account-confirmation, forgot-password and reminder e-mails. Verify your sending domain in Resend; `EMAIL_FROM` must use it. Without it, sign-up works without e-mail confirmation and admin promotion/reset/reminders are unavailable. |
+| `CRON_SECRET` | for reminders | Authorises the daily `/api/cron/reminders` Vercel Cron job |
 | `STRIPE_SECRET_KEY` | optional | Turns on the public `/support` "Buy me a coffee" page (Stripe Checkout, $1–$500). Use a restricted key with *Checkout Sessions: write*. `STRIPE_CURRENCY` (default `usd`) |
 | `DONATE_URL` | optional | Instead of the key: an `https://` Stripe Payment Link to redirect donors to |
 | `BLOB_READ_WRITE_TOKEN` | optional | Receipt / manual uploads (Vercel Blob) |
@@ -29,3 +30,6 @@ npm run dev
 Schema changes: edit `src/db/schema.ts`, run `npm run db:generate`, commit the new SQL in `drizzle/`.
 
 Note: uploaded files use Vercel Blob public URLs (unguessable, but not access-controlled).
+
+## Authentication
+E-mail + password (min. 12 characters, scrypt-hashed), optional TOTP two-factor with recovery codes, forgot-password by e-mail, lockout after 5 failed attempts, and session revocation on password change. Google sign-in is optional. `ADMIN_EMAILS` are promoted to admin only once their e-mail is verified. Home Passports can be password-protected.

@@ -1,7 +1,27 @@
+import { cookies } from 'next/headers';
 import { and, asc, desc, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { assets, households, maintenanceTasks, serviceRecords } from '@/db/schema';
 import { daysUntil, healthScore } from '@/lib/utils';
+import { safeEqual, sign } from '@/lib/security';
+
+export const passportCookieName = (householdId: string) => `hp_${householdId.slice(0, 8)}`;
+
+/** Cookie value is bound to the current password hash, so changing/removing the password revokes all unlocks. */
+export const passportCookieValue = (home: { id: string; passportPasswordHash: string | null }) => sign(`passport:${home.id}:${home.passportPasswordHash ?? ''}`);
+
+export async function findPassportHome(token: string) {
+  if (!token || token.length < 10) return null;
+  const [home] = await db.select().from(households).where(eq(households.passportToken, token));
+  return home ?? null;
+}
+
+/** True when the passport has no password, or the visitor has unlocked it. */
+export function isPassportUnlocked(home: { id: string; passportPasswordHash: string | null }): boolean {
+  if (!home.passportPasswordHash) return true;
+  const v = cookies().get(passportCookieName(home.id))?.value;
+  return !!v && safeEqual(v, passportCookieValue(home));
+}
 
 /** Everything the read-only Home Service Passport exposes. No personal data (owner e-mail etc.). */
 export async function loadPassport(token: string) {
