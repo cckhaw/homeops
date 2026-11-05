@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   title: { default: 'HomeOps — the digital passport for your home', template: '%s · HomeOps' },
   description: 'Track appliances, warranties and seasonal maintenance in one place. Share a certified Home Service Passport when you sell or rent.',
   manifest: '/manifest.webmanifest',
+  openGraph: { type: 'website', siteName: 'HomeOps', title: 'HomeOps — the digital passport for your home', description: 'Track appliances, warranties and seasonal maintenance in one place.' },
+  twitter: { card: 'summary_large_image' },
   applicationName: 'HomeOps',
   appleWebApp: { capable: true, title: 'HomeOps', statusBarStyle: 'default' },
   icons: { apple: '/icons/180' }, // favicon.ico + icon.svg are picked up from src/app/

@@ -5,6 +5,7 @@ import { Plus, ScanLine, Loader2 } from 'lucide-react';
 import BrandSelect from './BrandSelect';
 import { canonicalBrand } from '@/lib/brands';
 import { useBrands } from './BrandsProvider';
+import { usePrefs } from './PrefsProvider';
 import { Sheet } from './misc';
 import AppleButton, { SubmitButton } from './AppleButton';
 import {
@@ -15,11 +16,15 @@ import {
   saveSiteSettings,
   updateAsset,
   updateHousehold,
+  saveLocale,
+  addClimateTasks,
   updateProfile,
   updateTask,
   type FormState,
 } from '@/app/actions';
 import { CATEGORIES, FREQUENCIES, FREQUENCY_LABEL, todayISO } from '@/lib/utils';
+import { CURRENCIES, LOCALES } from '@/lib/locale';
+import { compressImage } from '@/lib/image';
 
 export function Msg({ state }: { state: FormState }) {
   if (!state) return null;
@@ -50,7 +55,7 @@ type AssetInit = {
   notes?: string | null;
 };
 
-export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial?: AssetInit }) {
+export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: string; initial?: AssetInit; hasPhoto?: boolean }) {
   const brands = useBrands();
   const [state, action, pending] = useActionState(assetId ? updateAsset.bind(null, assetId) : createAsset, undefined);
   const [, startTransition] = useTransition();
@@ -135,6 +140,33 @@ export function AssetForm({ assetId, initial = {} }: { assetId?: string; initial
         )}
       </div>
 
+      <div className="rounded-2xl bg-label/5 p-4">
+        <Field label={assetId ? 'Replace photo (optional)' : 'Photo of the item (optional)'}>
+          <input
+            name="photo"
+            type="file"
+            accept="image/*"
+            onChange={async (e) => {
+              const input = e.currentTarget;
+              const f = input.files?.[0];
+              if (!f) return;
+              const small = await compressImage(f);
+              if (small !== f) {
+                const dt = new DataTransfer();
+                dt.items.add(small);
+                input.files = dt.files;
+              }
+            }}
+            className="block w-full text-[15px] file:mr-3 file:min-h-[44px] file:rounded-xl file:border-0 file:bg-tint/10 file:px-4 file:font-semibold file:text-tint"
+          />
+        </Field>
+        {hasPhoto && (
+          <label className="mt-2 flex min-h-[44px] items-center gap-3 text-[15px]">
+            <input type="checkbox" name="removePhoto" className="h-5 w-5 accent-[rgb(var(--tint))]" /> Remove the current photo
+          </label>
+        )}
+      </div>
+
       <Field label="Name">
         <input name="name" required maxLength={120} className="input" placeholder="Kitchen refrigerator" value={v.name} onChange={set('name')} />
       </Field>
@@ -201,6 +233,7 @@ export function AddAssetSheet() {
 // ---------------------------------------------------------------- Other forms
 
 export function ServiceForm({ assetId }: { assetId: string }) {
+  const { currency } = usePrefs();
   const [state, action] = useActionState(addServiceRecord.bind(null, assetId), undefined);
   return (
     <form action={action} className="space-y-3">
@@ -214,7 +247,7 @@ export function ServiceForm({ assetId }: { assetId: string }) {
         <Field label="Provider">
           <input name="provider" maxLength={120} className="input" />
         </Field>
-        <Field label="Cost (USD)">
+        <Field label={`Cost (${currency})`}>
           <input name="cost" inputMode="decimal" className="input" placeholder="0.00" />
         </Field>
       </div>
@@ -273,18 +306,62 @@ export function ProfileForm({ fullName, email }: { fullName: string | null; emai
   );
 }
 
-export function HouseholdForm({ name, address, disabled }: { name: string; address: string | null; disabled?: boolean }) {
+export function HouseholdForm({ name, address, disabled, currency, climate }: { name: string; address: string | null; disabled?: boolean; currency: string; climate: string }) {
   const [state, action] = useActionState(updateHousehold, undefined);
+  const [tasksMsg, setTasksMsg] = useState<FormState>();
+  const [pending, startTransition] = useTransition();
+  return (
+    <div className="space-y-4">
+      <form action={action} className="space-y-3">
+        <Field label="Home name">
+          <input name="name" required maxLength={120} defaultValue={name} disabled={disabled} className="input" />
+        </Field>
+        <Field label="Address (shown on your Home Passport)">
+          <input name="address" maxLength={240} defaultValue={address ?? ''} disabled={disabled} className="input" autoComplete="street-address" />
+        </Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Currency for costs">
+            <select name="currency" defaultValue={currency} disabled={disabled} className="input">
+              {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.label}</option>)}
+            </select>
+          </Field>
+          <Field label="Climate (picks the seasonal tasks)">
+            <select name="climate" defaultValue={climate} disabled={disabled} className="input">
+              <option value="temperate">Four seasons (frost, furnace, gutters)</option>
+              <option value="tropical">Tropical (heat, humidity, monsoon)</option>
+            </select>
+          </Field>
+        </div>
+        <Msg state={state} />
+        {!disabled && <SubmitButton>Save home</SubmitButton>}
+      </form>
+      {!disabled && (
+        <div className="border-t pt-4 hairline">
+          <p className="mb-2 text-[14px] text-secondary">Changed the climate? Add the suggested seasonal tasks for it. Existing tasks are never touched.</p>
+          <AppleButton type="button" variant="secondary" disabled={pending} onClick={() => startTransition(async () => setTasksMsg(await addClimateTasks()))}>
+            Add suggested tasks
+          </AppleButton>
+          <div className="mt-2"><Msg state={tasksMsg} /></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function LocaleForm({ locale, detected }: { locale: string | null; detected: string }) {
+  const [state, action] = useActionState(saveLocale, undefined);
+  const label = LOCALES.find((l) => l.code === detected)?.label ?? detected;
   return (
     <form action={action} className="space-y-3">
-      <Field label="Home name">
-        <input name="name" required maxLength={120} defaultValue={name} disabled={disabled} className="input" />
+      <Field label="Date and number format">
+        <select name="locale" defaultValue={locale ?? ''} className="input">
+          <option value="">Automatic (from your browser: {label})</option>
+          {LOCALES.map((l) => <option key={l.code} value={l.code}>{l.label}</option>)}
+        </select>
       </Field>
-      <Field label="Address (shown on your Home Passport)">
-        <input name="address" maxLength={240} defaultValue={address ?? ''} disabled={disabled} className="input" autoComplete="street-address" />
-      </Field>
+      <p className="px-1 text-[13px] text-secondary">Changes how dates and amounts are written. The app itself stays in English.</p>
       <Msg state={state} />
-      {!disabled && <SubmitButton>Save home</SubmitButton>}
+      <SubmitButton>Save</SubmitButton>
     </form>
   );
 }

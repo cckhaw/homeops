@@ -1,7 +1,8 @@
-import { asc, desc, eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { assets, maintenanceTasks } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
+import { getPrefs } from '@/lib/prefs';
 import { daysUntil, formatMonth } from '@/lib/utils';
 import GlassCard from '@/components/GlassCard';
 import MaintenanceRow from '@/components/MaintenanceRow';
@@ -12,6 +13,7 @@ export const metadata = { title: 'Schedule' };
 
 export default async function SchedulePage() {
   const { household } = await requireHousehold();
+  const { locale } = await getPrefs();
   const [tasks, homeAssets] = await Promise.all([
     db.select().from(maintenanceTasks).where(eq(maintenanceTasks.householdId, household.id)).orderBy(asc(maintenanceTasks.dueDate)),
     db.select({ id: assets.id, name: assets.name }).from(assets).where(eq(assets.householdId, household.id)).orderBy(asc(assets.name)),
@@ -50,7 +52,7 @@ export default async function SchedulePage() {
       <div className="grid items-start gap-x-8 xl:grid-cols-2">
       {[...byMonth.entries()].map(([month, items]) => (
         <section key={month} className="mb-6">
-          <h2 className="mb-2 px-1 text-[22px] font-bold">{formatMonth(`${month}-01`)}</h2>
+          <h2 className="mb-2 px-1 text-[22px] font-bold">{formatMonth(`${month}-01`, locale)}</h2>
           <GlassCard className="py-2">{list(items)}</GlassCard>
         </section>
       ))}

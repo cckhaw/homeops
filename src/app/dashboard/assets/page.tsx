@@ -2,6 +2,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import { assets, maintenanceTasks } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
+import { getPrefs } from '@/lib/prefs';
 import { daysUntil } from '@/lib/utils';
 import AssetCard from '@/components/AssetCard';
 import PageHeader from '@/components/PageHeader';
@@ -12,6 +13,7 @@ export const metadata = { title: 'Assets' };
 
 export default async function AssetsPage() {
   const { household } = await requireHousehold();
+  const { locale } = await getPrefs();
   const [list, pending] = await Promise.all([
     db.select().from(assets).where(eq(assets.householdId, household.id)).orderBy(asc(assets.name)),
     db
@@ -30,7 +32,7 @@ export default async function AssetsPage() {
       ) : (
         <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
           {list.map((a) => (
-            <AssetCard key={a.id} asset={a} overdueTasks={overdue.get(a.id) ?? 0} />
+            <AssetCard key={a.id} asset={a} overdueTasks={overdue.get(a.id) ?? 0} locale={locale} />
           ))}
         </div>
       )}

@@ -5,6 +5,7 @@ import { ArrowLeft, BookOpen, FileText, Trash2 } from 'lucide-react';
 import { db } from '@/db';
 import { assets, maintenanceTasks, serviceRecords } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
+import { getPrefs } from '@/lib/prefs';
 import { deleteAsset, deleteServiceRecord } from '@/app/actions';
 import { daysUntil, formatCurrency, formatDate, healthScore, warrantyState } from '@/lib/utils';
 import GlassCard from '@/components/GlassCard';
@@ -20,6 +21,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
   const params = await p;
   if (!isUuid(params.id)) notFound();
   const { household } = await requireHousehold();
+  const { locale, currency } = await getPrefs();
   const [asset] = await db.select().from(assets).where(and(eq(assets.id, params.id), eq(assets.householdId, household.id)));
   if (!asset) notFound();
 
@@ -33,7 +35,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
   const done = tasks.filter((t) => t.status === 'completed').slice(-5).reverse();
   const overdue = pending.filter((t) => (daysUntil(t.dueDate) ?? 0) < 0).length;
   const health = healthScore({ installDate: asset.installDate, warrantyExpiry: asset.warrantyExpiry, overdueTasks: overdue });
-  const warranty = warrantyState(asset.warrantyExpiry);
+  const warranty = warrantyState(asset.warrantyExpiry, locale);
   const tone = { ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', none: 'text-secondary' }[warranty.tone];
 
   const removeAsset = deleteAsset.bind(null, asset.id);
@@ -43,6 +45,10 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
       <Link href="/dashboard/assets" className="mb-3 -ml-2 flex min-h-[44px] w-fit items-center gap-1 px-2 text-[17px] text-tint">
         <ArrowLeft className="h-5 w-5" aria-hidden /> Assets
       </Link>
+      {asset.photoUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={`/api/files/${asset.id}/photo`} alt={`Photo of ${asset.name}`} className="mb-4 max-h-72 w-full rounded-apple object-cover ring-1 ring-black/10" />
+      )}
       <div className="mb-5 flex items-center gap-4">
         <BrandLogo make={asset.make} size={64} />
         <div className="min-w-0">
@@ -54,7 +60,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
       <GlassCard className="mb-6 grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-4">
         <Fact label="Health" value={`${health.score}/100`} className={{ ok: 'text-ok', warn: 'text-warn', bad: 'text-bad' }[health.tone]} />
         <Fact label="Warranty" value={warranty.label} className={tone} />
-        <Fact label="Installed" value={formatDate(asset.installDate)} />
+        <Fact label="Installed" value={formatDate(asset.installDate, undefined, locale)} />
         <Fact label="Serial" value={asset.serialNumber ?? '—'} />
       </GlassCard>
 
@@ -90,7 +96,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
                 <li key={r.id} className="flex items-start gap-3 py-3 first:pt-0">
                   <div className="min-w-0 flex-1">
                     <p className="text-[17px]">{r.description}</p>
-                    <p className="text-[13px] text-secondary">{formatDate(r.serviceDate)}{r.provider ? ` · ${r.provider}` : ''}{r.costCents != null ? ` · ${formatCurrency(r.costCents)}` : ''}</p>
+                    <p className="text-[13px] text-secondary">{formatDate(r.serviceDate, undefined, locale)}{r.provider ? ` · ${r.provider}` : ''}{r.costCents != null ? ` · ${formatCurrency(r.costCents, currency, locale)}` : ''}</p>
                   </div>
                   <form action={deleteServiceRecord.bind(null, r.id, asset.id)}>
                     <button aria-label="Delete service record" className="grid h-11 w-11 place-items-center rounded-xl text-secondary hover:text-bad"><Trash2 className="h-[18px] w-[18px]" aria-hidden /></button>
@@ -106,7 +112,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
       </div>
       <div>
       <Section title="Edit details">
-        <GlassCard><AssetForm assetId={asset.id} initial={{ name: asset.name, category: asset.category, make: asset.make ?? null, model: asset.model ?? asset.makeModel, serialNumber: asset.serialNumber, installDate: asset.installDate, warrantyExpiry: asset.warrantyExpiry, notes: asset.notes }} /></GlassCard>
+        <GlassCard><AssetForm assetId={asset.id} hasPhoto={!!asset.photoUrl} initial={{ name: asset.name, category: asset.category, make: asset.make ?? null, model: asset.model ?? asset.makeModel, serialNumber: asset.serialNumber, installDate: asset.installDate, warrantyExpiry: asset.warrantyExpiry, notes: asset.notes }} /></GlassCard>
       </Section>
 
       <form action={removeAsset} className="mt-2">

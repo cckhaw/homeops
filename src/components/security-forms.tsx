@@ -125,7 +125,7 @@ export function TwoFactorSettings({ enabled, recoveryLeft }: { enabled: boolean;
   );
 }
 
-export function ReminderForm({ on, lead, emailReady }: { on: boolean; lead: number; emailReady: boolean }) {
+export function ReminderForm({ on, lead, warranty, emailReady }: { on: boolean; lead: number; warranty: number; emailReady: boolean }) {
   const [state, action] = useActionState(saveReminderSettings, undefined);
   const [test, setTest] = useState<FormState>();
   const [pending, start] = useTransition();
@@ -134,14 +134,20 @@ export function ReminderForm({ on, lead, emailReady }: { on: boolean; lead: numb
       <form action={action} className="space-y-4">
         <label className="flex min-h-[44px] items-center justify-between gap-4">
           <span>
-            <span className="block text-[17px] font-semibold">E-mail me maintenance reminders</span>
-            <span className="block text-[13px] text-secondary">One digest when tasks are coming due, plus a weekly nudge for overdue ones.</span>
+            <span className="block text-[17px] font-semibold">E-mail me maintenance and warranty reminders</span>
+            <span className="block text-[13px] text-secondary">One digest when tasks are coming due or warranties are about to end, plus a weekly nudge for overdue tasks.</span>
           </span>
           <input type="checkbox" name="notify" defaultChecked={on} className="h-7 w-12 shrink-0 cursor-pointer accent-[rgb(var(--tint))]" />
         </label>
         <Field label="Remind me this many days before a task is due">
           <select name="lead" defaultValue={String(lead)} className="input">
             {[1, 2, 3, 5, 7, 14].map((d) => <option key={d} value={d}>{d} day{d === 1 ? '' : 's'} before</option>)}
+          </select>
+        </Field>
+        <Field label="Warn me before a warranty ends">
+          <select name="warranty" defaultValue={String(warranty)} className="input">
+            <option value="0">Don&apos;t send warranty reminders</option>
+            {[14, 30, 60, 90].map((d) => <option key={d} value={d}>{d} days before (and again in the last week)</option>)}
           </select>
         </Field>
         {!emailReady && <p className="rounded-xl bg-warn/10 px-3 py-2 text-[14px] text-warn">E-mail sending isn&apos;t configured on this site yet, so reminders can&apos;t be delivered.</p>}

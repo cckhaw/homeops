@@ -4,6 +4,7 @@ import { AlertTriangle, CalendarClock, Package, ShieldAlert } from 'lucide-react
 import { db } from '@/db';
 import { assets, maintenanceTasks } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
+import { getPrefs } from '@/lib/prefs';
 import { daysUntil, warrantyState } from '@/lib/utils';
 import GlassCard from '@/components/GlassCard';
 import AssetCard from '@/components/AssetCard';
@@ -15,6 +16,7 @@ export const metadata = { title: 'Home' };
 
 export default async function DashboardPage() {
   const { user, household } = await requireHousehold();
+  const { locale } = await getPrefs();
   const [homeAssets, pending] = await Promise.all([
     db.select().from(assets).where(eq(assets.householdId, household.id)).orderBy(asc(assets.name)),
     db
@@ -80,7 +82,7 @@ export default async function DashboardPage() {
         ) : (
           <div className="space-y-3 2xl:grid 2xl:grid-cols-2 2xl:gap-3 2xl:space-y-0">
             {homeAssets.slice(0, 6).map((a) => (
-              <AssetCard key={a.id} asset={a} overdueTasks={overdueByAsset.get(a.id) ?? 0} />
+              <AssetCard key={a.id} asset={a} overdueTasks={overdueByAsset.get(a.id) ?? 0} locale={locale} />
             ))}
           </div>
         )}

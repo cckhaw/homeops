@@ -9,6 +9,7 @@ import { brandKey, normalizeDomain } from '@/lib/brands';
 import { refreshBrands } from '@/lib/brand-store';
 import { uploadLogo } from '@/lib/storage';
 import { deleteBlobs } from '@/lib/blob';
+import { audit } from '@/lib/audit';
 
 export type BrandState = { error?: string; ok?: string } | undefined;
 
@@ -27,7 +28,7 @@ async function dropLogoFile(url: string | null | undefined) {
 
 /** Creates (id = '') or updates a brand: name, website domain, and logo (upload, link, or remove). */
 export async function saveBrand(id: string, _: BrandState, fd: FormData): Promise<BrandState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const name = str(fd, 'name', 60);
   if (!name) return { error: 'Enter the brand name.' };
   const key = brandKey(name);
@@ -64,25 +65,28 @@ export async function saveBrand(id: string, _: BrandState, fd: FormData): Promis
   } else {
     await db.insert(brands).values({ name, nameKey: key, domain, logoUrl });
   }
+  await audit(admin, existing ? 'brand.update' : 'brand.create', existing && existing.name !== name ? `Brand “${existing.name}” → “${name}”` : `${existing ? 'Updated' : 'Added'} brand “${name}”`);
   touch();
   return { ok: existing ? 'Brand updated.' : 'Brand added.' };
 }
 
 export async function deleteBrand(id: string) {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const [b] = await db.select().from(brands).where(eq(brands.id, id));
   if (!b) return;
   await db.delete(brands).where(eq(brands.id, id));
   await dropLogoFile(b.logoUrl);
+  await audit(admin, 'brand.delete', `Deleted brand “${b.name}”`);
   touch();
 }
 
 /** Restores any built-in brands that are missing (never overwrites or removes your edits). */
 export async function restoreDefaultBrands(): Promise<BrandState> {
-  await requireAdmin();
+  const admin = await requireAdmin();
   const { defaultBrands } = await import('@/lib/brands');
   const rows = defaultBrands().map((b) => ({ name: b.name, nameKey: brandKey(b.name), domain: b.domain, logoUrl: null }));
   const inserted = await db.insert(brands).values(rows).onConflictDoNothing().returning({ id: brands.id });
+  await audit(admin, 'brand.restore', `Restored ${inserted.length} built-in brand(s)`);
   touch();
   return { ok: inserted.length ? `Restored ${inserted.length} missing brand${inserted.length === 1 ? '' : 's'}.` : 'Nothing to restore — every built-in brand is already in the list.' };
 }

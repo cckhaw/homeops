@@ -6,7 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { and, eq, gt } from 'drizzle-orm';
 import QRCode from 'qrcode';
 import { db } from '@/db';
-import { assets, householdMembers, households, loginTokens, profiles } from '@/db/schema';
+import { households, loginTokens, profiles } from '@/db/schema';
 import {
   burnToken, createVerifiedProfile, findProfileByEmail, isEmail, issueToken, normalizeEmail, peekToken, setPassword,
 } from '@/lib/accounts';
@@ -20,9 +20,9 @@ import {
   totpUri, verifyPassword, verifyTotp,
 } from '@/lib/security';
 import { randomUUID } from 'crypto';
-import { HOME_COOKIE, ensureMembership, listMemberships } from '@/lib/household';
-import { deleteBlobs } from '@/lib/blob';
-import { asc, ne } from 'drizzle-orm';
+import { HOME_COOKIE, ensureMembership } from '@/lib/household';
+import { audit } from '@/lib/audit';
+import { eraseAccount } from '@/lib/account-erase';
 
 export type FormState = { error?: string; ok?: string } | undefined;
 const str = (fd: FormData, k: string, max = 300) => String(fd.get(k) ?? '').slice(0, max);
@@ -180,14 +180,16 @@ export async function disableTwoFactor(password: string, code: string): Promise<
 // ------------------------------------------------------------------ E-mail reminders
 
 const LEAD_DAYS = [1, 2, 3, 5, 7, 14];
+const WARRANTY_DAYS = [0, 14, 30, 60, 90];
 
 export async function saveReminderSettings(_: FormState, fd: FormData): Promise<FormState> {
   const user = await requireUser();
   const on = fd.get('notify') === 'on';
   const lead = Number.parseInt(str(fd, 'lead', 3), 10);
+  const warranty = Number.parseInt(str(fd, 'warranty', 3), 10);
   await db
     .update(profiles)
-    .set({ notifyReminders: on, reminderLeadDays: LEAD_DAYS.includes(lead) ? lead : 3 })
+    .set({ notifyReminders: on, reminderLeadDays: LEAD_DAYS.includes(lead) ? lead : 3, warrantyLeadDays: WARRANTY_DAYS.includes(warranty) ? warranty : 30 })
     .where(eq(profiles.id, user.id));
   revalidatePath('/dashboard/settings');
   return { ok: on ? 'Reminders are on.' : 'Reminders are off.' };
@@ -197,7 +199,9 @@ export async function sendTestReminder(): Promise<FormState> {
   const user = await requireUser();
   if (!emailConfigured()) return { error: 'E-mail is not set up on this site yet (missing RESEND_API_KEY).' };
   const r = await sendReminderDigests({ onlyUserId: user.id, force: true });
-  return r.emails ? { ok: `Sent — ${r.tasks} task${r.tasks === 1 ? '' : 's'} included.` } : { ok: 'Nothing is due in your reminder window, so there was nothing to send.' };
+  return r.emails
+    ? { ok: `Sent — ${r.tasks} task${r.tasks === 1 ? '' : 's'} and ${r.warranties} warrant${r.warranties === 1 ? 'y' : 'ies'} included.` }
+    : { ok: 'Nothing is due in your reminder windows, so there was nothing to send.' };
 }
 
 // ------------------------------------------------------------------ Home Passport password
@@ -266,28 +270,8 @@ export async function deleteMyAccount(_: FormState, fd: FormData): Promise<FormS
     if (!okTotp && !recovery.includes(hashCode(code))) return { error: 'The authentication code is not correct.' };
   }
 
-  const fileUrls: string[] = [];
-  for (const { household: h } of await listMemberships(user.id)) {
-    if (h.ownerId !== user.id) continue;
-    const others = await db
-      .select()
-      .from(householdMembers)
-      .where(and(eq(householdMembers.householdId, h.id), ne(householdMembers.userId, user.id)))
-      .orderBy(asc(householdMembers.createdAt));
-    const successor = others.find((m) => m.role === 'admin') ?? others[0];
-    if (successor) {
-      await db.update(households).set({ ownerId: successor.userId }).where(eq(households.id, h.id));
-      await db.update(householdMembers).set({ role: 'owner' }).where(eq(householdMembers.id, successor.id));
-    } else {
-      const homeAssets = await db.select({ r: assets.receiptUrl, m: assets.manualUrl }).from(assets).where(eq(assets.householdId, h.id));
-      for (const a of homeAssets) fileUrls.push(...[a.r, a.m].filter((u): u is string => !!u));
-      await db.delete(households).where(eq(households.id, h.id)); // cascades assets, tasks, records, invites, members
-    }
-  }
-
-  await deleteBlobs(fileUrls);
-  await db.delete(loginTokens).where(eq(loginTokens.email, user.email));
-  await db.delete(profiles).where(eq(profiles.id, user.id)); // cascades memberships, reminders log, invites they created
+  await audit({ id: user.id, email: user.email }, 'account.delete', `Account ${user.email} deleted by its owner`);
+  await eraseAccount(user);
 
   const jar = await cookies();
   for (const name of ['next-auth.session-token', '__Secure-next-auth.session-token', HOME_COOKIE]) jar.delete(name);

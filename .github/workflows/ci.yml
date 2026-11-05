@@ -1,11 +1,9 @@
 name: CI
 
-# Runs on every pull request and on pushes to any branch except main (main is covered by the deploy workflow,
-# which runs the same checks before it deploys).
+# Runs on every pull request (main is covered by the deploy workflow, which runs the same checks before it deploys).
 on:
   pull_request:
-  push:
-    branches-ignore: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read

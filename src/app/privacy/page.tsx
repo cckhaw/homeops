@@ -54,7 +54,7 @@ export default async function PrivacyPage() {
         <ul>
           <li>Your home&apos;s name and, optionally, its address.</li>
           <li>Asset records: names, categories, make, model, serial numbers, install and warranty dates, notes, and service history including provider names and costs.</li>
-          <li>Files you upload: receipt photos or PDFs and appliance manuals.</li>
+          <li>Files you upload: receipt photos or PDFs, appliance manuals and photos of your items.</li>
           <li>Maintenance tasks, their schedules and completion dates, and the members you invite to share a home.</li>
         </ul>
         <p><strong>Technical data</strong></p>
@@ -110,7 +110,7 @@ export default async function PrivacyPage() {
         <ul>
           <li>Data is transmitted over encrypted connections (HTTPS) and stored in a managed Neon Postgres database that is encrypted at rest by the provider.</li>
           <li>Passwords are hashed with scrypt; two-factor secrets are encrypted; accounts lock temporarily after repeated failed sign-ins; changing your password signs out every other session.</li>
-          <li>Uploaded receipts and manuals are stored in a <strong>private</strong> Vercel Blob bucket. They have no public web address: a file can only be opened by a signed-in member of the household it belongs to. Files are removed when you replace them, delete the asset or home, or delete your account (see &ldquo;Your rights&rdquo;). The only uploads that are publicly viewable are brand logos added by the site owner.</li>
+          <li>Uploaded receipts, manuals and item photos are stored in a <strong>private</strong> Vercel Blob bucket. They have no public web address: a file can only be opened by a signed-in member of the household it belongs to. Files are removed when you replace them, delete the asset or home, or delete your account (see &ldquo;Your rights&rdquo;). The only uploads that are publicly viewable are brand logos added by the site owner.</li>
           <li>No online service can be guaranteed perfectly secure. If a breach affecting your data occurs, we will tell affected users and the relevant authorities where the law requires.</li>
         </ul>
       </Section>
@@ -121,7 +121,7 @@ export default async function PrivacyPage() {
           it with a password, replace its link, or switch sharing off at any time from <em>Dashboard → Passport</em>.
         </p>
         <p><strong>It shows:</strong> your home&apos;s name, the address only if you entered one, each asset&apos;s name, category, make, model, install and warranty dates and health score, service descriptions with dates and costs, and the completed maintenance log.</p>
-        <p><strong>It never shows:</strong> your e-mail address, your name, other members, serial numbers, notes, receipts, manuals or any account details.</p>
+        <p><strong>It never shows:</strong> your e-mail address, your name, other members, serial numbers, notes, receipts, manuals, item photos or any account details.</p>
       </Section>
 
       <Section id="retention" title="How long we keep data">

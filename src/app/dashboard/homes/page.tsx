@@ -1,4 +1,4 @@
-import { count, eq, inArray } from 'drizzle-orm';
+import { count, inArray } from 'drizzle-orm';
 import { Building2, Check } from 'lucide-react';
 import { db } from '@/db';
 import { assets, householdMembers } from '@/db/schema';

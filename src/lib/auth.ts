@@ -20,6 +20,8 @@ const LOCK_MINUTES = 15;
 /** Google sign-in: the e-mail is verified by Google. */
 export async function upsertProfile(input: { email: string; name?: string | null; image?: string | null }) {
   const profile = await createVerifiedProfile(input);
+  if (profile.suspendedAt) return profile;
+  await db.update(profiles).set({ lastLoginAt: new Date() }).where(eq(profiles.id, profile.id));
   await ensureMembership(profile.id, profile.fullName);
   return profile;
 }
@@ -53,6 +55,7 @@ async function authorizeCredentials(credentials: Record<'email' | 'password' | '
     throw new Error('INVALID');
   }
   // Correct password from here on.
+  if (profile.suspendedAt) throw new Error('SUSPENDED');
   if (emailConfigured() && !profile.emailVerifiedAt) throw new Error('EMAIL_NOT_VERIFIED');
 
   if (profile.totpEnabled && profile.totpSecret) {
@@ -71,7 +74,7 @@ async function authorizeCredentials(credentials: Record<'email' | 'password' | '
       await db.update(profiles).set({ recoveryCodes: JSON.stringify(hashes.filter((x) => x !== h)) }).where(eq(profiles.id, profile.id));
     }
   }
-  await db.update(profiles).set({ failedAttempts: 0, lockedUntil: null }).where(eq(profiles.id, profile.id));
+  await db.update(profiles).set({ failedAttempts: 0, lockedUntil: null, lastLoginAt: new Date() }).where(eq(profiles.id, profile.id));
   await ensureMembership(profile.id, profile.fullName);
   return { id: profile.id, email: profile.email, name: profile.fullName };
 }
@@ -96,7 +99,8 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'google') {
         const verified = (profile as { email_verified?: boolean } | undefined)?.email_verified;
         if (!user.email || verified === false) return false;
-        await upsertProfile({ email: user.email, name: user.name, image: user.image });
+        const p = await upsertProfile({ email: user.email, name: user.name, image: user.image });
+        if (p.suspendedAt) return false;
       }
       return true;
     },
@@ -122,7 +126,7 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> => {
   if (!email) return null;
   const [profile] = await db.select().from(profiles).where(eq(profiles.email, email));
   // A password change/reset bumps sessionVersion, which signs out every older session.
-  if (!profile || session?.sv !== profile.sessionVersion) return null;
+  if (!profile || profile.suspendedAt || session?.sv !== profile.sessionVersion) return null;
   return profile;
 });
 

@@ -9,9 +9,9 @@ import { cn, healthScore, warrantyState } from '@/lib/utils';
 const toneText = { ok: 'text-ok', warn: 'text-warn', bad: 'text-bad', none: 'text-secondary' } as const;
 const toneBg = { ok: 'bg-ok', warn: 'bg-warn', bad: 'bg-bad' } as const;
 
-export default function AssetCard({ asset, overdueTasks }: { asset: Asset; overdueTasks: number }) {
+export default function AssetCard({ asset, overdueTasks, locale }: { asset: Asset; overdueTasks: number; locale?: string }) {
   const health = healthScore({ installDate: asset.installDate, warrantyExpiry: asset.warrantyExpiry, overdueTasks });
-  const warranty = warrantyState(asset.warrantyExpiry);
+  const warranty = warrantyState(asset.warrantyExpiry, locale);
   const Icon = warranty.tone === 'ok' ? ShieldCheck : warranty.tone === 'none' ? ShieldQuestion : ShieldAlert;
 
   return (
@@ -43,7 +43,12 @@ export default function AssetCard({ asset, overdueTasks }: { asset: Asset; overd
             </span>
           )}
         </div>
-        <BrandLogo make={asset.make} size={44} />
+        {asset.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={`/api/files/${asset.id}/photo`} alt="" width={44} height={44} loading="lazy" className="h-11 w-11 shrink-0 rounded-xl object-cover ring-1 ring-black/10" />
+        ) : (
+          <BrandLogo make={asset.make} size={44} />
+        )}
         <ChevronRight className="h-5 w-5 shrink-0 text-secondary" aria-hidden />
       </GlassCard>
     </Link>

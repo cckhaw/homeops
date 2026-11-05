@@ -3,6 +3,7 @@ import { Crown, Link2, Trash2 } from 'lucide-react';
 import { db } from '@/db';
 import { householdInvites, householdMembers, profiles } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
+import { getPrefs } from '@/lib/prefs';
 import { createInvite, removeMember, revokeInvite, setMemberRole } from '@/app/actions';
 import { getLimits } from '@/lib/settings';
 import { formatDate } from '@/lib/utils';
@@ -15,6 +16,7 @@ export const metadata = { title: 'Household' };
 
 export default async function HouseholdPage() {
   const { user, household, role } = await requireHousehold();
+  const { locale } = await getPrefs();
   const canManage = role === 'owner' || role === 'admin';
   const [members, invites, limits] = await Promise.all([
     db
@@ -86,7 +88,7 @@ export default async function HouseholdPage() {
               <ul className="divide-y hairline [&>li]:border-inherit">
                 {invites.map((i) => (
                   <li key={i.id} className="flex flex-wrap items-center gap-2 py-3">
-                    <p className="min-w-0 flex-1 text-[15px]">Expires {formatDate(i.expiresAt)}</p>
+                    <p className="min-w-0 flex-1 text-[15px]">Expires {formatDate(i.expiresAt, undefined, locale)}</p>
                     <CopyButton path={`/join/${i.token}`} />
                     <form action={revokeInvite.bind(null, i.id)}>
                       <AppleButton type="submit" variant="destructive">Revoke</AppleButton>

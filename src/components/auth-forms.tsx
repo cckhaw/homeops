@@ -48,6 +48,7 @@ const loginErrors: Record<string, string> = {
   LOCKED: 'Too many failed attempts. Please wait 15 minutes, or reset your password.',
   EMAIL_NOT_VERIFIED: 'Please confirm your e-mail address first. Use “Forgot password?” to get a fresh link.',
   INVALID_CODE: 'That code is not correct.',
+  SUSPENDED: 'This account has been suspended. Please contact support.',
   CredentialsSignin: 'Incorrect e-mail or password.',
 };
 

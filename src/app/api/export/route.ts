@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { asc, eq, inArray } from 'drizzle-orm';
+import { asc, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { assets, householdMembers, maintenanceTasks, serviceRecords } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth';
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     : [[], [], [], []];
 
   const base = siteBaseUrl(new URL(req.url).origin);
-  const dl = (id: string, kind: 'receipt' | 'manual', has: string | null) => (has ? `${base}/api/files/${id}/${kind}` : null);
+  const dl = (id: string, kind: 'receipt' | 'manual' | 'photo', has: string | null) => (has ? `${base}/api/files/${id}/${kind}` : null);
   const stamp = new Date().toISOString().slice(0, 10);
   const headers = { 'Cache-Control': 'private, no-store' };
   const homeName = new Map(memberships.map((m) => [m.household.id, m.household.name]));
@@ -72,7 +72,7 @@ export async function GET(req: Request) {
       memberCount: memberCounts.filter((m) => m.householdId === h.id).length,
       assets: homeAssets
         .filter((a) => a.householdId === h.id)
-        .map(({ householdId: _h, receiptUrl, manualUrl, ...a }) => ({ ...a, receiptDownload: dl(a.id, 'receipt', receiptUrl), manualDownload: dl(a.id, 'manual', manualUrl) })),
+        .map(({ householdId: _h, receiptUrl, manualUrl, photoUrl, ...a }) => ({ ...a, receiptDownload: dl(a.id, 'receipt', receiptUrl), manualDownload: dl(a.id, 'manual', manualUrl), photoDownload: dl(a.id, 'photo', photoUrl) })),
       serviceRecords: records.filter((r) => r.householdId === h.id).map(({ householdId: _h, ...r }) => r),
       maintenanceTasks: tasks.filter((t) => t.householdId === h.id).map(({ householdId: _h, ...t }) => t),
     })),
