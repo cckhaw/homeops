@@ -40,7 +40,7 @@ export default async function Landing() {
             Every appliance, warranty and service record in one place — with seasonal reminders so small jobs never become expensive repairs.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <AppleButton href="/login" className="min-w-[220px]">Get started — it&apos;s free</AppleButton>
+            <AppleButton href="/register" className="min-w-[220px]">Get started — it&apos;s free</AppleButton>
             <AppleButton href="#how" variant="plain">See how it works</AppleButton>
           </div>
         </section>
@@ -62,7 +62,7 @@ export default async function Landing() {
             <p className="max-w-xl text-[17px] text-secondary">
               One link shows every appliance, every service and every completed check-up. Buyers and tenants see a well-kept home — and discover HomeOps for theirs.
             </p>
-            <AppleButton href="/login">Create my passport</AppleButton>
+            <AppleButton href="/register">Create my passport</AppleButton>
           </GlassCard>
         </section>
       </main>

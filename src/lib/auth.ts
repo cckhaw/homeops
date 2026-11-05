@@ -1,57 +1,80 @@
 import 'server-only';
 import { cache } from 'react';
-import { createHash, randomUUID } from 'crypto';
 import { redirect } from 'next/navigation';
 import { getServerSession, type NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { and, eq, gt } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { loginTokens, profiles, type Profile } from '@/db/schema';
+import { profiles, type Profile } from '@/db/schema';
+import { createVerifiedProfile, findProfileByEmail, isEmail, normalizeEmail } from '@/lib/accounts';
+import { emailConfigured } from '@/lib/email';
 import { ensureMembership, resolveHomes } from '@/lib/household';
+import { decryptSecret, hashCode, verifyPassword, verifyTotp } from '@/lib/security';
 
-export const hashToken = (t: string) => createHash('sha256').update(t).digest('hex');
+export const googleEnabled = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
-function adminEmails(): string[] {
-  return (process.env.ADMIN_EMAILS ?? '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-}
+const MAX_FAILED = 5;
+const LOCK_MINUTES = 15;
 
-/** Creates or updates the profile for a verified e-mail, and makes sure it has a household. */
+/** Google sign-in: the e-mail is verified by Google. */
 export async function upsertProfile(input: { email: string; name?: string | null; image?: string | null }) {
-  const email = input.email.trim().toLowerCase();
-  const shouldBeAdmin = adminEmails().includes(email);
-  const [existing] = await db.select().from(profiles).where(eq(profiles.email, email));
-  let profile: Profile;
-  if (existing) {
-    const patch: Partial<Profile> = {};
-    if (!existing.fullName && input.name) patch.fullName = input.name;
-    if (!existing.avatarUrl && input.image) patch.avatarUrl = input.image;
-    if (shouldBeAdmin && !existing.isAdmin) patch.isAdmin = true;
-    if (Object.keys(patch).length) {
-      [profile] = await db.update(profiles).set(patch).where(eq(profiles.id, existing.id)).returning();
-    } else {
-      profile = existing;
-    }
-  } else {
-    [profile] = await db
-      .insert(profiles)
-      .values({
-        id: randomUUID(),
-        email,
-        fullName: input.name ?? null,
-        avatarUrl: input.image ?? null,
-        isAdmin: shouldBeAdmin,
-      })
-      .returning();
-  }
+  const profile = await createVerifiedProfile(input);
   await ensureMembership(profile.id, profile.fullName);
   return profile;
 }
 
-export const googleEnabled = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+export async function registerFailure(p: Profile) {
+  const failed = p.failedAttempts + 1;
+  await db
+    .update(profiles)
+    .set(failed >= MAX_FAILED ? { failedAttempts: 0, lockedUntil: new Date(Date.now() + LOCK_MINUTES * 60_000) } : { failedAttempts: failed })
+    .where(eq(profiles.id, p.id));
+}
+
+/**
+ * Password (+ optional 2FA code) sign-in. Throws Errors whose message is a stable code the login form understands:
+ * INVALID, LOCKED, EMAIL_NOT_VERIFIED, TWO_FACTOR_REQUIRED, INVALID_CODE.
+ */
+async function authorizeCredentials(credentials: Record<'email' | 'password' | 'code', string> | undefined) {
+  const email = normalizeEmail(credentials?.email ?? '');
+  const password = credentials?.password ?? '';
+  const code = (credentials?.code ?? '').trim();
+  if (!isEmail(email) || !password) throw new Error('INVALID');
+
+  const profile = await findProfileByEmail(email);
+  if (profile?.lockedUntil && profile.lockedUntil > new Date()) {
+    await verifyPassword(password, null); // keep timing similar
+    throw new Error('LOCKED');
+  }
+  const ok = await verifyPassword(password, profile?.passwordHash);
+  if (!profile || !ok) {
+    if (profile) await registerFailure(profile);
+    throw new Error('INVALID');
+  }
+  // Correct password from here on.
+  if (emailConfigured() && !profile.emailVerifiedAt) throw new Error('EMAIL_NOT_VERIFIED');
+
+  if (profile.totpEnabled && profile.totpSecret) {
+    if (!code) throw new Error('TWO_FACTOR_REQUIRED');
+    const step = verifyTotp(decryptSecret(profile.totpSecret), code, profile.totpLastStep);
+    if (step !== null) {
+      await db.update(profiles).set({ totpLastStep: step }).where(eq(profiles.id, profile.id));
+    } else {
+      // Not a valid authenticator code: maybe a single-use recovery code.
+      const hashes: string[] = profile.recoveryCodes ? JSON.parse(profile.recoveryCodes) : [];
+      const h = hashCode(code);
+      if (!hashes.includes(h)) {
+        await registerFailure(profile);
+        throw new Error('INVALID_CODE');
+      }
+      await db.update(profiles).set({ recoveryCodes: JSON.stringify(hashes.filter((x) => x !== h)) }).where(eq(profiles.id, profile.id));
+    }
+  }
+  await db.update(profiles).set({ failedAttempts: 0, lockedUntil: null }).where(eq(profiles.id, profile.id));
+  await ensureMembership(profile.id, profile.fullName);
+  return { id: profile.id, email: profile.email, name: profile.fullName };
+}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 30 },
@@ -62,34 +85,32 @@ export const authOptions: NextAuthOptions = {
       ? [GoogleProvider({ clientId: process.env.GOOGLE_CLIENT_ID!, clientSecret: process.env.GOOGLE_CLIENT_SECRET! })]
       : []),
     CredentialsProvider({
-      id: 'magic-link',
-      name: 'Magic link',
-      credentials: { token: { label: 'Token', type: 'text' } },
-      async authorize(credentials) {
-        const token = credentials?.token;
-        if (!token) return null;
-        const hash = hashToken(token);
-        const [row] = await db
-          .select()
-          .from(loginTokens)
-          .where(and(eq(loginTokens.tokenHash, hash), gt(loginTokens.expiresAt, new Date())));
-        if (!row) return null;
-        await db.delete(loginTokens).where(eq(loginTokens.id, row.id)); // single use
-        const profile = await upsertProfile({ email: row.email });
-        return { id: profile.id, email: profile.email, name: profile.fullName };
-      },
+      id: 'credentials',
+      name: 'E-mail and password',
+      credentials: { email: { type: 'email' }, password: { type: 'password' }, code: { type: 'text' } },
+      authorize: (c) => authorizeCredentials(c as Record<'email' | 'password' | 'code', string> | undefined),
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === 'google') {
-        if (!user.email) return false;
+        const verified = (profile as { email_verified?: boolean } | undefined)?.email_verified;
+        if (!user.email || verified === false) return false;
         await upsertProfile({ email: user.email, name: user.name, image: user.image });
       }
       return true;
     },
-    async jwt({ token }) {
+    async jwt({ token, user }) {
+      if (user?.email) {
+        // On sign-in remember the session version so password changes can revoke old sessions.
+        const p = await findProfileByEmail(user.email);
+        token.sv = p?.sessionVersion ?? 0;
+      }
       return token;
+    },
+    async session({ session, token }) {
+      session.sv = token.sv;
+      return session;
     },
   },
 };
@@ -100,7 +121,9 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> => {
   const email = session?.user?.email?.toLowerCase();
   if (!email) return null;
   const [profile] = await db.select().from(profiles).where(eq(profiles.email, email));
-  return profile ?? null;
+  // A password change/reset bumps sessionVersion, which signs out every older session.
+  if (!profile || session?.sv !== profile.sessionVersion) return null;
+  return profile;
 });
 
 export async function requireUser(): Promise<Profile> {

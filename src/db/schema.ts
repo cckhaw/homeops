@@ -7,6 +7,18 @@ export const profiles = pgTable('profiles', {
   avatarUrl: text('avatar_url'),
   isAdmin: boolean('is_admin').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  // --- password auth, 2FA and notification preferences ---
+  passwordHash: text('password_hash'),
+  emailVerifiedAt: timestamp('email_verified_at'),
+  totpSecret: text('totp_secret'), // AES-256-GCM encrypted
+  totpEnabled: boolean('totp_enabled').default(false).notNull(),
+  totpLastStep: integer('totp_last_step'), // replay protection
+  recoveryCodes: text('recovery_codes'), // JSON array of hashed one-time codes
+  failedAttempts: integer('failed_attempts').default(0).notNull(),
+  lockedUntil: timestamp('locked_until'),
+  sessionVersion: integer('session_version').default(0).notNull(),
+  notifyReminders: boolean('notify_reminders').default(false).notNull(),
+  reminderLeadDays: integer('reminder_lead_days').default(3).notNull(),
 });
 
 export const households = pgTable('households', {
@@ -15,6 +27,9 @@ export const households = pgTable('households', {
   address: text('address'),
   ownerId: uuid('owner_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
   passportToken: text('passport_token').unique(),
+  passportPasswordHash: text('passport_password_hash'),
+  passportFailed: integer('passport_failed').default(0).notNull(),
+  passportLockedUntil: timestamp('passport_locked_until'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -105,14 +120,27 @@ export const serviceRecords = pgTable(
   (t) => ({ byAsset: index('service_records_asset_idx').on(t.assetId) }),
 );
 
-/** Hashed one-time tokens for e-mail magic-link sign-in. */
+/** Hashed one-time tokens for e-mail registration and password reset links. */
 export const loginTokens = pgTable('login_tokens', {
   id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull(),
+  purpose: text('purpose').default('reset').notNull(), // 'register' | 'reset'
+  payload: text('payload'), // e.g. display name for 'register'
   tokenHash: text('token_hash').notNull().unique(),
   expiresAt: timestamp('expires_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+/** Which reminder e-mails have been sent for which task, so digests don't repeat daily. */
+export const taskReminders = pgTable(
+  'task_reminders',
+  {
+    userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+    taskId: uuid('task_id').references(() => maintenanceTasks.id, { onDelete: 'cascade' }).notNull(),
+    sentAt: timestamp('sent_at').defaultNow().notNull(),
+  },
+  (t) => ({ pk: uniqueIndex('task_reminders_pk').on(t.userId, t.taskId) }),
+);
 
 export type Profile = typeof profiles.$inferSelect;
 export type Household = typeof households.$inferSelect;

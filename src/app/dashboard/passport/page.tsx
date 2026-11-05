@@ -6,6 +6,7 @@ import GlassCard from '@/components/GlassCard';
 import PageHeader from '@/components/PageHeader';
 import AppleButton, { SubmitButton } from '@/components/AppleButton';
 import { CopyButton, ShareButton } from '@/components/misc';
+import { PassportPasswordForm } from '@/components/security-forms';
 
 export const metadata = { title: 'Home Passport' };
 
@@ -48,6 +49,13 @@ export default async function PassportPage() {
           <p className="text-[15px] text-secondary">Ask a home owner or admin to enable sharing.</p>
         )}
       </GlassCard>
+
+      {path && canManage && (
+        <>
+          <h2 className="mb-2 px-1 text-[22px] font-bold">Password protection</h2>
+          <GlassCard className="mb-6"><PassportPasswordForm hasPassword={!!household.passportPasswordHash} /></GlassCard>
+        </>
+      )}
 
       {preview && (
         <GlassCard className="grid grid-cols-3 gap-4 text-center">

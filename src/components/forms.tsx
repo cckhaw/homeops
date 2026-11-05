@@ -12,7 +12,6 @@ import {
   createAsset,
   createHome,
   createTask,
-  requestMagicLink,
   saveSiteSettings,
   updateAsset,
   updateHousehold,
@@ -298,19 +297,6 @@ export function SiteSettingsForm(props: { unlimited: boolean; assetLimit: string
       <p className="text-[13px] text-secondary">Limits apply only while the unlimited switch is off. Changes take effect immediately.</p>
       <Msg state={state} />
       <SubmitButton>Save settings</SubmitButton>
-    </form>
-  );
-}
-
-export function MagicLinkForm() {
-  const [state, action] = useFormState(requestMagicLink, undefined);
-  return (
-    <form action={action} className="space-y-3">
-      <Field label="E-mail">
-        <input name="email" type="email" required autoComplete="email" className="input" placeholder="you@example.com" />
-      </Field>
-      <Msg state={state} />
-      <SubmitButton full>Email me a sign-in link</SubmitButton>
     </form>
   );
 }

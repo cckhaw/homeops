@@ -10,12 +10,11 @@ import {
   householdInvites,
   householdMembers,
   households,
-  loginTokens,
   maintenanceTasks,
   profiles,
   serviceRecords,
 } from '@/db/schema';
-import { hashToken, requireAdmin, requireHousehold, requireUser } from '@/lib/auth';
+import { requireAdmin, requireHousehold, requireUser } from '@/lib/auth';
 import { HOME_COOKIE, createHousehold, isMember, listMemberships, newToken } from '@/lib/household';
 import { getLimits, setSetting } from '@/lib/settings';
 import { uploadFile } from '@/lib/storage';
@@ -450,51 +449,4 @@ export async function setUserAdmin(userId: string, makeAdmin: boolean) {
   if (me.id === userId) return; // cannot change your own role (prevents locking everyone out)
   await db.update(profiles).set({ isAdmin: makeAdmin }).where(eq(profiles.id, userId));
   revalidatePath('/admin/users');
-}
-
-// ------------------------------------------------------------------ Magic link
-
-export async function requestMagicLink(_: FormState, fd: FormData): Promise<FormState> {
-  const email = str(fd, 'email', 200).toLowerCase();
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return { error: 'Enter a valid e-mail address.' };
-  const key = process.env.RESEND_API_KEY;
-  if (!key && process.env.NODE_ENV === 'production') {
-    return { error: 'E-mail sign-in is not set up yet (missing RESEND_API_KEY). Please contact the site owner.' };
-  }
-
-  const recent = await db
-    .select({ id: loginTokens.id })
-    .from(loginTokens)
-    .where(and(eq(loginTokens.email, email), gt(loginTokens.createdAt, new Date(Date.now() - 3_600_000))));
-  if (recent.length >= 5) return { error: 'Too many requests. Try again in an hour.' };
-
-  const token = newToken(32);
-  await db.insert(loginTokens).values({
-    email,
-    tokenHash: hashToken(token),
-    expiresAt: new Date(Date.now() + 15 * 60_000),
-  });
-  const base =
-    process.env.NEXTAUTH_URL ??
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000');
-  const link = `${base}/login/verify?token=${encodeURIComponent(token)}`;
-
-  if (!key) {
-    // Local development only: no e-mail provider, so print the link instead.
-    console.log(`\n[magic link] ${email}: ${link}\n`);
-    return { ok: 'Dev mode: the sign-in link was printed to the server console.' };
-  }
-
-  const res = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      from: process.env.EMAIL_FROM ?? 'HomeOps <onboarding@resend.dev>',
-      to: email,
-      subject: 'Your HomeOps sign-in link',
-      html: `<div style="font-family:-apple-system,Helvetica,Arial,sans-serif;max-width:420px;margin:auto"><h2>Sign in to HomeOps</h2><p>Tap the button to sign in. This link works once and expires in 15 minutes.</p><p><a href="${link}" style="display:inline-block;background:#0e7fae;color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:600">Sign in</a></p><p style="color:#86868b;font-size:12px">If you didn't request this, you can ignore this e-mail.</p></div>`,
-    }),
-  });
-  if (!res.ok) return { error: 'We could not send the e-mail. Please try again.' };
-  return { ok: 'Check your inbox for a sign-in link.' };
 }
