@@ -49,10 +49,11 @@ const PW='correct horse battery staple';
  const login=async(pw)=>{ await page.goto(BASE+'/login'); await page.fill('input[type=email]','dana@test.dev'); await page.locator('input[type=password]').fill(pw); await page.click('button:has-text("Sign in")'); };
  await login(NEW); await page.waitForSelector('input[autocomplete=one-time-code]'); assert(true,'login asks for an authentication code after the password');
  await page.fill('input[autocomplete=one-time-code]','123456'); await page.click('button:has-text("Verify and sign in")'); await page.waitForSelector('text=not correct'); assert(true,'wrong code refused');
- // valid code (next step to avoid replay of the setup code)
- await page.fill('input[autocomplete=one-time-code]',totp(secret,1)); await page.click('button:has-text("Verify and sign in")'); await page.waitForURL(BASE+'/dashboard'); assert(true,'valid authenticator code signs in');
+ // valid code (next step to avoid replay of the setup code). Computed once so a 30-second rollover can't turn the replay into a fresh code.
+ const code1=totp(secret,1);
+ await page.fill('input[autocomplete=one-time-code]',code1); await page.click('button:has-text("Verify and sign in")'); await page.waitForURL(BASE+'/dashboard'); assert(true,'valid authenticator code signs in');
  // replay of same code refused
- await ctx.clearCookies(); await login(NEW); await page.waitForSelector('input[autocomplete=one-time-code]'); await page.fill('input[autocomplete=one-time-code]',totp(secret,1)); await page.click('button:has-text("Verify and sign in")'); await page.waitForSelector('text=not correct'); assert(true,'TOTP code cannot be replayed');
+ await ctx.clearCookies(); await login(NEW); await page.waitForSelector('input[autocomplete=one-time-code]'); await page.fill('input[autocomplete=one-time-code]',code1); await page.click('button:has-text("Verify and sign in")'); await page.waitForSelector('text=not correct'); assert(true,'TOTP code cannot be replayed');
  // recovery code works once
  await page.fill('input[autocomplete=one-time-code]',codes[0]); await page.click('button:has-text("Verify and sign in")'); await page.waitForURL(BASE+'/dashboard'); assert(true,'recovery code signs in');
  await ctx.clearCookies(); await login(NEW); await page.waitForSelector('input[autocomplete=one-time-code]'); await page.fill('input[autocomplete=one-time-code]',codes[0]); await page.click('button:has-text("Verify and sign in")'); await page.waitForSelector('text=not correct'); assert(true,'recovery code is single-use');

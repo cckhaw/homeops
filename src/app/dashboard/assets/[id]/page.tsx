@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { and, asc, desc, eq } from 'drizzle-orm';
 import { ArrowLeft, BookOpen, FileText, QrCode, Trash2 } from 'lucide-react';
 import { db } from '@/db';
-import { assets, maintenanceTasks, serviceRecords } from '@/db/schema';
+import { assets, contractors, maintenanceTasks, serviceRecords } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
 import { getPrefs } from '@/lib/prefs';
 import { listMembers } from '@/lib/household';
@@ -26,11 +26,12 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
   const [asset] = await db.select().from(assets).where(and(eq(assets.id, params.id), eq(assets.householdId, household.id)));
   if (!asset) notFound();
 
-  const [records, tasks, allAssets, members] = await Promise.all([
+  const [records, tasks, allAssets, members, homeContractors] = await Promise.all([
     db.select().from(serviceRecords).where(eq(serviceRecords.assetId, asset.id)).orderBy(desc(serviceRecords.serviceDate)),
     db.select().from(maintenanceTasks).where(eq(maintenanceTasks.assetId, asset.id)).orderBy(asc(maintenanceTasks.dueDate)),
     db.select({ id: assets.id, name: assets.name }).from(assets).where(eq(assets.householdId, household.id)).orderBy(asc(assets.name)),
     listMembers(household.id),
+    db.select({ id: contractors.id, name: contractors.name, trade: contractors.trade }).from(contractors).where(eq(contractors.householdId, household.id)).orderBy(asc(contractors.name)),
   ]);
   const people = new Map(members.map((m) => [m.id, m.name]));
   const editAssets = allAssets;
@@ -110,7 +111,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
               ))}
             </ul>
           )}
-          <ServiceForm assetId={asset.id} />
+          <ServiceForm assetId={asset.id} contractors={homeContractors} />
         </GlassCard>
       </Section>
 

@@ -9,7 +9,7 @@ const assert=(c,m)=>{ if(!c){console.error('FAIL',m);process.exitCode=1}else con
  assert(tog.y>600 && Math.abs(tog.y-theme.y)<3,'collapse button sits on the same row as the day/night toggle, at the bottom');
  assert(tog.x>theme.x && tog.x+tog.width>side.x+side.width-20,'collapse button is right-aligned');
  assert(await p.locator('aside nav[aria-label=Primary] a[href="/admin"], aside nav[aria-label=Primary] a[href="/support"]').count()===0,'Admin portal / Buy me a coffee are no longer inside the main menu');
- assert(admin.y>settings.y+100 && coffee.y>admin.y && coffee.y<theme.y,'they form a separate group below the main menu, above the toggle row');
+ const nav=await box('aside nav[aria-label=Primary]'); assert(admin.y>=nav.y+nav.height-2 && coffee.y>admin.y && coffee.y<theme.y,'they form a separate group below the (scrollable) main menu, above the toggle row');
  await p.screenshot({path:S+'/side-expanded.png',clip:{x:0,y:0,width:700,height:800}});
  await p.click('aside button[aria-label="Collapse sidebar"]'); await p.waitForTimeout(400);
  assert((await box('aside')).width<100 && await p.locator('aside button[aria-label="Expand sidebar"]').count()===1,'collapsed rail shows the expand button beside the theme toggle');

@@ -1,7 +1,7 @@
 import 'server-only';
 import { and, eq, gte, inArray, isNotNull, lte } from 'drizzle-orm';
 import { db } from '@/db';
-import { assetReminders, assets, households, householdMembers, maintenanceTasks, profiles, taskReminders } from '@/db/schema';
+import { assetReminders, assets, documentReminders, documents, households, householdMembers, maintenanceTasks, profiles, taskReminders } from '@/db/schema';
 import { emailLayout, escapeHtml, sendEmail } from '@/lib/email';
 import { siteBaseUrl } from '@/lib/donate';
 import { DEFAULT_LOCALE, isSupportedLocale } from '@/lib/locale';
@@ -22,6 +22,7 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
   let totalItems = 0;
   let totalTasks = 0;
   let totalWarranties = 0;
+  let totalDocs = 0;
   const base = siteBaseUrl('http://localhost:3000');
   const today = todayISO();
 
@@ -63,7 +64,19 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
       }));
       warrantyPicks = pickWarranties(candidates, user.warrantyLeadDays, sentW, opts.force);
     }
-    if (!freshTasks.length && !warrantyPicks.length) continue;
+
+    // ---- vault documents (insurance, permits…) that are about to expire — same lead time as warranties
+    let docPicks: ReturnType<typeof pickWarranties> = [];
+    if (user.warrantyLeadDays > 0) {
+      const expiringDocs = await db
+        .select({ id: documents.id, title: documents.title, householdId: documents.householdId, expiresOn: documents.expiresOn })
+        .from(documents)
+        .where(and(inArray(documents.householdId, homeIds), isNotNull(documents.expiresOn), gte(documents.expiresOn, today), lte(documents.expiresOn, addDays(today, user.warrantyLeadDays))));
+      const sentD = new Set((await db.select().from(documentReminders).where(eq(documentReminders.userId, user.id))).map((r) => `${r.documentId}:${r.kind}`));
+      const cands: (WarrantyCandidate & { householdId: string })[] = expiringDocs.map((d) => ({ id: d.id, name: d.title, householdId: d.householdId, warrantyExpiry: d.expiresOn!, daysLeft: daysUntil(d.expiresOn) ?? 0 }));
+      docPicks = pickWarranties(cands, user.warrantyLeadDays, sentD, opts.force);
+    }
+    if (!freshTasks.length && !warrantyPicks.length && !docPicks.length) continue;
 
     // ---- compose
     const taskRows = freshTasks
@@ -80,29 +93,41 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
         return `<li style="margin:6px 0">${escapeHtml(c.name)} — warranty ${when}${where(c.householdId)}</li>`;
       })
       .join('');
+    const docRows = docPicks
+      .map(({ asset, kind }) => {
+        const c = asset as WarrantyCandidate & { householdId: string };
+        const when = c.daysLeft === 0 ? '<b style="color:#d70015">expires today</b>' : `${kind === 'final' ? '<b style="color:#c96800">' : ''}expires ${escapeHtml(formatDate(c.warrantyExpiry, undefined, locale))} (${c.daysLeft} day${c.daysLeft === 1 ? '' : 's'})${kind === 'final' ? '</b>' : ''}`;
+        return `<li style="margin:6px 0">${escapeHtml(c.name)} — ${when}${where(c.householdId)}</li>`;
+      })
+      .join('');
     const section = (title: string, rows: string) => (rows ? `<h3 style="margin:18px 0 4px;font-size:16px">${title}</h3><ul style="padding-left:18px;margin:0">${rows}</ul>` : '');
-    const count = freshTasks.length + warrantyPicks.length;
+    const count = freshTasks.length + warrantyPicks.length + docPicks.length;
     const first = user.fullName ? ' ' + escapeHtml(user.fullName.split(' ')[0]) : '';
     const html = emailLayout(
       `${count} thing${count === 1 ? '' : 's'} need${count === 1 ? 's' : ''} your attention`,
-      `<p>Hi${first}, here is what is coming up:</p>${section('Maintenance', taskRows)}${section('Warranties ending soon', warrantyRows)}
+      `<p>Hi${first}, here is what is coming up:</p>${section('Maintenance', taskRows)}${section('Warranties ending soon', warrantyRows)}${section('Documents expiring', docRows)}
        <p style="color:#86868b;font-size:13px;margin-top:20px">You get these because reminders are on in Settings. <a href="${base}/dashboard/settings">Change or turn off</a>.</p>`,
-      { label: warrantyPicks.length && !freshTasks.length ? 'Review my assets' : 'Open schedule', url: `${base}${warrantyPicks.length && !freshTasks.length ? '/dashboard/assets' : '/dashboard/schedule'}` },
+      freshTasks.length || warrantyPicks.length
+        ? { label: warrantyPicks.length && !freshTasks.length ? 'Review my assets' : 'Open schedule', url: `${base}${warrantyPicks.length && !freshTasks.length ? '/dashboard/assets' : '/dashboard/schedule'}` }
+        : { label: 'Open document vault', url: `${base}/dashboard/documents` },
     );
-    const subjectParts = [freshTasks.length && `${freshTasks.length} task${freshTasks.length === 1 ? '' : 's'}`, warrantyPicks.length && `${warrantyPicks.length} warrant${warrantyPicks.length === 1 ? 'y' : 'ies'} ending`].filter(Boolean);
+    const subjectParts = [freshTasks.length && `${freshTasks.length} task${freshTasks.length === 1 ? '' : 's'}`, warrantyPicks.length && `${warrantyPicks.length} warrant${warrantyPicks.length === 1 ? 'y' : 'ies'} ending`, docPicks.length && `${docPicks.length} document${docPicks.length === 1 ? '' : 's'} expiring`].filter(Boolean);
     if (!(await sendEmail(user.email, `HomeOps: ${subjectParts.join(' and ')}`, html))) continue;
 
     emails++;
     totalItems += count;
     totalTasks += freshTasks.length;
     totalWarranties += warrantyPicks.length;
+    totalDocs += docPicks.length;
     if (!opts.force) {
       if (freshTasks.length) {
         await db.insert(taskReminders).values(freshTasks.map((t) => ({ userId: user.id, taskId: t.id }))).onConflictDoUpdate({ target: [taskReminders.userId, taskReminders.taskId], set: { sentAt: new Date() } });
       }
       const marks = warrantyPicks.flatMap((p) => p.marks.map((kind) => ({ userId: user.id, assetId: p.asset.id, kind })));
       if (marks.length) await db.insert(assetReminders).values(marks).onConflictDoNothing();
+      const docMarks = docPicks.flatMap((p) => p.marks.map((kind) => ({ userId: user.id, documentId: p.asset.id, kind })));
+      if (docMarks.length) await db.insert(documentReminders).values(docMarks).onConflictDoNothing();
     }
   }
-  return { users: users.length, emails, tasks: totalTasks, warranties: totalWarranties, items: totalItems };
+  return { users: users.length, emails, tasks: totalTasks, warranties: totalWarranties, documents: totalDocs, items: totalItems };
 }
