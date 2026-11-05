@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { MAX_DONATION_CENTS, MIN_DONATION_CENTS, parseDollarsToCents, siteBaseUrl } from '@/lib/donate';
+import { MAX_DONATION_CENTS, MIN_DONATION_CENTS, parseDollarsToCents, donationCurrency, siteBaseUrl } from '@/lib/donate';
 import { enforceIp } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     mode: 'payment',
     submit_type: 'donate',
     'line_items[0][quantity]': '1',
-    'line_items[0][price_data][currency]': (process.env.STRIPE_CURRENCY ?? 'usd').toLowerCase(),
+    'line_items[0][price_data][currency]': donationCurrency().toLowerCase(),
     'line_items[0][price_data][unit_amount]': String(cents),
     'line_items[0][price_data][product_data][name]': 'Buy me a coffee ☕ — support HomeOps',
     'custom_text[submit][message]': 'Thank you for supporting HomeOps!',

@@ -21,7 +21,7 @@ npm run dev
 | `ADMIN_EMAILS` | recommended | Comma-separated emails promoted to admin on sign-in |
 | `RESEND_API_KEY`, `EMAIL_FROM` | yes (recommended) | Sends account-confirmation, forgot-password and reminder e-mails. Verify your sending domain in Resend; `EMAIL_FROM` must use it. Without it, sign-up works without e-mail confirmation and admin promotion/reset/reminders are unavailable. |
 | `CRON_SECRET` | for reminders | Authorises the daily `/api/cron/reminders` Vercel Cron job |
-| `STRIPE_SECRET_KEY` | optional | Turns on the public `/support` "Buy me a coffee" page (Stripe Checkout, $1–$500). Use a restricted key with *Checkout Sessions: write*. `STRIPE_CURRENCY` (default `usd`) |
+| `STRIPE_SECRET_KEY` | optional | Turns on the public `/support` "Buy me a coffee" page (Stripe Checkout, 1–500 in the configured currency). Use a restricted key with *Checkout Sessions: write*. `STRIPE_CURRENCY` (e.g. `SGD`; default `USD`) drives both the page and the checkout |
 | `DONATE_URL` | optional | Instead of the key: an `https://` Stripe Payment Link to redirect donors to |
 | `BLOB_STORE_ID` / `BLOB_READ_WRITE_TOKEN` | optional | File storage (Vercel Blob; created by connecting a store). Stores are private: receipts/manuals are only served to signed-in household members, brand logos via a public proxy. Check it in Admin → Site config → Test file storage. |
 | `ANTHROPIC_API_KEY` | optional | Receipt OCR (`/api/ocr`) |
