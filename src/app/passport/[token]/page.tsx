@@ -122,6 +122,7 @@ export default async function PublicPassport({ params }: { params: { token: stri
           <p className="text-secondary">Create a free Home Service Passport in minutes — scan receipts, track warranties and never miss maintenance.</p>
           <AppleButton href="/register">Get HomeOps free</AppleButton>
         </GlassCard>
+        <p className="mt-6 text-center text-[12px] text-secondary"><Link href="/privacy" className="font-semibold text-tint">Privacy</Link> · <Link href="/terms" className="font-semibold text-tint">Terms</Link></p>
       </main>
     </div>
   );

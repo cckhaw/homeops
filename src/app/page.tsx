@@ -16,7 +16,7 @@ const features = [
   { icon: BadgeCheck, title: 'A passport buyers trust', body: 'Share a read-only Home Service Passport that proves how well the home has been cared for.' },
 ];
 
-export default async function Landing() {
+export default async function Landing({ searchParams }: { searchParams: { deleted?: string } }) {
   const user = await getCurrentUser();
   if (user) redirect('/dashboard');
 
@@ -29,6 +29,9 @@ export default async function Landing() {
         </div>
       </header>
 
+      {searchParams.deleted && (
+        <p role="status" className="bg-ok/10 px-5 py-3 text-center text-[15px] font-medium text-ok">Your account and personal data have been permanently deleted.</p>
+      )}
       <main>
         <section className="mx-auto max-w-3xl px-5 pb-16 pt-16 text-center sm:pt-24">
           <LogoMark size={88} className="mx-auto mb-5" />
@@ -69,6 +72,10 @@ export default async function Landing() {
 
       <footer className="px-5 pb-10 text-center text-[13px] text-secondary">
         © {new Date().getFullYear()} HomeOps
+        {' · '}
+        <Link href="/privacy" className="font-semibold text-tint">Privacy</Link>
+        {' · '}
+        <Link href="/terms" className="font-semibold text-tint">Terms</Link>
         {donationsEnabled() && (
           <>
             {' · '}

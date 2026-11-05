@@ -51,8 +51,17 @@ export async function loadPassport(token: string) {
   for (const t of pending) {
     if (t.assetId && (daysUntil(t.dueDate) ?? 0) < 0) overdueByAsset.set(t.assetId, (overdueByAsset.get(t.assetId) ?? 0) + 1);
   }
+  // Whitelist only what a public passport may show. Serial numbers, notes, receipt/manual links, and
+  // internal ids of the household are deliberately NOT included.
   const scored = homeAssets.map((a) => ({
-    ...a,
+    id: a.id,
+    name: a.name,
+    category: a.category,
+    make: a.make,
+    model: a.model,
+    makeModel: a.makeModel,
+    installDate: a.installDate,
+    warrantyExpiry: a.warrantyExpiry,
     health: healthScore({ installDate: a.installDate, warrantyExpiry: a.warrantyExpiry, overdueTasks: overdueByAsset.get(a.id) ?? 0 }).score,
   }));
   const overall = scored.length ? Math.round(scored.reduce((s, a) => s + a.health, 0) / scored.length) : null;
@@ -61,8 +70,8 @@ export async function loadPassport(token: string) {
   return {
     home: { name: home.name, address: home.address, since: home.createdAt },
     assets: scored,
-    records,
-    completed: done,
+    records: records.map((r) => ({ id: r.id, assetId: r.assetId, serviceDate: r.serviceDate, description: r.description, costCents: r.costCents })),
+    completed: done.map((t) => ({ id: t.id, title: t.title, completedAt: t.completedAt })),
     stats: { assets: scored.length, completed: done.length, overdue: overdueTotal, overall },
   };
 }

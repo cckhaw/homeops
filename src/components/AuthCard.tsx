@@ -13,6 +13,7 @@ export default function AuthCard({ title, subtitle, children, footer }: { title:
         </div>
         {children}
         {footer && <div className="text-center text-[14px] text-secondary">{footer}</div>}
+        <p className="text-center text-[12px] text-secondary">By continuing you agree to our <Link href="/terms" className="font-semibold text-tint">Terms</Link> and <Link href="/privacy" className="font-semibold text-tint">Privacy Policy</Link>.</p>
       </GlassCard>
     </main>
   );

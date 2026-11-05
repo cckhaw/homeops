@@ -62,6 +62,7 @@ export default function SupportPage({ searchParams }: { searchParams: { error?: 
               <p className="flex items-center justify-center gap-1.5 text-[12px] text-secondary">
                 <Lock className="h-3.5 w-3.5" aria-hidden /> Secure checkout by Stripe. Card details never touch HomeOps.
               </p>
+              <p className="text-center text-[12px] text-secondary">A voluntary, non-refundable gift — see our <Link href="/terms#donationware" className="font-semibold text-tint">Terms</Link>.</p>
             </form>
           ) : (
             <p className="rounded-xl bg-label/5 px-4 py-3 text-[15px] text-secondary">Donations aren&apos;t switched on yet — check back soon.</p>
