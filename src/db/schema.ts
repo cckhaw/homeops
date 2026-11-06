@@ -326,6 +326,8 @@ export const blogPosts = pgTable(
     slug: text('slug').notNull().unique(),
     title: text('title').notNull(),
     excerpt: text('excerpt').notNull(),
+    seoTitle: text('seo_title'), // optional <title> for search results (≈50 chars); falls back to the post title
+    metaDescription: text('meta_description'), // optional search-result snippet (≤160 chars); falls back to the excerpt
     body: text('body').notNull(), // Markdown (see lib/markdown-core.ts)
     category: text('category').notNull(),
     tags: text('tags').default('').notNull(), // comma-separated, lower-case

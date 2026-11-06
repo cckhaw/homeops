@@ -27,7 +27,7 @@ export default async function EditPost({ params, searchParams }: { params: Promi
       {saved && <p role="status" className="mb-4 rounded-xl bg-ok/10 px-4 py-3 text-[15px] font-medium text-ok">Post created.</p>}
       <BlogEditor
         minLocal={utcToLocal(new Date())}
-        post={{ id: p.id, slug: p.slug, title: p.title, excerpt: p.excerpt, body: p.body, category: p.category, tags: p.tags, authorName: p.authorName, state, publishAtLocal: p.publishAt ? utcToLocal(p.publishAt) : '' }}
+        post={{ id: p.id, slug: p.slug, title: p.title, excerpt: p.excerpt, seoTitle: p.seoTitle ?? '', metaDescription: p.metaDescription ?? '', body: p.body, category: p.category, tags: p.tags, authorName: p.authorName, state, publishAtLocal: p.publishAt ? utcToLocal(p.publishAt) : '' }}
       />
     </>
   );

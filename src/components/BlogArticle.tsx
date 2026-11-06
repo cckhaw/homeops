@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import { ArrowLeft, Clock, ListTree } from 'lucide-react';
+import { ChevronRight, Clock, ListTree } from 'lucide-react';
 import type { Post } from '@/lib/blog';
-import { formatPostDate, parseTags } from '@/lib/blog-core';
+import { categorySlug, formatPostDate, parseTags } from '@/lib/blog-core';
 import { outline, parseMarkdown, readingMinutes } from '@/lib/markdown-core';
 import BlogCover from './BlogCover';
 import Markdown from './Markdown';
@@ -16,7 +16,15 @@ export default function BlogArticle({ post, related = [], preview }: { post: Pos
     <article>
       <header className="bg-[radial-gradient(60rem_22rem_at_50%_-8rem,rgb(var(--brand)/0.12),transparent)] px-5 pb-10 pt-10 sm:pt-14">
         <div className="mx-auto max-w-3xl">
-          <Link href="/blog" className="mb-6 inline-flex min-h-[44px] items-center gap-1.5 text-[15px] font-medium text-secondary transition hover:text-label"><ArrowLeft className="h-4 w-4" aria-hidden /> All posts</Link>
+          <nav aria-label="Breadcrumb" className="mb-5">
+            <ol className="flex flex-wrap items-center gap-1 text-[14px] text-secondary">
+              <li><Link href="/" className="flex min-h-[40px] items-center transition hover:text-label">Home</Link></li>
+              <li aria-hidden><ChevronRight className="h-3.5 w-3.5" /></li>
+              <li><Link href="/blog" className="flex min-h-[40px] items-center transition hover:text-label">Blog</Link></li>
+              <li aria-hidden><ChevronRight className="h-3.5 w-3.5" /></li>
+              <li><Link href={`/blog/category/${categorySlug(post.category)}`} className="flex min-h-[40px] items-center font-medium text-label transition hover:text-tint">{post.category}</Link></li>
+            </ol>
+          </nav>
           <p className="text-[13px] font-semibold uppercase tracking-[0.14em] text-tint">{post.category}</p>
           <h1 className="mt-3 text-balance text-[34px] font-bold leading-[1.1] tracking-tight sm:text-[48px]">{post.title}</h1>
           <p className="mt-4 text-pretty text-[19px] leading-snug text-secondary">{post.excerpt}</p>
@@ -24,6 +32,9 @@ export default function BlogArticle({ post, related = [], preview }: { post: Pos
             <span className="font-semibold text-label">{post.authorName}</span><span aria-hidden>·</span>
             <time dateTime={post.publishAt?.toISOString()}>{post.publishAt ? formatPostDate(post.publishAt, true) : 'Unscheduled'}</time><span aria-hidden>·</span>
             <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" aria-hidden />{readingMinutes(post.body)} min read</span>
+            {post.publishAt && post.updatedAt.getTime() - post.publishAt.getTime() > 86_400_000 && post.updatedAt.getTime() <= Date.now() && (
+              <><span aria-hidden>·</span><span>Updated <time dateTime={post.updatedAt.toISOString()}>{formatPostDate(post.updatedAt)}</time></span></>
+            )}
           </p>
         </div>
       </header>
@@ -58,7 +69,12 @@ export default function BlogArticle({ post, related = [], preview }: { post: Pos
           </div>
         )}
 
-        <aside className="mt-12 overflow-hidden rounded-[28px] bg-tint px-6 py-10 text-center text-ontint sm:px-10" aria-label="Try HomeOps">
+        <aside className="mt-10 flex items-center gap-4 rounded-2xl border bg-surface/60 p-5 hairline" aria-label="About the author">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-tint/10 text-[17px] font-bold text-tint" aria-hidden>{post.authorName.slice(0, 1).toUpperCase()}</span>
+          <p className="text-[15px] leading-snug text-secondary"><span className="block font-semibold text-label">Written by {post.authorName}</span>HomeOps helps households keep track of appliances, warranties and maintenance. These guides come from the same checklists we build into the app.</p>
+        </aside>
+
+        <aside className="mt-8 overflow-hidden rounded-[28px] bg-tint px-6 py-10 text-center text-ontint sm:px-10" aria-label="Try HomeOps">
           <h2 className="text-balance text-[26px] font-bold leading-tight tracking-tight sm:text-[32px]">Keep your whole home on schedule.</h2>
           <p className="mx-auto mt-2 max-w-md text-[16px] opacity-90">Track appliances, warranties and maintenance — and get reminded before anything slips.</p>
           <Link href="/register" className="mt-5 inline-flex min-h-[48px] items-center justify-center rounded-xl bg-white px-6 text-[16px] font-semibold text-black shadow-lg transition active:scale-[0.97]">Create your free account</Link>

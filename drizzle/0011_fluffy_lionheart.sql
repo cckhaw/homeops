@@ -3,6 +3,8 @@ CREATE TABLE "blog_posts" (
 	"slug" text NOT NULL,
 	"title" text NOT NULL,
 	"excerpt" text NOT NULL,
+	"seo_title" text,
+	"meta_description" text,
 	"body" text NOT NULL,
 	"category" text NOT NULL,
 	"tags" text DEFAULT '' NOT NULL,
@@ -19,12 +21,12 @@ ALTER TABLE "blog_posts" ADD CONSTRAINT "blog_posts_created_by_profiles_id_fk" F
 CREATE INDEX "blog_posts_live_idx" ON "blog_posts" USING btree ("status","publish_at");
 --> statement-breakpoint
 -- Starter posts. The first is live now; the second is scheduled for 13 Nov 2026, 09:00 Singapore time (01:00 UTC).
-INSERT INTO "blog_posts" ("slug", "title", "excerpt", "body", "category", "tags", "author_name", "status", "publish_at") VALUES
-($md$how-often-should-you-service-your-air-con-in-singapore-malaysia$md$, $md$How often should you service your air-con in Singapore/Malaysia?$md$, $md$A practical servicing schedule for the tropics: what to clean yourself, when to book a general service or chemical wash, and the warning signs that mean it is overdue.$md$, $md$If you live in Singapore or Malaysia, your air-con is probably the hardest-working appliance in the house. It runs for hours every day, in heat and humidity that never really let up. So the question isn't *whether* to service it — it's how often, and what "a service" should actually include.
+INSERT INTO "blog_posts" ("slug", "title", "seo_title", "meta_description", "excerpt", "body", "category", "tags", "author_name", "status", "publish_at") VALUES
+($md$how-often-service-aircon-singapore-malaysia$md$, $md$How often should you service your air-con in Singapore/Malaysia?$md$, $md$How Often to Service Aircon in Singapore/Malaysia$md$, $md$Service your aircon every 3–4 months in Singapore or Malaysia? Get a simple schedule for filters, general service and chemical wash, plus warning signs.$md$, $md$A practical servicing schedule for the tropics: what to clean yourself, when to book a general service or chemical wash, and the warning signs that mean it is overdue.$md$, $md$If you live in Singapore or Malaysia, your air-con (or *aircon*, as most of us search for it) is probably the hardest-working appliance in the house. It runs for hours every day, in heat and humidity that never really let up. So the question isn't *whether* to service it — it's how often, and what a "service" should actually include.
 
-## The short answer
+## How often should you service your aircon? The short answer
 
-For a home air-con that is used daily:
+For a home aircon that is used daily:
 
 - **Wash the filters yourself every 2–4 weeks.**
 - **Book a general service every 3–4 months.** If the unit is only used lightly (say, a bedroom unit at night), every 6 months is a reasonable minimum.
@@ -33,7 +35,7 @@ For a home air-con that is used daily:
 
 These are common local practice, not a legal rule. Your manual and your technician's advice about *your* unit come first.
 
-## Why our climate is tougher on air-cons
+## Why Singapore and Malaysia are hard on aircons
 
 An air-con in a temperate country might run for a few weeks a year. Here it can run for ten hours or more a day, every day. That has a few effects:
 
@@ -42,7 +44,7 @@ An air-con in a temperate country might run for a few weeks a year. Here it can 
 - **Clogged drains cause leaks.** The condensate drain carries away the water the unit pulls from the air. Slime and dirt can block it, and then the water drips into your room.
 - **Salt air** near the coast can corrode the outdoor unit.
 
-## A simple servicing schedule
+## Aircon servicing schedule: what to do and when
 
 | What | Who does it | How often | Why it matters |
 |---|---|---|---|
@@ -52,7 +54,7 @@ An air-con in a temperate country might run for a few weeks a year. Here it can 
 | Chemical overhaul | Technician | Every 1–2 years, or when problems return | Dismantles the indoor unit for a full clean |
 | Refrigerant (gas) check | Technician | Only when cooling drops | Gas isn't "used up" — if it's low, there is a leak to fix |
 
-## Signs your air-con is overdue
+## Signs your aircon is overdue for servicing
 
 Don't wait for the calendar if you notice any of these:
 
@@ -63,7 +65,7 @@ Don't wait for the calendar if you notice any of these:
 - The **electricity bill creeps up** although you use it the same way.
 - Dust or dark specks blowing out of the vents.
 
-## What a proper service should include
+## What a proper aircon service should include
 
 Ask the technician to confirm the visit covers:
 
@@ -77,7 +79,11 @@ Ask the technician to confirm the visit covers:
 
 Always ask for an invoice or job sheet that says what was done. Some warranties and service contracts expect regular maintenance, so a paper trail protects you.
 
-## Do you really need it as often as the shop says?
+## Renting? Who should service the aircon
+
+If you rent, check your tenancy agreement before you book anything. Many agreements ask the tenant to arrange regular aircon servicing — often every 3 months — and to show the invoices when the tenancy ends, while the landlord handles major repairs. Keep every service invoice together so you can prove the work was done.
+
+## Do you really need to service it as often as the shop says?
 
 It depends on how you use the unit:
 
@@ -94,13 +100,35 @@ A good technician will show you the dirty filter or wash water so you can judge 
 - Keep plants, boxes and clutter away from the outdoor unit so air can flow.
 - Don't leave a wet, unused unit shut up for weeks — run it on fan mode for a while to dry the coil.
 
+## Frequently asked questions
+
+### How often should I service my aircon in Singapore?
+
+For daily use, a general service every 3–4 months, filter washing every 2–4 weeks, and a chemical wash about once a year is a sound routine. Lighter use can stretch the general service to every 6 months.
+
+### How often should I do an aircon chemical wash in Malaysia?
+
+Roughly once a year for a typical home, every 6 months for units that run most of the day, and sooner if you notice a musty smell, leaks or weak cooling even after a general service.
+
+### Can I service my aircon myself?
+
+You can and should wash the filters and wipe the grille. The coil, blower, drain and outdoor unit need a technician — the parts are delicate, and water and electrics are involved.
+
+### Is it okay to skip a service if the aircon seems fine?
+
+Performance drops slowly, so you often don't notice until the unit is struggling. Skipping services usually shows up later as higher electricity bills, leaks or a bigger repair.
+
+### How long does an aircon service take?
+
+A general service of one unit typically takes under an hour; a chemical wash or overhaul takes longer. Ask the technician for an estimate before they start.
+
 ## Never forget a service again
 
-The hard part isn't knowing the schedule — it's remembering. With HomeOps you can add each air-con as an asset (brand, model, serial number, warranty), get seasonal air-con servicing tasks for tropical homes that reschedule themselves when you tick them off, and receive a reminder by e-mail or push notification. Log each service with the contractor and cost, and your yearly spending report shows what keeping the house cool really costs.
+The hard part isn't knowing the schedule — it's remembering. With HomeOps you can add each aircon as an asset (brand, model, serial number, warranty), get seasonal aircon servicing tasks for tropical homes that reschedule themselves when you tick them off, and receive a reminder by e-mail or push notification. Log each service with the contractor and cost, and your yearly spending report shows what keeping the house cool really costs.
 
-[Create your free HomeOps account](/register) and put your air-cons on a schedule today.
-$md$, $md$Maintenance$md$, $md$aircon,maintenance,singapore,malaysia$md$, 'HomeOps Team', 'published', now()),
-($md$ultimate-home-appliance-warranty-checklist$md$, $md$The Ultimate Home Appliance Warranty Checklist$md$, $md$From the shop counter to your final week of cover: a step-by-step checklist so you never lose a warranty claim to missing paperwork.$md$, $md$A warranty only helps you if you can prove when you bought the appliance, say exactly what it is, and make your claim before the cover runs out. Most people can't do all three when the washing machine suddenly stops. This checklist walks you through the whole life of a warranty — from the shop counter to the final week of cover — so you never lose a claim to missing paperwork.
+[Create your free HomeOps account](/register) and put your aircons on a schedule today.
+$md$, $md$Maintenance$md$, $md$aircon,air-con servicing,maintenance,singapore,malaysia$md$, 'HomeOps Team', 'published', now()),
+($md$home-appliance-warranty-checklist$md$, $md$The Ultimate Home Appliance Warranty Checklist$md$, $md$The Ultimate Home Appliance Warranty Checklist$md$, $md$Never lose a warranty claim to missing paperwork. A step-by-step appliance warranty checklist, from the receipt to the final week of cover.$md$, $md$From the shop counter to your final week of cover: a step-by-step checklist so you never lose a warranty claim to missing paperwork.$md$, $md$A warranty only helps you if you can prove when you bought the appliance, say exactly what it is, and make your claim before the cover runs out. Most people can't do all three when the washing machine suddenly stops. This checklist walks you through the whole life of a warranty — from the shop counter to the final week of cover — so you never lose a claim to missing paperwork.
 
 ## 1. When you buy
 
@@ -122,7 +150,7 @@ $md$, $md$Maintenance$md$, $md$aircon,maintenance,singapore,malaysia$md$, 'HomeO
 
 ## 3. During the warranty
 
-- [ ] **Follow the maintenance the maker asks for** — cleaning filters, descaling, servicing — and keep proof you did.
+- [ ] **Follow the maintenance the maker asks for** — cleaning filters, descaling, servicing — and keep proof you did. (Air-cons are a good example: see [how often to service your aircon in Singapore and Malaysia](/blog/how-often-service-aircon-singapore-malaysia).)
 - [ ] **Use authorised repairers**, because some warranties are void if someone else opens the appliance.
 - [ ] **Use it as intended**, on the right power supply, ideally through a surge protector.
 - [ ] **Keep a service history** of every repair or visit, with the date, who did it and what it cost.
@@ -144,6 +172,24 @@ This is the most valuable time to check, because claims have to be made before t
 - [ ] **Ask in writing what is covered**, how long the repair should take and whether you pay anything.
 - [ ] **Keep every repair document** — it proves what was fixed, when and by whom.
 - [ ] **Know your rights if you are refused.** Consumer-protection laws give you baseline rights beyond the printed warranty — for example Singapore's Consumer Protection (Fair Trading) Act and Malaysia's Consumer Protection Act 1999. Consumer organisations such as CASE in Singapore and the National Consumer Complaints Centre in Malaysia can advise on next steps.
+
+## Warranty questions people ask
+
+### How long does a home appliance warranty last?
+
+It varies by brand, product and even by part — a maker may cover the whole appliance for a short period and a key component such as a compressor or motor for longer. The warranty card or the manufacturer's website states the exact periods.
+
+### Does a warranty cover accidental damage?
+
+Usually not. Most manufacturer warranties cover faults in materials or workmanship, not drops, spills, power surges or misuse. Some extended plans and insurance policies add accidental damage cover.
+
+### Do I need the receipt to make a claim?
+
+Almost always. The receipt shows the purchase date and the seller. If you've lost it, a card or bank statement, the retailer's records or an order confirmation e-mail can help — and some makers can look up a serial number.
+
+### Is an extended warranty worth it?
+
+It depends on the price compared with the likely repair cost, how reliable the product is and what the plan excludes. Read what it covers and when it starts before you decide.
 
 ## Where to find the serial number
 
@@ -172,5 +218,5 @@ If you remember nothing else:
 Paper receipts fade, e-mails get buried and warranty cards disappear. HomeOps keeps every appliance, receipt, manual, serial number and warranty date together. It can read a receipt from a photo, warn you 30, 60 or 90 days before a warranty ends, store insurance and other documents in a private vault, and hand over a complete move-out pack when you sell or rent out your home.
 
 [Create your free HomeOps account](/register) and turn this checklist into reminders that find you.
-$md$, $md$Warranties$md$, $md$warranty,appliances,checklist,receipts$md$, 'HomeOps Team', 'published', '2026-11-13 01:00:00')
+$md$, $md$Warranties$md$, $md$warranty,appliances,checklist,receipts,singapore,malaysia$md$, 'HomeOps Team', 'published', '2026-11-13 01:00:00')
 ON CONFLICT ("slug") DO NOTHING;

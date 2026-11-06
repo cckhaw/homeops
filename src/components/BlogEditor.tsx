@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Check, Search, Trash2, TriangleAlert } from 'lucide-react';
 import { useServerForm } from './useServerForm';
 import { Field, Msg } from './forms';
 import AppleButton, { SubmitButton } from './AppleButton';
 import { ConfirmButton } from './misc';
 import { deleteBlogPost, saveBlogPost, unpublishBlogPost } from '@/app/blog-actions';
-import { BLOG_CATEGORIES, BLOG_TZ_LABEL } from '@/lib/blog-core';
-import { slugify } from '@/lib/markdown-core';
+import { BLOG_CATEGORIES, BLOG_TZ_LABEL, META_DESC_MAX, SEO_TITLE_MAX, searchDescription, searchTitle, seoChecks } from '@/lib/blog-core';
+import { blocksText, parseMarkdown, slugify } from '@/lib/markdown-core';
 import { cn } from '@/lib/utils';
 
-export type EditorPost = { id: string; slug: string; title: string; excerpt: string; body: string; category: string; tags: string; authorName: string; state: 'draft' | 'scheduled' | 'published'; publishAtLocal: string };
+export type EditorPost = { id: string; slug: string; title: string; excerpt: string; seoTitle: string; metaDescription: string; body: string; category: string; tags: string; authorName: string; state: 'draft' | 'scheduled' | 'published'; publishAtLocal: string };
 
 const MODES = [
   { id: 'draft', label: 'Save as draft', hint: 'Not visible to readers' },
@@ -27,7 +27,21 @@ export default function BlogEditor({ post, minLocal }: { post?: EditorPost; minL
   const [mode, setMode] = useState<'draft' | 'publish' | 'schedule'>(post ? (post.state === 'draft' ? 'draft' : post.state === 'scheduled' ? 'schedule' : 'publish') : 'draft');
   const [excerpt, setExcerpt] = useState(post?.excerpt ?? '');
   const [body, setBody] = useState(post?.body ?? '');
+  const [seoTitle, setSeoTitle] = useState(post?.seoTitle ?? '');
+  const [metaDescription, setMetaDescription] = useState(post?.metaDescription ?? '');
   const words = body.trim() ? body.trim().split(/\s+/).length : 0;
+  const checks = useMemo(() => {
+    const blocks = parseMarkdown(body);
+    const text = blocksText(blocks);
+    return seoChecks({
+      title, seoTitle, metaDescription, excerpt, slug,
+      body, words: text.split(/\s+/).filter(Boolean).length,
+      h2: blocks.filter((b) => b.t === 'heading' && b.level === 2).length,
+      hasInternalLink: /\]\((\/|#)[^)\s]*\)/.test(body),
+    });
+  }, [title, seoTitle, metaDescription, excerpt, slug, body]);
+  const shownTitle = searchTitle({ title: title || 'Your post title', seoTitle });
+  const shownDesc = searchDescription({ excerpt: excerpt || body.replace(/[#*>`\-\[\]()]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 150), metaDescription });
 
   return (
     <div className="space-y-6">
@@ -73,6 +87,34 @@ export default function BlogEditor({ post, minLocal }: { post?: EditorPost; minL
 |---|---|
 | cell | cell |`}</pre>
           </details>
+        </div>
+
+        <div className="glass space-y-4 rounded-apple p-5" data-testid="seo-panel">
+          <div>
+            <h2 className="flex items-center gap-2 text-[17px] font-semibold"><Search className="h-4 w-4 text-tint" aria-hidden />Search appearance (SEO)</h2>
+            <p className="text-[13px] text-secondary">What Google shows for this article. Leave blank to use the title and summary above.</p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label={`Search title (${(seoTitle || title).length}/${SEO_TITLE_MAX})`}>
+              <input name="seoTitle" maxLength={90} className="input" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder="Keyword first, 50 characters or fewer" />
+            </Field>
+            <Field label={`Search description (${(metaDescription || excerpt).length}/${META_DESC_MAX})`}>
+              <textarea name="metaDescription" rows={2} maxLength={220} className="input" value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="70–160 characters that make people want to click" />
+            </Field>
+          </div>
+          <div className="rounded-2xl border bg-surface p-4 hairline" aria-label="Search result preview">
+            <p className="truncate text-[12.5px] text-secondary">homeops.khaw.cc › blog › {slug || 'your-url-name'}</p>
+            <p className="mt-0.5 truncate text-[19px] leading-snug text-[#1a0dab] dark:text-[#8ab4f8]">{shownTitle} · HomeOps</p>
+            <p className="mt-0.5 line-clamp-2 text-[14px] leading-snug text-secondary">{shownDesc}</p>
+          </div>
+          <ul className="space-y-1.5" aria-label="SEO checklist">
+            {checks.map((c) => (
+              <li key={c.label} className="flex items-start gap-2.5 text-[14px]" data-ok={c.ok}>
+                {c.ok ? <Check className="mt-0.5 h-4 w-4 shrink-0 text-ok" strokeWidth={3} aria-hidden /> : <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-warn" aria-hidden />}
+                <span><span className={c.ok ? '' : 'font-medium'}>{c.label}</span>{!c.ok && <span className="block text-[13px] text-secondary">{c.hint}</span>}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
         <fieldset className="glass space-y-3 rounded-apple p-5">

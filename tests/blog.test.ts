@@ -72,3 +72,24 @@ describe('blog scheduling', () => {
     expect(parseTags(' Aircon, aircon ,  Singapore , ,malaysia')).toEqual(['aircon', 'singapore', 'malaysia']);
   });
 });
+
+import { categoryFromSlug, categorySlug, seoChecks, searchDescription, searchTitle } from '@/lib/blog-core';
+describe('blog SEO helpers', () => {
+  it('maps categories to clean URLs and back', () => {
+    expect(categorySlug('Buying & selling')).toBe('buying-selling');
+    expect(categorySlug('Maintenance')).toBe('maintenance');
+    expect(categoryFromSlug('buying-selling')).toBe('Buying & selling');
+    expect(categoryFromSlug('nope')).toBeUndefined();
+  });
+  it('prefers the dedicated search title/description', () => {
+    expect(searchTitle({ title: 'Long title', seoTitle: ' Short ' })).toBe('Short');
+    expect(searchTitle({ title: 'Long title', seoTitle: null })).toBe('Long title');
+    expect(searchDescription({ excerpt: 'ex', metaDescription: '' })).toBe('ex');
+  });
+  it('flags weak on-page SEO and passes a good post', () => {
+    const good = { title: 'T', seoTitle: 'How Often to Service Aircon in Singapore', metaDescription: 'x'.repeat(120), excerpt: 'e', slug: 'how-often-service-aircon-singapore', body: '', words: 900, h2: 5, hasInternalLink: true };
+    expect(seoChecks(good).every((c) => c.ok)).toBe(true);
+    const bad = seoChecks({ ...good, seoTitle: 'x'.repeat(80), metaDescription: 'short', slug: 'a-very-long-url-name-with-way-too-many-words-in-it-for-search', words: 100, h2: 1, hasInternalLink: false });
+    expect(bad.filter((c) => !c.ok)).toHaveLength(6);
+  });
+});

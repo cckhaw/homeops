@@ -42,6 +42,8 @@ export async function saveBlogPost(id: string | null, _: FormState, fd: FormData
   const bad = slugError(slug);
   if (bad) return { error: bad };
   if (!['draft', 'publish', 'schedule'].includes(mode)) return { error: 'Choose whether to save a draft, publish now or schedule.' };
+  const seoTitle = str(fd, 'seoTitle', 90) || null;
+  const metaDescription = str(fd, 'metaDescription', 220) || null;
   const excerpt = str(fd, 'excerpt', 300) || firstParagraph(body, 220);
   if (!excerpt) return { error: 'Add a short summary (excerpt) for the blog list and search results.' };
 
@@ -67,7 +69,7 @@ export async function saveBlogPost(id: string | null, _: FormState, fd: FormData
     publishAt = at;
   }
 
-  const values = { slug, title, excerpt, body, category, tags: parseTags(str(fd, 'tags', 300)).join(','), authorName: str(fd, 'author', 80) || 'HomeOps Team', status, publishAt, updatedAt: now };
+  const values = { slug, title, excerpt, seoTitle, metaDescription, body, category, tags: parseTags(str(fd, 'tags', 300)).join(','), authorName: str(fd, 'author', 80) || 'HomeOps Team', status, publishAt, updatedAt: now };
   let postId = id;
   if (before) {
     await db.update(blogPosts).set(values).where(eq(blogPosts.id, before.id));

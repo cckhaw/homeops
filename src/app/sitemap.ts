@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { donationsEnabled, siteBaseUrl } from '@/lib/donate';
 import { livePosts } from '@/lib/blog';
+import { categorySlug } from '@/lib/blog-core';
 
 const UPDATED = new Date('2026-11-05');
 
@@ -20,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await livePosts().catch(() => []);
   return [
     ...pages.map(([path, priority, changeFrequency]) => ({ url: `${base}${path === '/' ? '' : path}`, lastModified: UPDATED, changeFrequency, priority })),
+    ...[...new Set(posts.map((p) => p.category))].map((c) => ({ url: `${base}/blog/category/${categorySlug(c)}`, lastModified: new Date(Math.max(...posts.filter((p) => p.category === c).map((p) => p.updatedAt.getTime()))), changeFrequency: 'weekly' as const, priority: 0.5 })),
     ...posts.map((p) => ({ url: `${base}/blog/${p.slug}`, lastModified: p.updatedAt, changeFrequency: 'monthly' as const, priority: 0.6 })),
   ];
 }
