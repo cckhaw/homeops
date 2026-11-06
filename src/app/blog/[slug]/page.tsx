@@ -7,13 +7,13 @@ import { blocksText, parseMarkdown } from '@/lib/markdown-core';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import BlogArticle from '@/components/BlogArticle';
 
-// Incremental static regeneration: the page is cached at the CDN and refreshed every 5 minutes (and at once when an admin saves),
-// so a scheduled post appears within five minutes of its time. Public pages must not depend on cookies or the visitor.
-export const revalidate = 300;
+// Incremental static regeneration: the page is cached at the CDN and refreshed every minute (and at once when an admin saves),
+// so a scheduled post appears about a minute after its time. Public pages must not depend on cookies or the visitor.
+export const revalidate = 60;
 
 type Props = { params: Promise<{ slug: string }> };
 
-/** Live posts are generated at build time; anything else (e.g. a post that goes live later) is generated on first request. Both are cached and refreshed every 5 minutes. */
+/** Live posts are generated at build time; anything else (e.g. a post that goes live later) is generated on first request. Both are cached and refreshed every minute. */
 export async function generateStaticParams() {
   return (await livePosts()).map((p) => ({ slug: p.slug }));
 }
