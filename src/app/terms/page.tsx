@@ -85,7 +85,7 @@ export default async function TermsPage() {
         <p>
           HomeOps is provided <strong>&ldquo;as is&rdquo; and &ldquo;as available&rdquo;</strong>, without warranties of any kind, express or implied. It is a tracking and
           reminder tool. We do our best to make reminders, warranty dates and health scores helpful, but they depend on the information you enter,
-          on e-mail delivery and on third-party services, so they may be late, wrong or missed. Health scores and brand logos are for convenience only
+          on e-mail and push-notification delivery and on third-party services, so they may be late, wrong or missed. Reminder channels (e-mail, push notifications) are optional and you can turn each one off in Settings at any time. Health scores and brand logos are for convenience only
           and are not professional inspections or advice. We do not promise that the service will be uninterrupted, error-free or secure at all times.
         </p>
       </Section>
@@ -103,7 +103,7 @@ export default async function TermsPage() {
 
       <Section id="third-parties" title="Third-party services and brands">
         <p>
-          HomeOps relies on third-party services (hosting, database, e-mail, payments, receipt reading and optional Google sign-in) described in the
+          HomeOps relies on third-party services (hosting, database, e-mail, push notification delivery through your browser or device maker, payments, receipt reading and optional Google or Apple sign-in) described in the
           Privacy Policy, and is subject to their availability. Brand names and logos shown on assets belong to their respective owners, are used only
           to help you identify your own appliances, and do not imply any affiliation with or endorsement by those companies.
         </p>

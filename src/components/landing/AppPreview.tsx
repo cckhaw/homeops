@@ -1,10 +1,10 @@
-import { Building2, Check, FolderLock, Home, MessageCircle, ShieldCheck, TrendingUp } from 'lucide-react';
+import { BellRing, Building2, Check, FolderLock, Home, ShieldCheck, TrendingUp } from 'lucide-react';
 import { LogoMark } from '@/components/Logo';
 import { cn } from '@/lib/utils';
 
 /**
  * A decorative, static picture of the app (not a screenshot): upcoming tasks, a warranty, yearly spending, a vault
- * document and a WhatsApp reminder. Drawn with the same tokens as the real UI so it follows light/dark mode.
+ * document and a push reminder. Drawn with the same tokens as the real UI so it follows light/dark mode.
  */
 
 const TASKS = [
@@ -101,7 +101,7 @@ export default function AppPreview() {
 
       {/* floating reminder */}
       <div className="absolute -bottom-14 right-3 w-[16.5rem] rounded-2xl border bg-surface p-3.5 shadow-xl hairline sm:-bottom-12 sm:right-12 sm:w-80">
-        <div className="mb-1 flex items-center gap-2 text-[12px] font-semibold text-ok"><MessageCircle className="h-4 w-4" />WhatsApp · now</div>
+        <div className="mb-1 flex items-center gap-2 text-[12px] font-semibold text-ok"><BellRing className="h-4 w-4" />HomeOps · now</div>
         <p className="text-[13px] leading-snug">HomeOps: Service the aircon — due today · Replace water filter — due tomorrow</p>
       </div>
     </div>

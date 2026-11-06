@@ -8,8 +8,11 @@ import { whatsappParam } from '@/lib/digest-core';
  *   WHATSAPP_CODE_TEMPLATE      (default homeops_code)      body: "Your HomeOps verification code is {{1}}"
  *   WHATSAPP_REMINDER_TEMPLATE  (default homeops_reminder)  body: "{{1}}"
  * Both take exactly one body variable. Language: WHATSAPP_LANG (default en).
+ *
+ * STATUS: coming soon. The code is complete but switched off — it only runs when WHATSAPP_ENABLED=1 *and* the credentials
+ * are set. Until then Settings shows "Coming soon" and no WhatsApp number is ever collected or messaged.
  */
-export const whatsappConfigured = () => !!(process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_ID);
+export const whatsappConfigured = () => process.env.WHATSAPP_ENABLED === '1' && !!(process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_ID);
 
 export async function sendWhatsappTemplate(to: string, kind: 'code' | 'reminder', text: string): Promise<boolean> {
   if (!whatsappConfigured()) return false;
