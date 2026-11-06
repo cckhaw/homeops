@@ -74,8 +74,17 @@ describe('seasonal templates by climate', () => {
     expect(TROPICAL_TEMPLATES.some((t) => /winteri|furnace/i.test(t.title))).toBe(false);
   });
   it('computes first due dates from either a fixed day or an offset', () => {
-    expect(templateDueDate({ title: 'x', frequency: 'monthly', offsetDays: 14 })).toBe('2026-11-19');
-    expect(templateDueDate({ title: 'x', frequency: 'yearly', month: 12, day: 25 })).toBe('2026-12-25');
+    // Pin "today": the expected dates below are only true relative to a fixed day.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-05T12:00:00'));
+    try {
+      expect(templateDueDate({ title: 'x', frequency: 'monthly', offsetDays: 14 })).toBe('2026-11-19');
+      expect(templateDueDate({ title: 'x', frequency: 'yearly', month: 12, day: 25 })).toBe('2026-12-25');
+      // a fixed day that has already passed this year rolls to next year
+      expect(templateDueDate({ title: 'x', frequency: 'yearly', month: 3, day: 1 })).toBe('2027-03-01');
+    } finally {
+      vi.useRealTimers();
+    }
   });
   it('every category with generated tasks is a real category', () => {
     for (const c of Object.keys(CATEGORY_TASKS)) expect(CATEGORIES as readonly string[]).toContain(c);
