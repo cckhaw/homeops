@@ -3,19 +3,19 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, Home, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, LayoutDashboard, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SETTINGS_SECTIONS } from './settingsSections';
 import { HomeSwitcher, ThemeToggle, type SwitcherHome } from './misc';
 import Logo, { LogoMark } from './Logo';
+import Tip from './Tip';
 
 // Inside the signed-in app the logo takes the user's accent colour; public pages keep the default brand blue.
 const ACCENT = 'rgb(var(--logo-mono))';
 
 const items = [
-  { href: '/dashboard', label: 'Home', icon: Home, exact: true },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/dashboard/assets', label: 'Assets', icon: Package },
   { href: '/dashboard/schedule', label: 'Schedule', icon: CalendarCheck },
   { href: '/dashboard/household', label: 'Household', icon: Users },
@@ -45,9 +45,13 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
   const path = usePathname();
   const onSettings = path.startsWith('/dashboard/settings');
   const [settingsOpen, setSettingsOpen] = useState(onSettings);
+  const inRecords = records.some((r) => path === r.href || path.startsWith(r.href + '/'));
+  const [recordsOpen, setRecordsOpenState] = useState(true);
+  useEffect(() => { try { const v = localStorage.getItem('wodejia-records'); if (v === '0' || (v === null && window.innerHeight < 860)) setRecordsOpenState(false); } catch {} }, []);
+  const setRecordsOpen = (v: boolean) => { setRecordsOpenState(v); try { localStorage.setItem('wodejia-records', v ? '1' : '0'); } catch {} };
   useEffect(() => { if (onSettings) setSettingsOpen(true); }, [onSettings]);
   const active = (href: string, exact?: boolean) => (exact ? path === href : path === href || path.startsWith(href + '/'));
-  const link = (href: string, label: string, Icon: typeof Home, exact?: boolean, muted?: boolean) => {
+  const link = (href: string, label: string, Icon: typeof Package, exact?: boolean, muted?: boolean, compact?: boolean) => {
     const on = active(href, exact);
     return (
       <Link
@@ -57,8 +61,8 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
         aria-label={label}
         aria-current={on ? 'page' : undefined}
         className={cn(
-          'flex min-h-[44px] items-center rounded-xl text-[15px] font-medium transition',
-          collapsed ? 'justify-center' : 'gap-3 px-3',
+          compact ? 'flex min-h-[36px] items-center rounded-xl text-[14px] font-medium transition' : 'flex min-h-[40px] items-center rounded-xl text-[15px] font-medium transition',
+          collapsed ? 'justify-center' : compact ? 'gap-3 px-3' : 'gap-3 px-3',
           on ? 'bg-tint/10 text-tint' : muted ? 'text-secondary hover:bg-label/5 hover:text-label' : 'text-label hover:bg-label/5',
         )}
       >
@@ -85,13 +89,33 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
         <div className={cn('mb-3', collapsed && 'flex justify-center')}>
           <HomeSwitcher homes={homes} activeId={activeId} layout={collapsed ? 'rail' : 'sidebar'} />
         </div>
-        <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-contain" aria-label="Primary">
+        <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain pb-4 [mask-image:linear-gradient(to_bottom,#000_calc(100%-14px),transparent)]" aria-label="Primary">
           {items.map((i) => link(i.href, i.label, i.icon, i.exact))}
-          <div className="my-2 border-t hairline" />
-          {records.map((i) => link(i.href, i.label, i.icon))}
-          <div className="my-2 border-t hairline" />
+
+          {/* Records: collapsible group (always flat in the icon rail) */}
+          {collapsed ? (
+            <div className="my-2 border-t hairline" />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setRecordsOpen(!recordsOpen)}
+              aria-expanded={recordsOpen || inRecords}
+              aria-controls="records-group"
+              className="mb-0.5 mt-2 flex min-h-[30px] items-center justify-between rounded-lg px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary transition hover:text-label"
+            >
+              Records
+              <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', !(recordsOpen || inRecords) && '-rotate-90')} aria-hidden />
+            </button>
+          )}
+          {(collapsed || recordsOpen || inRecords) && (
+            <div id="records-group" className="flex flex-col gap-0.5">
+              {records.map((i) => link(i.href, i.label, i.icon))}
+            </div>
+          )}
+
+          {collapsed ? <div className="my-2 border-t hairline" /> : <p className="mb-0.5 mt-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary">Account</p>}
           {sideExtra.map((i) => link(i.href, i.label, i.icon))}
-          {/* Settings expands in place to its sections, so there is only one left menu */}
+          {/* Settings expands in place to its pages, so there is only one left menu */}
           <div>
             <div className="flex items-center gap-1">
               <div className="min-w-0 flex-1">{link('/dashboard/settings', 'Settings', Settings)}</div>
@@ -102,7 +126,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
                   aria-expanded={settingsOpen}
                   aria-controls="settings-sections"
                   aria-label={settingsOpen ? 'Hide settings sections' : 'Show settings sections'}
-                  className="grid h-11 w-9 shrink-0 place-items-center rounded-xl text-secondary hover:bg-label/5"
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-secondary hover:bg-label/5"
                 >
                   <ChevronDown className={cn('h-4 w-4 transition-transform', settingsOpen && 'rotate-180')} aria-hidden />
                 </button>
@@ -112,7 +136,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
               <ul id="settings-sections" className="ml-5 mt-0.5 space-y-0.5 border-l pl-2 hairline" aria-label="Settings sections">
                 {SETTINGS_SECTIONS.map(({ id, href, label, icon: Icon }) => (
                   <li key={id}>
-                    <Link href={href} aria-current={path === href ? 'page' : undefined} className={cn('flex min-h-[40px] items-center gap-2.5 rounded-lg px-2.5 text-[14px] font-medium transition hover:bg-label/5', path === href ? 'bg-tint/10 text-tint' : 'text-secondary hover:text-label')}>
+                    <Link href={href} aria-current={path === href ? 'page' : undefined} className={cn('flex min-h-[36px] items-center gap-2.5 rounded-lg px-2.5 text-[14px] font-medium transition hover:bg-label/5', path === href ? 'bg-tint/10 text-tint' : 'text-secondary hover:text-label')}>
                       <Icon className="h-4 w-4 shrink-0" aria-hidden />{label}
                     </Link>
                   </li>
@@ -122,34 +146,36 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
           </div>
         </nav>
 
-        {/* Separate from the main menu: owner tools, support, then display controls */}
+        {/* Pinned footer: owner tools / support, then the three utility buttons */}
         {(isAdmin || donate) && (
-          <nav className="mt-2 flex shrink-0 flex-col gap-1 border-t pt-2 hairline" aria-label="More">
-            {isAdmin && link('/admin', 'Admin portal', ShieldCheck, false, true)}
-            {donate && link('/support', 'Buy me a coffee', Coffee, false, true)}
+          <nav className="mt-1 flex shrink-0 flex-col gap-0.5 border-t pt-2 hairline" aria-label="More">
+            {isAdmin && link('/admin', 'Admin portal', ShieldCheck, false, true, true)}
+            {donate && link('/support', 'Buy me a coffee', Coffee, false, true, true)}
           </nav>
         )}
-        <div className={cn('mt-2 flex shrink-0 gap-1 border-t pt-2 hairline', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
+        <div className={cn('mt-1 flex shrink-0 gap-1 border-t pt-2 hairline', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
           <div className={cn('flex gap-1', collapsed ? 'flex-col items-center' : 'items-center')}>
-            <ThemeToggle />
-            <button
-              type="button"
-              onClick={() => signOut({ callbackUrl: '/' })}
-              aria-label="Sign out"
-              title="Sign out"
-              className="grid h-11 w-11 place-items-center rounded-xl text-secondary transition hover:bg-bad/10 hover:text-bad active:scale-90"
-            >
-              <LogOut className="h-5 w-5" aria-hidden />
-            </button>
+            <ThemeToggle tip={collapsed ? { side: 'right' } : { side: 'top', align: 'start' }} />
+            <Tip label="Sign out" side={collapsed ? 'right' : 'top'} align="center">
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: '/' })}
+                aria-label="Sign out"
+                className="grid h-11 w-11 place-items-center rounded-xl text-secondary transition hover:bg-bad/10 hover:text-bad active:scale-90"
+              >
+                <LogOut className="h-5 w-5" aria-hidden />
+              </button>
+            </Tip>
           </div>
-          <button
-            onClick={onToggle}
-            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="grid h-11 w-11 place-items-center rounded-xl text-secondary hover:bg-label/5"
-          >
-            {collapsed ? <PanelLeftOpen className="h-5 w-5" aria-hidden /> : <PanelLeftClose className="h-5 w-5" aria-hidden />}
-          </button>
+          <Tip label={collapsed ? 'Expand menu' : 'Collapse menu'} side={collapsed ? 'right' : 'top'} align="end">
+            <button
+              onClick={onToggle}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              className="grid h-11 w-11 place-items-center rounded-xl text-secondary transition hover:bg-label/5 active:scale-90"
+            >
+              {collapsed ? <PanelLeftOpen className="h-5 w-5" aria-hidden /> : <PanelLeftClose className="h-5 w-5" aria-hidden />}
+            </button>
+          </Tip>
         </div>
       </aside>
 

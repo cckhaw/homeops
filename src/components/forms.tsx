@@ -319,13 +319,14 @@ export function ProfileForm({ fullName, email }: { fullName: string | null; emai
   );
 }
 
-export function HouseholdForm({ name, address, disabled, currency, climate, icon }: { name: string; address: string | null; disabled?: boolean; currency: string; climate: string; icon: string }) {
+export function HouseholdForm({ name, address, disabled, currency, climate, icon, homeId }: { name: string; address: string | null; disabled?: boolean; currency: string; climate: string; icon: string; homeId?: string }) {
   const { state, pending: saving, formProps } = useServerForm(updateHousehold);
   const [tasksMsg, setTasksMsg] = useState<FormState>();
   const [pending, startTransition] = useTransition();
   return (
     <div className="space-y-4">
       <form {...formProps} className="space-y-3">
+        {homeId && <input type="hidden" name="homeId" value={homeId} />}
         <Field label="Home name">
           <input name="name" required maxLength={120} defaultValue={name} disabled={disabled} className="input" />
         </Field>
@@ -357,7 +358,7 @@ export function HouseholdForm({ name, address, disabled, currency, climate, icon
       {!disabled && (
         <div className="border-t pt-4 hairline">
           <p className="mb-2 text-[14px] text-secondary">Changed the climate? Add the suggested seasonal tasks for it. Existing tasks are never touched.</p>
-          <AppleButton type="button" variant="secondary" disabled={pending} onClick={() => startTransition(async () => setTasksMsg(await addClimateTasks()))}>
+          <AppleButton type="button" variant="secondary" disabled={pending} onClick={() => startTransition(async () => setTasksMsg(await addClimateTasks(homeId)))}>
             Add suggested tasks
           </AppleButton>
           <div className="mt-2"><Msg state={tasksMsg} /></div>
