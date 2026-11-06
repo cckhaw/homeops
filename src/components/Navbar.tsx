@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
 import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, Home, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SETTINGS_SECTIONS } from './settingsSections';
 import { HomeSwitcher, ThemeToggle, type SwitcherHome } from './misc';
 import Logo, { LogoMark } from './Logo';
 
@@ -27,10 +30,7 @@ const records = [
 ];
 // The phone tab bar has room for six: the five daily screens plus a hub for everything else.
 const mobileTabs = [...items, { href: '/dashboard/more', label: 'More', icon: Ellipsis }];
-const sideExtra = [
-  { href: '/dashboard/homes', label: 'My homes', icon: Building2 },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-];
+const sideExtra = [{ href: '/dashboard/homes', label: 'My homes', icon: Building2 }];
 
 type Props = {
   isAdmin: boolean;
@@ -43,6 +43,9 @@ type Props = {
 
 export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, donate }: Props) {
   const path = usePathname();
+  const onSettings = path === '/dashboard/settings';
+  const [settingsOpen, setSettingsOpen] = useState(onSettings);
+  useEffect(() => { if (onSettings) setSettingsOpen(true); }, [onSettings]);
   const active = (href: string, exact?: boolean) => (exact ? path === href : path === href || path.startsWith(href + '/'));
   const link = (href: string, label: string, Icon: typeof Home, exact?: boolean, muted?: boolean) => {
     const on = active(href, exact);
@@ -88,6 +91,35 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
           {records.map((i) => link(i.href, i.label, i.icon))}
           <div className="my-2 border-t hairline" />
           {sideExtra.map((i) => link(i.href, i.label, i.icon))}
+          {/* Settings expands in place to its sections, so there is only one left menu */}
+          <div>
+            <div className="flex items-center gap-1">
+              <div className="min-w-0 flex-1">{link('/dashboard/settings', 'Settings', Settings)}</div>
+              {!collapsed && (
+                <button
+                  type="button"
+                  onClick={() => setSettingsOpen((o) => !o)}
+                  aria-expanded={settingsOpen}
+                  aria-controls="settings-sections"
+                  aria-label={settingsOpen ? 'Hide settings sections' : 'Show settings sections'}
+                  className="grid h-11 w-9 shrink-0 place-items-center rounded-xl text-secondary hover:bg-label/5"
+                >
+                  <ChevronDown className={cn('h-4 w-4 transition-transform', settingsOpen && 'rotate-180')} aria-hidden />
+                </button>
+              )}
+            </div>
+            {!collapsed && settingsOpen && (
+              <ul id="settings-sections" className="ml-5 mt-0.5 space-y-0.5 border-l pl-2 hairline" aria-label="Settings sections">
+                {SETTINGS_SECTIONS.map(({ id, label, icon: Icon }) => (
+                  <li key={id}>
+                    <Link href={`/dashboard/settings#${id}`} className="flex min-h-[40px] items-center gap-2.5 rounded-lg px-2.5 text-[14px] font-medium text-secondary transition hover:bg-label/5 hover:text-label">
+                      <Icon className="h-4 w-4 shrink-0" aria-hidden />{label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </nav>
 
         {/* Separate from the main menu: owner tools, support, then display controls */}
