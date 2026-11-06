@@ -116,7 +116,7 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
     const html = emailLayout(
       `${count} thing${count === 1 ? '' : 's'} need${count === 1 ? 's' : ''} your attention`,
       `<p>Hi${first}, here is what is coming up:</p>${section('Maintenance', taskRows)}${section('Warranties ending soon', warrantyRows)}${section('Documents expiring', docRows)}
-       <p style="color:#86868b;font-size:13px;margin-top:20px">You get these because reminders are on in Settings. <a href="${base}/dashboard/settings">Change or turn off</a>.</p>`,
+       <p style="color:#86868b;font-size:13px;margin-top:20px">You get these because reminders are on in Settings. <a href="${base}/dashboard/settings/notifications">Change or turn off</a>.</p>`,
       freshTasks.length || warrantyPicks.length
         ? { label: warrantyPicks.length && !freshTasks.length ? 'Review my assets' : 'Open schedule', url: `${base}${warrantyPicks.length && !freshTasks.length ? '/dashboard/assets' : '/dashboard/schedule'}` }
         : { label: 'Open document vault', url: `${base}/dashboard/documents` },

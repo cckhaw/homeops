@@ -45,7 +45,7 @@ const PW='correct horse battery staple';
  // A also owns a second, solo home
  await A.pg.goto(BASE+'/dashboard/homes'); await A.pg.fill('input[name=name]','Solo cabin'); await A.pg.click('button:has-text("Add home")'); await A.pg.waitForURL(BASE+'/dashboard');
  const homesBefore=(await pool.query('select count(*)::int n from households')).rows[0].n;
- await A.pg.goto(BASE+'/dashboard/settings'); await A.pg.click('summary:has-text("Delete my account")');
+ await A.pg.goto(BASE+'/dashboard/settings/privacy'); await A.pg.click('summary:has-text("Delete my account")');
  A.pg.on('dialog',d=>d.accept());
  await A.pg.locator('details form input[name=password]').fill('wrong wrong wrong wrong'); await A.pg.fill('details form input[name=confirm]','DELETE'); await A.pg.click('button:has-text("Delete my account")'); await A.pg.waitForSelector('text=password is incorrect'); await A.pg.waitForTimeout(800); assert(true,'wrong password blocks deletion');
  await A.pg.locator('details form input[name=password]').fill(PW); await A.pg.fill('details form input[name=confirm]','delete'); await A.pg.click('button:has-text("Delete my account")'); await A.pg.waitForSelector('text=Type DELETE'); await A.pg.waitForTimeout(800); assert(true,'must type DELETE in capitals');

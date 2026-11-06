@@ -25,7 +25,7 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   assert(await page.locator('text=Acme Heating').count() > 0, 'custom brand saved and shown');
   // edit form re-opens in "Other" mode for custom brand
   assert((await page.locator('input[aria-label="Brand name"]').inputValue()) === 'Acme Heating', 'edit form shows custom brand in Other mode');
-  await page.goto(BASE + '/dashboard/settings'); assert(await page.locator('text=Buy me a coffee').count() > 0, 'settings links to Buy me a coffee');
+  await page.goto(BASE + '/dashboard/settings/profile'); assert(await page.locator('main >> text=Buy me a coffee').count() === 0 && await page.locator('main a[href="/admin"]').count() === 0, 'settings no longer carries the coffee or admin links');
   const sp = await ctx.newPage(); await sp.goto(BASE + '/support'); await sp.screenshot({ path: S + '/support.png' });
   console.log('page errors:', errors); await browser.close();
 })().catch(e => { console.error(e); process.exit(1); });

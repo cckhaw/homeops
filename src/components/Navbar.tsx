@@ -43,7 +43,7 @@ type Props = {
 
 export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, donate }: Props) {
   const path = usePathname();
-  const onSettings = path === '/dashboard/settings';
+  const onSettings = path.startsWith('/dashboard/settings');
   const [settingsOpen, setSettingsOpen] = useState(onSettings);
   useEffect(() => { if (onSettings) setSettingsOpen(true); }, [onSettings]);
   const active = (href: string, exact?: boolean) => (exact ? path === href : path === href || path.startsWith(href + '/'));
@@ -110,9 +110,9 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
             </div>
             {!collapsed && settingsOpen && (
               <ul id="settings-sections" className="ml-5 mt-0.5 space-y-0.5 border-l pl-2 hairline" aria-label="Settings sections">
-                {SETTINGS_SECTIONS.map(({ id, label, icon: Icon }) => (
+                {SETTINGS_SECTIONS.map(({ id, href, label, icon: Icon }) => (
                   <li key={id}>
-                    <Link href={`/dashboard/settings#${id}`} className="flex min-h-[40px] items-center gap-2.5 rounded-lg px-2.5 text-[14px] font-medium text-secondary transition hover:bg-label/5 hover:text-label">
+                    <Link href={href} aria-current={path === href ? 'page' : undefined} className={cn('flex min-h-[40px] items-center gap-2.5 rounded-lg px-2.5 text-[14px] font-medium transition hover:bg-label/5', path === href ? 'bg-tint/10 text-tint' : 'text-secondary hover:text-label')}>
                       <Icon className="h-4 w-4 shrink-0" aria-hidden />{label}
                     </Link>
                   </li>

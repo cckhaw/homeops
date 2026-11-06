@@ -19,7 +19,7 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
  assert(/addEventListener\('push'/.test(sw) && /notificationclick/.test(sw) && /self\.location\.origin/.test(sw),'service worker shows notifications and only opens pages of this site');
 
  // ---- settings UI is present
- await p.goto(BASE+'/dashboard/settings');
+ await p.goto(BASE+'/dashboard/settings/notifications');
  assert(await p.locator('text=Push notifications').count()>0 && await p.locator('text=WhatsApp reminders').count()>0,'Settings has Push and WhatsApp sections');
  await p.waitForSelector('button:has-text("Turn on for this device")',{timeout:8000}).catch(()=>{}); assert(await p.locator('button:has-text("Turn on for this device")').count()===1,'push can be turned on for this device');
 
@@ -43,7 +43,7 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
 
  // ---- code limits: expired / too many attempts / rate limit
  await q("update profiles set whatsapp_verified_at=null, notify_whatsapp=false, whatsapp_code_hash=$2, whatsapp_code_expires=now()-interval '1 minute', whatsapp_code_attempts=0 where id=$1",[uid, require('crypto').createHmac('sha256','localtestsecretlocaltestsecret1234').update('sign:wa-code:60123456789:123456').digest('base64url')]);
- await p.goto(BASE+'/dashboard/settings'); await p.fill('input[name=code]','123456'); await p.click('button:has-text("Confirm and turn on")'); await p.waitForSelector('text=expired'); assert(true,'an expired code is refused even when correct');
+ await p.goto(BASE+'/dashboard/settings/notifications'); await p.fill('input[name=code]','123456'); await p.click('button:has-text("Confirm and turn on")'); await p.waitForSelector('text=expired'); assert(true,'an expired code is refused even when correct');
  await q("update profiles set whatsapp_code_expires=now()+interval '5 minutes', whatsapp_code_attempts=5 where id=$1",[uid]);
  await p.fill('input[name=code]','123456'); await p.click('button:has-text("Confirm and turn on")'); await p.waitForSelector('text=Too many wrong codes'); assert(true,'after 5 wrong tries even the right code is refused');
  await q("delete from rate_limits"); reset();
@@ -54,7 +54,7 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
  await q("delete from rate_limits"); reset();
  await p.fill('input[name=phone]','+60 12-340 0000'); await p.click('button:has-text("Send a new code"), button:has-text("Send code")'); await p.waitForSelector('text=could not send'); assert(true,'a send failure is reported');
  await q("update profiles set whatsapp_number='60123456789', whatsapp_verified_at=now(), notify_whatsapp=true, whatsapp_code_hash=null, whatsapp_code_expires=null, whatsapp_code_attempts=0 where id=$1",[uid]);
- await p.goto(BASE+'/dashboard/settings'); await p.click('button:has-text("Remove my number")'); await p.waitForTimeout(1200);
+ await p.goto(BASE+'/dashboard/settings/notifications'); await p.click('button:has-text("Remove my number")'); await p.waitForTimeout(1200);
  assert((await q('select whatsapp_number n, whatsapp_verified_at v, notify_whatsapp o from profiles where id=$1',[uid]))[0].n===null,'removing the number forgets it');
 
  // ---- reminders go out on WhatsApp and push (e-mail is off for this user)
@@ -78,18 +78,18 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
  await q("update profiles set whatsapp_number='60123456789' where id=$1",[uid]);
 
  // ---- "send me a test" reports the channels used
- await p.goto(BASE+'/dashboard/settings'); reset();
+ await p.goto(BASE+'/dashboard/settings/notifications'); reset();
  await p.click('button:has-text("Send me a test reminder")'); await p.waitForSelector('text=/Sent by .*WhatsApp/');
  assert(true,'the test button says it went out by WhatsApp');
 
  // ---- push device list + removal
  const k3=subKeys(); await q("insert into push_subscriptions(user_id,endpoint,p256dh,auth,label) values ($1,'https://localhost:4050/push/ok2',$2,$3,'Firefox on Windows')",[uid,k3.p256dh,k3.auth]);
- await p.goto(BASE+'/dashboard/settings'); assert(await p.locator('[data-testid=push-device]').count()===1 && await p.locator('[data-testid=push-device]:has-text("Firefox on Windows")').count()===1,'devices with notifications on are listed');
+ await p.goto(BASE+'/dashboard/settings/notifications'); assert(await p.locator('[data-testid=push-device]').count()===1 && await p.locator('[data-testid=push-device]:has-text("Firefox on Windows")').count()===1,'devices with notifications on are listed');
  await p.locator('[data-testid=push-device] button').click(); await p.waitForTimeout(1200); assert((await q('select count(*)::int c from push_subscriptions'))[0].c===0,'a device can be removed');
  // another user's device can't be removed by id
  const vid=(await q("select id from profiles where email='vic@test.dev'"))[0].id; const k4=subKeys(); const other=(await q("insert into push_subscriptions(user_id,endpoint,p256dh,auth) values ($1,'https://localhost:4050/push/vic',$2,$3) returning id",[vid,k4.p256dh,k4.auth]))[0].id;
  await q("insert into push_subscriptions(user_id,endpoint,p256dh,auth,label) values ($1,'https://localhost:4050/push/mine',$2,$3,'Mine')",[uid,k3.p256dh,k3.auth]);
- await p.goto(BASE+'/dashboard/settings'); assert(await p.locator('[data-testid=push-device]').count()===1,"only my own devices are listed");
+ await p.goto(BASE+'/dashboard/settings/notifications'); assert(await p.locator('[data-testid=push-device]').count()===1,"only my own devices are listed");
 
  // ---- data export + privacy
  const exp=await (await ctx.request.get(BASE+'/api/export')).json();
@@ -101,6 +101,6 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
 })();
 
 async function mobileCheck(sess,browser,assert){
-  const c=await sess('una@test.dev',{width:390,height:844}); const pg=await c.newPage(); await pg.goto(BASE+'/dashboard/settings');
+  const c=await sess('una@test.dev',{width:390,height:844}); const pg=await c.newPage(); await pg.goto(BASE+'/dashboard/settings/notifications');
   assert(await pg.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'settings fits a phone without horizontal scrolling');
 }
