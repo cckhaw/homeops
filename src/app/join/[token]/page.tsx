@@ -24,7 +24,7 @@ export default async function JoinPage({ params: p, searchParams: sp }: { params
     return (
       <Shell title="Invite unavailable">
         <p className="text-secondary">This invite link is invalid or has expired. Ask the household owner for a new one.</p>
-        <AppleButton href={user ? '/dashboard' : '/'} variant="secondary" full>Go to HomeOps</AppleButton>
+        <AppleButton href={user ? '/dashboard' : '/'} variant="secondary" full>Go to Wodejia</AppleButton>
       </Shell>
     );
   }

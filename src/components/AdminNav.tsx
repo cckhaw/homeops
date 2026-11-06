@@ -69,7 +69,7 @@ export default function AdminNav({ badges }: { badges: AdminBadges }) {
 
   const head = (
     <div className="mb-5 flex items-center justify-between px-1">
-      <Link href="/admin" aria-label="HomeOps admin" className="flex items-center gap-2"><Logo size={30} /><span className="rounded-md bg-tint/10 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-tint">Admin</span></Link>
+      <Link href="/admin" aria-label="Wodejia admin" className="flex items-center gap-2"><Logo size={30} /><span className="rounded-md bg-tint/10 px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-tint">Admin</span></Link>
     </div>
   );
   const foot = (

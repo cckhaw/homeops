@@ -15,7 +15,7 @@ export default async function BlogList({ category }: { category?: string }) {
   return (
     <>
       <section className="bg-[radial-gradient(60rem_26rem_at_50%_-10rem,rgb(var(--brand)/0.14),transparent)] px-5 pb-10 pt-14 text-center sm:pt-20">
-        <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-tint">{category ? 'Category' : 'The HomeOps blog'}</p>
+        <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-tint">{category ? 'Category' : 'The Wodejia blog'}</p>
         <h1 className="mx-auto max-w-3xl text-balance text-[38px] font-bold leading-[1.08] tracking-tight sm:text-[56px]">
           {category ? `${category} guides` : 'Smarter ways to look after your home.'}
         </h1>

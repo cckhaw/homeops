@@ -8,7 +8,7 @@ import { markWelcomeSeen } from '@/app/security-actions';
 import { cn } from '@/lib/utils';
 
 const SLIDES = [
-  { icon: Package, title: 'Your home, documented', body: 'Add appliances and equipment with their brand, model, warranty and photos. Snap a receipt and HomeOps reads the details for you.' },
+  { icon: Package, title: 'Your home, documented', body: 'Add appliances and equipment with their brand, model, warranty and photos. Snap a receipt and Wodejia reads the details for you.' },
   { icon: BellRing, title: 'Never miss maintenance', body: 'Seasonal checklists for your climate repeat on their own when you tick them off. Turn on e-mail reminders in Settings and warranty expiries are watched too.' },
   { icon: Users, title: 'Share with your household', body: 'Invite family or co-owners with a private link, assign tasks, and add the schedule to your phone’s calendar.' },
   { icon: BadgeCheck, title: 'A passport you can share', body: 'Selling or renting? Share a read-only Home Service Passport showing how well the home has been looked after — protect it with a password if you like.' },
@@ -28,7 +28,7 @@ export default function WelcomeTour({ initiallyOpen }: { initiallyOpen: boolean 
   const last = step === SLIDES.length - 1;
 
   return (
-    <Sheet title="Welcome to HomeOps" open={open} onClose={close}>
+    <Sheet title="Welcome to Wodejia" open={open} onClose={close}>
       <div className="space-y-6 text-center">
         <span className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-tint/10 text-tint"><Icon className="h-10 w-10" aria-hidden /></span>
         <div aria-live="polite">

@@ -331,7 +331,7 @@ export const blogPosts = pgTable(
     body: text('body').notNull(), // Markdown (see lib/markdown-core.ts)
     category: text('category').notNull(),
     tags: text('tags').default('').notNull(), // comma-separated, lower-case
-    authorName: text('author_name').default('HomeOps Team').notNull(),
+    authorName: text('author_name').default('Wodejia Team').notNull(),
     status: text('status').default('draft').notNull(), // 'draft' | 'published'
     publishAt: timestamp('publish_at'), // when it goes live (future = scheduled)
     createdBy: uuid('created_by').references(() => profiles.id, { onDelete: 'set null' }),

@@ -56,7 +56,7 @@ export async function GET(req: Request) {
       ),
     );
     return new NextResponse('﻿' + lines.join('\r\n') + '\r\n', {
-      headers: { ...headers, 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="homeops-assets-${stamp}.csv"` },
+      headers: { ...headers, 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="wodejia-assets-${stamp}.csv"` },
     });
   }
 
@@ -88,6 +88,6 @@ export async function GET(req: Request) {
     })),
   };
   return new NextResponse(JSON.stringify(body, null, 2), {
-    headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': `attachment; filename="homeops-export-${stamp}.json"` },
+    headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': `attachment; filename="wodejia-export-${stamp}.json"` },
   });
 }

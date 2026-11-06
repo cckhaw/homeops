@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!category) return { title: 'Category not found', robots: { index: false } };
   return {
     title: `${category} guides for your home`,
-    description: `Practical ${category.toLowerCase()} advice for homes in Singapore, Malaysia and beyond, from the HomeOps team.`,
+    description: `Practical ${category.toLowerCase()} advice for homes in Singapore, Malaysia and beyond, from the Wodejia team.`,
     alternates: { canonical: `/blog/category/${categorySlug(category)}` },
   };
 }

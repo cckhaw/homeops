@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { LogoMark, LOGO_COLOR_FIXED } from '@/components/Logo';
+import { LogoMark } from '@/components/Logo';
 
 export const runtime = 'edge';
 
@@ -10,7 +10,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ size: stri
   return new ImageResponse(
     (
       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#ffffff' }}>
-        <LogoMark size={Math.round(size * 0.62)} color={LOGO_COLOR_FIXED} />
+        <LogoMark size={Math.round(size * 0.66)} fixed />
       </div>
     ),
     { width: size, height: size },

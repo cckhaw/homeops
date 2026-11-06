@@ -7,7 +7,7 @@ export default function AuthCard({ title, subtitle, children, footer }: { title:
     <main className="grid min-h-dvh place-items-center px-5 py-10">
       <GlassCard className="w-full max-w-sm space-y-6 p-7 shadow-xl">
         <div className="text-center">
-          <Link href="/" aria-label="HomeOps" className="inline-block"><LogoMark size={64} className="mx-auto mb-3" /></Link>
+          <Link href="/" aria-label="Wodejia" className="inline-block"><LogoMark size={64} className="mx-auto mb-3" /></Link>
           <h1 className="text-[26px] font-bold">{title}</h1>
           {subtitle && <p className="mt-1 text-[15px] text-secondary">{subtitle}</p>}
         </div>

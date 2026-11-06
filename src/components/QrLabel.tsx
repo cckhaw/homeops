@@ -9,7 +9,7 @@ export default async function QrLabel({ url, name, detail, big }: { url: string;
       <figcaption className="mt-1 text-center leading-tight">
         <span className="block truncate text-[13px] font-bold">{name}</span>
         {detail && <span className="block truncate text-[11px] text-black/60">{detail}</span>}
-        <span className="block text-[9px] tracking-wide text-black/50">HomeOps · scan to open</span>
+        <span className="block text-[9px] tracking-wide text-black/50">Wodejia · scan to open</span>
       </figcaption>
     </figure>
   );

@@ -49,7 +49,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ token: str
   }
   events.sort((a, b) => a.date.localeCompare(b.date));
 
-  return new Response(buildCalendar('HomeOps maintenance', events), {
+  return new Response(buildCalendar('Wodejia maintenance', events), {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
       'Content-Disposition': 'inline; filename="homeops.ics"',

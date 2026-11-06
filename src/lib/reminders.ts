@@ -129,7 +129,7 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
       ...docPicks.map(({ asset }) => ({ kind: 'document' as const, title: asset.name, when: whenExpiry(asset.daysLeft), home: homeName.get((asset as WarrantyCandidate & { householdId: string }).householdId) })),
     ];
     const emailOn = emailConfigured() && (user.notifyReminders || !!opts.force);
-    const sentEmail = emailOn ? await sendEmail(user.email, `HomeOps: ${subjectParts.join(' and ')}`, html) : false;
+    const sentEmail = emailOn ? await sendEmail(user.email, `Wodejia: ${subjectParts.join(' and ')}`, html) : false;
     const waOn = whatsappConfigured() && !!user.whatsappNumber && !!user.whatsappVerifiedAt && user.notifyWhatsapp;
     const sentWa = waOn ? await sendWhatsappTemplate(user.whatsappNumber!, 'reminder', digestOneLine(items)) : false;
     const pushed = pushConfigured() ? (await sendPushToUser(user.id, pushPayload(items, base))).sent : 0;

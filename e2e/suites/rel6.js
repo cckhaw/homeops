@@ -28,7 +28,7 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
  await p.fill('input[name=phone]','abc'); await p.click('button:has-text("Send code")'); await p.waitForSelector('text=country code');
  assert(readJson('whatsapp.json').length===0,'a bad number sends nothing');
  await p.fill('input[name=phone]','+60 12-345 6789'); await p.click('button:has-text("Send code")'); await p.waitForSelector('text=Code sent to');
- const m1=readJson('whatsapp.json'); assert(m1.length===1 && m1[0].to==='60123456789' && m1[0].template.name==='homeops_code' && m1[0].auth==='Bearer wa_test' && m1[0].url.startsWith('/123456/messages'),'the code goes out as the approved template to the right number');
+ const m1=readJson('whatsapp.json'); assert(m1.length===1 && m1[0].to==='60123456789' && m1[0].template.name==='wodejia_code' && m1[0].auth==='Bearer wa_test' && m1[0].url.startsWith('/123456/messages'),'the code goes out as the approved template to the right number');
  const code=m1[0].template.components[0].parameters[0].text; assert(/^\d{6}$/.test(code),'the code is 6 digits');
  const row=(await q('select whatsapp_code_hash h, whatsapp_verified_at v, notify_whatsapp n from profiles where id=$1',[uid]))[0]; assert(row.h && !row.h.includes(code) && !row.v && !row.n,'only a hash is stored, and nothing is on yet');
  await p.waitForSelector('input[name=code]');
@@ -66,7 +66,7 @@ const subKeys=()=>{ const e=crypto.createECDH('prime256v1'); e.generateKeys(); r
  reset();
  const r1=await cron();
  assert(r1.whatsapp===1 && r1.push===1 && r1.emails===0,`one cron run delivers on WhatsApp and push, not e-mail (${JSON.stringify(r1)})`);
- const w=readJson('whatsapp.json'); const body=w.find(x=>x.template&&x.template.name==='homeops_reminder');
+ const w=readJson('whatsapp.json'); const body=w.find(x=>x.template&&x.template.name==='wodejia_reminder');
  assert(body && /Service the aircon — due today/.test(body.template.components[0].parameters[0].text) && !/[\n\t]/.test(body.template.components[0].parameters[0].text),'WhatsApp message carries the task on a single line');
  const pushes=readJson('push.json'); assert(pushes.some(x=>x.path==='/push/ok'&&x.bytes>0&&x.ttl==='86400'&&/^vapid/i.test(x.auth)),'push is sent encrypted with VAPID credentials');
  assert((await q('select count(*)::int c from push_subscriptions where user_id=$1',[uid]))[0].c===1,'a device the push service says is gone (410) is removed');

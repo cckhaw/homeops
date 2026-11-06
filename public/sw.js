@@ -1,5 +1,5 @@
-/* HomeOps service worker: offline shell + runtime caching for static assets. */
-const CACHE = 'homeops-v1';
+/* Wodejia service worker: offline shell + runtime caching for static assets. */
+const CACHE = 'wodejia-v1';
 const OFFLINE_URL = '/offline.html';
 
 self.addEventListener('install', (event) => {
@@ -50,11 +50,11 @@ self.addEventListener('push', (event) => {
     data = { body: event.data ? event.data.text() : '' };
   }
   event.waitUntil(
-    self.registration.showNotification(data.title || 'HomeOps', {
+    self.registration.showNotification(data.title || 'Wodejia', {
       body: data.body || '',
       icon: '/icons/192',
       badge: '/icons/192',
-      tag: 'homeops-reminders',
+      tag: 'wodejia-reminders',
       data: { url: data.url || '/dashboard' },
     }),
   );

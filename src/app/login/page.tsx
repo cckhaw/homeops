@@ -24,7 +24,7 @@ export default async function LoginPage({ searchParams: sp }: { searchParams: Pr
 
   return (
     <AuthCard
-      title="Welcome to HomeOps"
+      title="Welcome to Wodejia"
       subtitle="Sign in with your e-mail and password."
       footer={<>New here? <Link href="/register" className="font-semibold text-tint">Create an account</Link></>}
     >

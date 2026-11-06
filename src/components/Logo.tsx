@@ -1,71 +1,85 @@
 import { cn } from '@/lib/utils';
 
-/** The single flat logo colour: the default brand blue (independent of any accent colour a user picks). */
-export const LOGO_COLOR = 'rgb(var(--brand))';
-/** Fixed value for places that cannot read CSS variables (app icons, favicon). */
-export const LOGO_COLOR_FIXED = '#0E7FAE';
+/**
+ * Wodejia logo: a rounded house (with a chimney) around a soft-blue heart-shield, and a green check that breaks out through the roof.
+ *
+ * Two looks:
+ *  - full colour (default): navy outline, sky-blue heart, green check — follows light/dark mode through the --logo-* CSS variables;
+ *  - single colour: pass `color` (e.g. the user's accent inside the app) and everything is drawn in that colour.
+ * `fixed` uses hard-coded colours instead of CSS variables, for places that can't read them (social images, app icons).
+ */
 
-/** The HomeOps mark: a house outline whose roof line turns into a check mark. One flat colour. Pure SVG — safe in server, client and OG-image contexts. */
-export function LogoMark({ size = 40, className, color = LOGO_COLOR }: { size?: number; className?: string; color?: string }) {
+export const LOGO_FIXED = { navy: '#1F3A6B', green: '#4FA773', sky1: '#B4D8FF', sky2: '#5B9DF0' } as const;
+/** The brand blue used for UI accents (buttons, links) and wherever one flat colour is needed. */
+export const LOGO_COLOR = 'rgb(var(--brand))';
+export const LOGO_COLOR_FIXED = '#2B5BB5';
+
+const CHECK = 'M44 68 56 80 103 25';
+
+export function LogoMark({ size = 40, className, color, fixed, title = 'Wodejia' }: { size?: number; className?: string; color?: string; fixed?: boolean; title?: string }) {
+  const mono = color;
+  const navy = mono ?? (fixed ? LOGO_FIXED.navy : 'rgb(var(--logo-navy))');
+  const green = mono ?? (fixed ? LOGO_FIXED.green : 'rgb(var(--logo-green))');
+  const s1 = fixed ? LOGO_FIXED.sky1 : 'rgb(var(--logo-sky1))';
+  const s2 = fixed ? LOGO_FIXED.sky2 : 'rgb(var(--logo-sky2))';
+  // The same ids may appear several times on a page; identical definitions make that harmless.
+  const sfx = fixed ? 'f' : 'v';
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 100 100"
-      fill="none"
-      stroke={color}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      role="img"
-      aria-label="HomeOps"
-      className={className}
-    >
-      <path d="M45 88H25a9 9 0 0 1-9-9V47" strokeWidth={9} />
-      <path d="M7 52 44 15l17 17" strokeWidth={9} />
-      <path d="M27 34V21h7" strokeWidth={7} />
-      <path d="M78 49v30a9 9 0 0 1-9 9H57" strokeWidth={9} />
-      <path d="m33 53 15 17 37-44" strokeWidth={10} />
+    <svg width={size} height={size} viewBox="0 0 120 120" fill="none" strokeLinecap="round" strokeLinejoin="round" role="img" aria-label={title} className={className}>
+      <defs>
+        <linearGradient id={`wj-heart-${sfx}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor={s1} />
+          <stop offset="1" stopColor={s2} />
+        </linearGradient>
+        <mask id="wj-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="120" height="120">
+          <rect width="120" height="120" fill="#fff" />
+          <path d={CHECK} stroke="#000" strokeWidth="14" />
+        </mask>
+      </defs>
+      <g mask="url(#wj-cut)" stroke={navy} strokeWidth="7">
+        <path d="M8 58 27 41.5V26H40V30.5L58 14 108 58" />
+        <path d="M22 52V90a10 10 0 0 0 10 10H88a10 10 0 0 0 10-10V52" />
+      </g>
+      <path d="M60 94C37 78 33 63 41 55c7-6 15-3 19 4 4-7 12-10 19-4 8 8 4 23-19 39Z" fill={mono ?? `url(#wj-heart-${sfx})`} fillOpacity={mono ? 0.28 : 1} stroke="none" />
+      <path d={CHECK} stroke={green} strokeWidth="8" />
     </svg>
   );
 }
 
 /**
- * "HomeOps" wordmark: bold geometric type where the O becomes a little house —
- * a roof sits on top of it and a four-pane window fills the counter.
+ * "wodejia" wordmark in the brand typeface: "wode" in navy, "jia" in green, and a little roof in place of the i's dot.
+ * Lower-case on purpose; the i is the dotless "ı" so the roof is the only mark above it.
  */
-export function Wordmark({ size = 40, className, color = LOGO_COLOR }: { size?: number; className?: string; color?: string }) {
+export function Wordmark({ size = 40, className, color, fixed }: { size?: number; className?: string; color?: string; fixed?: boolean }) {
+  const navy = color ?? (fixed ? LOGO_FIXED.navy : 'rgb(var(--logo-navy))');
+  const green = color ?? (fixed ? LOGO_FIXED.green : 'rgb(var(--logo-green))');
   return (
     <span
-      className={cn('inline-block select-none whitespace-nowrap font-bold leading-none tracking-tight', className)}
-      style={{ fontFamily: 'var(--font-brand), -apple-system, "SF Pro Display", sans-serif', fontSize: size, color }}
+      className={cn('inline-block select-none whitespace-nowrap font-bold leading-none', className)}
+      style={{ fontFamily: 'var(--font-brand), -apple-system, "SF Pro Display", sans-serif', fontSize: size, letterSpacing: '-0.02em' }}
       aria-hidden
     >
-      Home
-      {/* The "O" is drawn: a ring (cap-height, matches the type weight) with a roof above and a four-pane window inside. */}
-      <svg
-        viewBox="0 0 84 104"
-        style={{ display: 'inline-block', width: '0.84em', height: '1.04em', verticalAlign: 'baseline', margin: '0 0.015em' }}
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M4 41 42 11l38 30" strokeWidth={13} />
-        <circle cx="42" cy="67" r="28.5" strokeWidth={14.5} />
-        <rect x="30" y="55" width="24" height="24" rx="1.5" strokeWidth={4} />
-        <path d="M42 55v24M30 67h24" strokeWidth={3.5} strokeLinecap="butt" />
-      </svg>
-      ps
+      <span style={{ color: navy }}>wode</span>
+      <span style={{ color: green }}>
+        j
+        <span className="relative inline-block">
+          ı
+          <svg viewBox="0 0 40 24" fill="none" stroke="currentColor" strokeWidth="7.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: '50%', top: '0.04em', width: '0.36em', height: '0.216em', transform: 'translateX(-50%)' }}>
+            <path d="M5 20 20 7 35 20" />
+          </svg>
+        </span>
+        a
+      </span>
     </span>
   );
 }
 
-/** Mark + wordmark lockup. */
-export default function Logo({ size = 40, wordmark = true, className, color = LOGO_COLOR }: { size?: number; wordmark?: boolean; className?: string; color?: string }) {
+/** Mark + wordmark lockup. Pass `color` for a one-colour version. */
+export default function Logo({ size = 40, wordmark = true, className, color, fixed }: { size?: number; wordmark?: boolean; className?: string; color?: string; fixed?: boolean }) {
   return (
     <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <LogoMark size={size} color={color} />
-      {wordmark && <Wordmark size={size * 0.62} color={color} />}
+      <LogoMark size={size} color={color} fixed={fixed} />
+      {wordmark && <Wordmark size={size * 0.7} color={color} fixed={fixed} />}
     </span>
   );
 }

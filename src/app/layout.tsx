@@ -4,18 +4,18 @@ import './globals.css';
 import { ServiceWorkerRegister } from '@/components/misc';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
 
-// Geometric bold face used only for the HomeOps wordmark.
+// Geometric bold face used only for the Wodejia wordmark.
 const brandFont = Montserrat({ subsets: ['latin'], weight: ['700', '800'], variable: '--font-brand', display: 'swap' });
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL ?? (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'http://localhost:3000')),
-  title: { default: 'HomeOps — the digital passport for your home', template: '%s · HomeOps' },
+  title: { default: 'Wodejia — the digital passport for your home', template: '%s · Wodejia' },
   description: 'Track appliances, warranties and seasonal maintenance in one place. Share a certified Home Service Passport when you sell or rent.',
   manifest: '/manifest.webmanifest',
-  openGraph: { type: 'website', siteName: 'HomeOps', title: 'HomeOps — the digital passport for your home', description: 'Track appliances, warranties and seasonal maintenance in one place.' },
+  openGraph: { type: 'website', siteName: 'Wodejia', title: 'Wodejia — the digital passport for your home', description: 'Track appliances, warranties and seasonal maintenance in one place.' },
   twitter: { card: 'summary_large_image' },
-  applicationName: 'HomeOps',
-  appleWebApp: { capable: true, title: 'HomeOps', statusBarStyle: 'default' },
+  applicationName: 'Wodejia',
+  appleWebApp: { capable: true, title: 'Wodejia', statusBarStyle: 'default' },
   icons: { apple: '/icons/180' }, // favicon.ico + icon.svg are picked up from src/app/
   formatDetection: { telephone: false },
 };

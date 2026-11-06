@@ -11,11 +11,11 @@ export const digestHeadline = (items: DigestItem[]) => `${plural(items.length, '
 const line = (i: DigestItem, withHome: boolean) =>
   `${i.title}${i.kind === 'warranty' ? ' (warranty)' : ''} — ${i.when}${withHome && i.home ? ` [${i.home}]` : ''}`;
 
-/** "HomeOps: Fix gutter — due today · Aircon (warranty) — expires in 5 days · +2 more", cut to fit `max` characters. */
+/** "Wodejia: Fix gutter — due today · Aircon (warranty) — expires in 5 days · +2 more", cut to fit `max` characters. */
 export function digestOneLine(items: DigestItem[], max = 600): string {
   const multi = new Set(items.map((i) => i.home).filter(Boolean)).size > 1;
   const parts: string[] = [];
-  let used = 'HomeOps: '.length;
+  let used = 'Wodejia: '.length;
   for (let n = 0; n < items.length; n++) {
     const l = line(items[n], multi);
     const rest = items.length - n - 1;
@@ -27,7 +27,7 @@ export function digestOneLine(items: DigestItem[], max = 600): string {
     parts.push(l);
     used += l.length + 3;
   }
-  return `HomeOps: ${parts.join(' · ')}`.slice(0, max);
+  return `Wodejia: ${parts.join(' · ')}`.slice(0, max);
 }
 
 /** Push notification content: short title, a few lines of body, where a tap should go. */

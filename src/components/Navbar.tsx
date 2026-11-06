@@ -75,7 +75,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
         )}
       >
         <div className={cn('mb-4 flex items-center pt-1', collapsed ? 'justify-center' : 'justify-between px-1')}>
-          <Link href="/dashboard" aria-label="HomeOps" className="flex items-center">
+          <Link href="/dashboard" aria-label="Wodejia" className="flex items-center">
             {collapsed ? <LogoMark size={40} color={ACCENT} /> : <Logo size={36} color={ACCENT} />}
           </Link>
         </div>

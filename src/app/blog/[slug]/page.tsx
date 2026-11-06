@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const tags = post.tags.split(',').filter(Boolean);
   const description = searchDescription(post);
   return {
-    // The site title template appends " · HomeOps"; the dedicated search title keeps the total near 60 characters.
+    // The site title template appends " · Wodejia"; the dedicated search title keeps the total near 60 characters.
     title: searchTitle(post),
     description,
     alternates: { canonical: `/blog/${post.slug}`, types: { 'application/rss+xml': '/blog/rss.xml' } },
@@ -68,9 +68,9 @@ export default async function BlogPost({ params }: Props) {
         datePublished: post.publishAt?.toISOString(),
         dateModified: post.updatedAt.toISOString(),
         author: { '@type': 'Organization', name: post.authorName, url: base },
-        publisher: { '@type': 'Organization', name: 'HomeOps', url: base, logo: { '@type': 'ImageObject', url: `${base}/icons/512` } },
+        publisher: { '@type': 'Organization', name: 'Wodejia', url: base, logo: { '@type': 'ImageObject', url: `${base}/icons/512` } },
         mainEntityOfPage: { '@type': 'WebPage', '@id': url },
-        isPartOf: { '@type': 'Blog', name: 'HomeOps blog', url: `${base}/blog` },
+        isPartOf: { '@type': 'Blog', name: 'Wodejia blog', url: `${base}/blog` },
         articleSection: post.category,
         keywords: post.tags,
         wordCount: words,
