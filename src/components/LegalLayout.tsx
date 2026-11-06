@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import Logo from './Logo';
+import { ThemeToggle } from './misc';
 import GlassCard from './GlassCard';
 
 export const SUPPORT_EMAIL = 'me@khaw.cc';
@@ -40,7 +41,7 @@ export default function LegalLayout({
             <ArrowLeft className="h-5 w-5" aria-hidden /> Back
           </Link>
           <Link href="/" aria-label="Wodejia"><Logo size={30} /></Link>
-          <span className="w-[72px]" aria-hidden />
+          <span className="flex w-[72px] justify-end"><ThemeToggle /></span>
         </div>
       </header>
 

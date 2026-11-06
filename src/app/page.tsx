@@ -8,6 +8,7 @@ import { getCurrentUser } from '@/lib/auth';
 import AppleButton from '@/components/AppleButton';
 import { donationsEnabled } from '@/lib/donate';
 import Logo from '@/components/Logo';
+import { ThemeToggle } from '@/components/misc';
 import AppPreview from '@/components/landing/AppPreview';
 
 export const dynamic = 'force-dynamic';
@@ -107,6 +108,7 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
             <Link href="/blog" className="transition hover:text-label">Blog</Link>
           </nav>
           <div className="flex items-center gap-1.5">
+            <ThemeToggle />
             <AppleButton href="/login" variant="plain">Sign in</AppleButton>
             <AppleButton href="/register" className="hidden sm:inline-flex">Get started</AppleButton>
           </div>

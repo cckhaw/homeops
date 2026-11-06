@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { donationsEnabled } from '@/lib/donate';
 import AppleButton from './AppleButton';
 import Logo from './Logo';
+import { ThemeToggle } from './misc';
 
 /** Header for public content pages (blog). It never depends on who is visiting, so these pages can be cached and served fast. */
 export function SiteHeader({ active }: { active?: 'blog' }) {
@@ -19,6 +20,7 @@ export function SiteHeader({ active }: { active?: 'blog' }) {
         </nav>
         <div className="flex items-center gap-1.5">
           <Link href="/blog" className="flex min-h-[44px] items-center px-3 text-[15px] font-medium text-secondary md:hidden">Blog</Link>
+          <ThemeToggle />
           <AppleButton href="/login" variant="plain">Sign in</AppleButton>
           <AppleButton href="/register" className="hidden sm:inline-flex">Get started</AppleButton>
         </div>
