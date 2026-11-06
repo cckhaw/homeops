@@ -20,8 +20,6 @@
   /* Logo palette (full-colour logo) */
   --logo-navy: 31 58 107;
   --logo-green: 79 167 115;
-  --logo-sky1: 180 216 255;
-  --logo-sky2: 91 157 240;
   --on-tint: 255 255 255;
   color-scheme: light;
 }
