@@ -35,6 +35,11 @@ const FEATURES=['Asset passport','Receipt scanning','Document vault','QR labels'
  // signed-in users still go straight to the app
  const sv=(await pool.query("select session_version v from profiles where email='una@test.dev'")).rows[0].v; const t=await encode({token:{email:'una@test.dev',sub:'una',sv},secret:'localtestsecretlocaltestsecret1234'});
  const sc=await browser.newContext(); await sc.addCookies([{name:'next-auth.session-token',value:t,url:BASE}]); const sp=await sc.newPage(); await sp.goto(BASE+'/'); assert(/\/dashboard/.test(sp.url()),'signed-in visitors are sent to their dashboard');
+ // day / night switch before signing in
+ for(const path of ['/','/login','/blog','/privacy']){ const tc=await browser.newContext({viewport:{width:1280,height:800},colorScheme:'light'}); const tp=await tc.newPage(); await tp.goto(BASE+path); await tp.waitForTimeout(400);
+  const btn=tp.locator('button[aria-label="Switch to dark mode"]'); assert(await btn.count()===1,`${path}: has a day/night switch`);
+  await btn.click(); assert(await tp.evaluate(()=>document.documentElement.getAttribute('data-theme'))==='dark' && await tp.evaluate(()=>getComputedStyle(document.body).backgroundColor)!=='rgb(245, 245, 247)',`${path}: switching to night mode works`);
+  await tp.reload(); await tp.waitForTimeout(300); assert(await tp.evaluate(()=>document.documentElement.getAttribute('data-theme'))==='dark' && await tp.locator('button[aria-label="Switch to light mode"]').count()===1,`${path}: the choice is remembered`); await tc.close(); }
  assert(errs.length===0,'no page errors '+errs.join('|'));
  await browser.close(); await pool.end();
 })();
