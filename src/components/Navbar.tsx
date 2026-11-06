@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Ellipsis, FileArchive, FolderLock, HardHat, Home, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { signOut } from 'next-auth/react';
+import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, Home, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HomeSwitcher, ThemeToggle, type SwitcherHome } from './misc';
 import Logo, { LogoMark } from './Logo';
@@ -97,7 +98,18 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
           </nav>
         )}
         <div className={cn('mt-2 flex shrink-0 gap-1 border-t pt-2 hairline', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
-          <ThemeToggle />
+          <div className={cn('flex gap-1', collapsed ? 'flex-col items-center' : 'items-center')}>
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: '/' })}
+              aria-label="Sign out"
+              title="Sign out"
+              className="grid h-11 w-11 place-items-center rounded-xl text-secondary transition hover:bg-bad/10 hover:text-bad active:scale-90"
+            >
+              <LogOut className="h-5 w-5" aria-hidden />
+            </button>
+          </div>
           <button
             onClick={onToggle}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}

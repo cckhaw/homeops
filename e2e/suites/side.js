@@ -27,5 +27,15 @@ const assert=(c,m)=>{ if(!c){console.error('FAIL',m);process.exitCode=1}else con
  const u=await ctx('user@test.dev'); const up=await u.newPage(); await up.goto(BASE+'/dashboard'); await up.waitForSelector('aside');
  assert(await up.locator('aside a[href="/admin"]').count()===0 && await up.locator('aside a[href="/support"]').count()===1,'non-admin: no Admin link, coffee link still shown');
  await up.screenshot({path:S+'/side-user.png',clip:{x:0,y:0,width:700,height:800}});
+ // sign-out icon sits next to the day/night toggle
+ { const ubox=async(sel)=>up.locator(sel).first().boundingBox(); const th=await ubox('aside button[aria-label*="mode"]'), so=await ubox('aside button[aria-label="Sign out"]'), co=await ubox('aside button[aria-label="Collapse sidebar"]');
+   assert(Math.abs(so.y-th.y)<3 && so.x>th.x && so.x<co.x && so.x-(th.x+th.width)<12,'sign-out icon is on the bottom row, right next to the day/night toggle');
+   assert(so.width>=44&&so.height>=44,'sign-out icon is a full-size tap target');
+   await up.click('aside button[aria-label="Collapse sidebar"]'); await up.waitForTimeout(400);
+   const th2=await ubox('aside button[aria-label*="mode"]'), so2=await ubox('aside button[aria-label="Sign out"]'); assert(so2.y>th2.y && Math.abs(so2.x-th2.x)<2 && so2.x>=0 && so2.x+so2.width<=77,'collapsed sidebar stacks the sign-out icon under the toggle, inside the rail');
+   await up.click('aside button[aria-label="Expand sidebar"]'); await up.waitForTimeout(300);
+   await up.click('aside button[aria-label="Sign out"]'); await up.waitForURL(u=>new URL(u).pathname==='/',{timeout:15000}); assert(true,'clicking it signs you out and returns to the homepage');
+   await up.goto(BASE+'/dashboard'); assert(/\/(login|api\/auth\/signin)/.test(up.url()),'the session is gone: the dashboard asks you to sign in again'); }
+
  const m=await b.newContext({viewport:{width:390,height:844}}); const t=await encode({token:{email:'admin@test.dev',sub:'a',sv:0},secret:'localtestsecretlocaltestsecret1234'}); await m.addCookies([{name:'next-auth.session-token',value:t,url:BASE}]); const mp=await m.newPage(); await mp.goto(BASE+'/dashboard'); assert(await mp.locator('aside').isHidden(),'mobile layout unaffected (sidebar hidden, bottom tabs used)');
  await b.close(); })().catch(e=>{console.error(e);process.exit(1)});
