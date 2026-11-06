@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Bell, FolderDown, Home, Palette, ShieldCheck, UserRound } from 'lucide-react';
+import { SETTINGS_SECTIONS as SECTIONS } from '@/components/settingsSections';
 import { requireHousehold } from '@/lib/auth';
 import GlassCard from '@/components/GlassCard';
 import PageHeader from '@/components/PageHeader';
@@ -29,16 +29,8 @@ export default async function SettingsPage() {
   const prefs = await getPrefs();
   const detected = pickLocale((await headers()).get('accept-language'));
   const devices = await db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, user.id)).orderBy(pushSubscriptions.createdAt);
-  const SECTIONS = [
-    { id: 'profile', label: 'Profile', icon: UserRound },
-    { id: 'appearance', label: 'Appearance', icon: Palette },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'security', label: 'Security', icon: ShieldCheck },
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'privacy', label: 'Privacy & data', icon: FolderDown },
-  ];
   const Section = ({ id, title, hint, children }: { id: string; title: string; hint?: string; children: React.ReactNode }) => (
-    <section id={id} aria-labelledby={`${id}-h`} className="scroll-mt-24 lg:scroll-mt-6">
+    <section id={id} aria-labelledby={`${id}-h`} className="scroll-mt-24">
       <h2 id={`${id}-h`} className="px-1 text-[22px] font-bold">{title}</h2>
       {hint && <p className="mb-3 mt-0.5 px-1 text-[14px] text-secondary">{hint}</p>}
       {!hint && <div className="mb-2" />}
@@ -48,13 +40,13 @@ export default async function SettingsPage() {
   return (
     <>
       <PageHeader title="Settings" />
-      <div className="lg:grid lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-10">
-        {/* jump menu: a row of chips under the header on phones, a sticky list beside the content on desktop */}
-        <nav aria-label="Settings sections" className="-mx-4 mb-5 overflow-x-auto px-4 py-1 sm:-mx-6 sm:px-6 lg:sticky lg:top-6 lg:mx-0 lg:mb-0 lg:self-start lg:overflow-visible lg:p-0">
-          <ul className="flex gap-2 lg:flex-col lg:gap-1">
+      <div>
+        {/* jump menu on phones; on larger screens the same sections are under Settings in the left menu */}
+        <nav aria-label="Settings sections" className="-mx-4 mb-5 overflow-x-auto px-4 py-1 sm:-mx-6 sm:px-6 md:hidden">
+          <ul className="flex gap-2">
             {SECTIONS.map(({ id, label, icon: Icon }) => (
               <li key={id} className="shrink-0">
-                <a href={`#${id}`} className="flex min-h-[44px] items-center gap-2 whitespace-nowrap rounded-full border bg-surface px-4 text-[15px] font-medium hairline transition hover:bg-label/5 lg:rounded-xl lg:border-0 lg:bg-transparent lg:px-3">
+                <a href={`#${id}`} className="flex min-h-[44px] items-center gap-2 whitespace-nowrap rounded-full border bg-surface px-4 text-[15px] font-medium hairline transition hover:bg-label/5">
                   <Icon className="h-[18px] w-[18px] text-tint" aria-hidden />{label}
                 </a>
               </li>

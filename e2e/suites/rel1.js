@@ -111,5 +111,11 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  const gp=await dp.locator('aside[aria-label=Admin] nav p').allTextContents(); assert(gp.join('|')==='Overview|People|Content|System','grouped as Overview › People › Content › System');
  const sb=await dp.locator('aside[aria-label=Admin]').boundingBox(); const cb=await dp.locator('main > div').boundingBox(); assert(sb.x===0 && sb.width>=240 && cb.x>=sb.width,'the page content sits beside the sidebar, not under it');
  await ap.screenshot({path:S+'/rel1-admin-m.png'});
+ // settings sections live in the left menu (no second menu)
+ await p.setViewportSize({width:1280,height:900}); await p.goto(BASE+'/dashboard/settings'); await p.waitForSelector('#settings-sections');
+ assert(await p.locator('#settings-sections a').count()===6 && await p.locator('main nav[aria-label="Settings sections"]:visible').count()===0,'Settings expands in the left menu with its six sections; no second menu beside the content');
+ await p.locator('#settings-sections a:has-text("Security")').click(); await p.waitForTimeout(400); assert(/#security$/.test(p.url()) && await p.locator('#security-h').isVisible(),'a section link jumps to that section');
+ await p.click('button[aria-label="Hide settings sections"]'); assert(await p.locator('#settings-sections').count()===0,'the Settings entry collapses'); await p.click('button[aria-label="Show settings sections"]'); assert(await p.locator('#settings-sections').count()===1,'and expands again');
+ await p.setViewportSize({width:390,height:844}); await p.goto(BASE+'/dashboard/settings'); assert(await p.locator('nav[aria-label="Settings sections"]:visible').count()===1,'phones get a row of section chips instead');
  console.log('page errors:',errs); await browser.close(); await pool.end();
 })().catch(e=>{console.error(e);process.exit(1)});
