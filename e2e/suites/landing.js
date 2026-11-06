@@ -28,6 +28,10 @@ const FEATURES=['Asset passport','Receipt scanning','Document vault','QR labels'
  for(const path of ['/login','/register','/privacy','/terms']){ const rr=await p.request.get(BASE+path); assert(rr.status()===200,`${path} (linked from the page) loads`); }
  // honest about what's optional: no claims we can't back
  assert(!/guarantee|bank-grade|military/i.test(text),'no inflated security claims');
+ assert(/WhatsApp is coming soon/.test(text) && !/on WhatsApp|by e-mail, push or WhatsApp|WhatsApp reminders/i.test(text.replace(/WhatsApp is coming soon/g,'')),'WhatsApp reminders are described as coming soon, not as available');
+ const priv=await (await p.request.get(BASE+'/privacy')).text(), terms=await (await p.request.get(BASE+'/terms')).text();
+ assert(/not available today/.test(priv) && !/Meta \(WhatsApp Business\)/.test(priv) && /push notifications/.test(priv),'privacy policy says WhatsApp is not available, and covers push');
+ assert(/push-notification delivery/.test(terms) && /document vault|contractors/.test(priv),'terms mention push delivery; privacy covers the vault and contractors');
  // signed-in users still go straight to the app
  const sv=(await pool.query("select session_version v from profiles where email='una@test.dev'")).rows[0].v; const t=await encode({token:{email:'una@test.dev',sub:'una',sv},secret:'localtestsecretlocaltestsecret1234'});
  const sc=await browser.newContext(); await sc.addCookies([{name:'next-auth.session-token',value:t,url:BASE}]); const sp=await sc.newPage(); await sp.goto(BASE+'/'); assert(/\/dashboard/.test(sp.url()),'signed-in visitors are sent to their dashboard');

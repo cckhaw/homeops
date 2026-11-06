@@ -36,7 +36,7 @@ const GROUPS: Group[] = [
     items: [
       { icon: ClipboardCheck, title: 'Seasonal maintenance', body: 'Climate-aware checklists — tropical or temperate — that reschedule themselves when you tick them off.' },
       { icon: BellRing, title: 'Warranty and expiry alerts', body: 'A heads-up before a warranty or an insurance policy runs out, then once more in the last week.' },
-      { icon: MessageCircle, title: 'Reminders where you are', body: 'Get your digest by e-mail, as a push notification, or on WhatsApp — each one optional.', isNew: true },
+      { icon: MessageCircle, title: 'Reminders where you are', body: 'Get your digest by e-mail or as a push notification on your phone or computer — each one optional. WhatsApp is coming soon.', isNew: true },
       { icon: CalendarSync, title: 'Your own calendar feed', body: 'Subscribe in Apple, Google or Outlook Calendar and see due dates beside everything else.' },
     ],
   },
@@ -82,7 +82,7 @@ const PRIVACY = [
 
 const STEPS = [
   { n: '1', title: 'Add what you own', body: 'Snap a receipt or type in an appliance. HomeOps fills in the rest and sets up its upkeep.' },
-  { n: '2', title: 'Let it remind you', body: 'Seasonal jobs, warranties and policy renewals reach you by e-mail, push or WhatsApp.' },
+  { n: '2', title: 'Let it remind you', body: 'Seasonal jobs, warranties and policy renewals reach you by e-mail or push notification.' },
   { n: '3', title: 'Share when it matters', body: 'Hand a buyer, agent or tenant a passport link or a complete move-out pack.' },
 ];
 
@@ -122,7 +122,7 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
           <div className="mx-auto max-w-4xl px-5">
             <a href="#features" className="mb-6 inline-flex max-w-full items-center gap-2 rounded-full border bg-surface/70 py-1 pl-1 pr-3.5 text-[13px] font-medium shadow-sm backdrop-blur hairline">
               <span className="rounded-full bg-tint px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-ontint">New</span>
-              <span className="truncate text-secondary">Reports, vault &amp; WhatsApp reminders</span>
+              <span className="truncate text-secondary">Reports, vault &amp; push reminders</span>
               <ArrowRight className="h-3.5 w-3.5 shrink-0 text-tint" aria-hidden />
             </a>
             <h1 className="text-balance text-[40px] font-bold leading-[1.05] tracking-tight sm:text-[60px] lg:text-[68px]">

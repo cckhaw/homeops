@@ -91,6 +91,8 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  for(const path of ['/dashboard/contractors','/dashboard/documents','/dashboard/bills','/dashboard/pack','/dashboard/more']){ await mp.goto(BASE+path); assert(await mp.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),`${path}: no horizontal scrolling on a phone`); }
  await mp.goto(BASE+'/dashboard/more'); await mp.screenshot({path:S+'/more-phone.png'});
  await p.goto(BASE+'/dashboard'); assert(await p.locator('aside a:has-text("Contractors")').count()===1 && await p.locator('aside a:has-text("Documents")').count()===1,'desktop sidebar links to the new sections');
+ // WhatsApp reminders are "coming soon" unless switched on: no number is collected
+ await p.goto(BASE+'/dashboard/settings'); assert(await p.locator('[data-testid=whatsapp-soon]:has-text("Coming soon")').count()===1 && await p.locator('input[name=phone]').count()===0,'Settings shows WhatsApp reminders as coming soon, with no number field');
  assert(errs.length===0,'no page errors '+errs.join('|'));
  await browser.close(); await pool.end();
 })();

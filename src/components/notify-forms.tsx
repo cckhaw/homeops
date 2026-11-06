@@ -123,7 +123,20 @@ export function WhatsappSettings({ configured, number, verified, enabled, awaiti
   const [pending, run] = useTransition();
   const [on, setOn] = useState(enabled); // optimistic: flips at once, reverts if the server says no
   useEffect(() => setOn(enabled), [enabled]);
-  if (!configured) return <p className="text-[14px] text-secondary">WhatsApp reminders aren&apos;t set up on this site yet.</p>;
+  if (!configured) {
+    return (
+      <div className="flex items-start gap-3" data-testid="whatsapp-soon">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-label/5 text-secondary"><MessageCircle className="h-5 w-5" aria-hidden /></span>
+        <div className="min-w-0">
+          <p className="flex flex-wrap items-center gap-2 text-[17px] font-semibold">
+            WhatsApp reminders
+            <span className="rounded-full bg-tint/10 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-tint">Coming soon</span>
+          </p>
+          <p className="text-[13px] text-secondary">We&apos;re working on reminders by WhatsApp. Until then, use e-mail or push notifications above — we&apos;ll announce it here when it&apos;s ready.</p>
+        </div>
+      </div>
+    );
+  }
   const asked = awaitingCode || !!start.state?.ok;
   return (
     <div className="space-y-3">

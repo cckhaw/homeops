@@ -63,7 +63,7 @@ node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
 run rel5
 # Push + WhatsApp: mock Meta API and an HTTPS push service (self-signed, so TLS verification is relaxed for this phase only).
 VAPID=$(node -e "const k=require('web-push').generateVAPIDKeys();console.log(k.publicKey+' '+k.privateKey)")
-node e2e/setup.js --seed >/dev/null && start $MAIL WHATSAPP_TOKEN=wa_test WHATSAPP_PHONE_ID=123456 WHATSAPP_API_URL=http://localhost:4040 VAPID_PUBLIC_KEY=${VAPID% *} VAPID_PRIVATE_KEY=${VAPID#* } VAPID_SUBJECT=mailto:t@test.dev NODE_TLS_REJECT_UNAUTHORIZED=0 && mark_seen
+node e2e/setup.js --seed >/dev/null && start $MAIL WHATSAPP_ENABLED=1 WHATSAPP_TOKEN=wa_test WHATSAPP_PHONE_ID=123456 WHATSAPP_API_URL=http://localhost:4040 VAPID_PUBLIC_KEY=${VAPID% *} VAPID_PRIVATE_KEY=${VAPID#* } VAPID_SUBJECT=mailto:t@test.dev NODE_TLS_REJECT_UNAUTHORIZED=0 && mark_seen
 run rel6
 node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
 run layout
