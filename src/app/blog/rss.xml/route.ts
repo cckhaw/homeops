@@ -1,7 +1,7 @@
 import { livePosts } from '@/lib/blog';
 import { siteBaseUrl } from '@/lib/donate';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]!);
 

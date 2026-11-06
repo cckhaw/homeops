@@ -6,11 +6,21 @@ import { parseTags } from '@/lib/blog-core';
 
 export type Post = typeof blogPosts.$inferSelect;
 
+/** During `next build` without a database (CI) the blog pages render empty instead of failing; at runtime a real error is never hidden. */
+async function readable<T>(run: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await run();
+  } catch (e) {
+    if (process.env.NEXT_PHASE === 'phase-production-build') return fallback;
+    throw e;
+  }
+}
+
 const liveWhere = () => and(eq(blogPosts.status, 'published'), lte(blogPosts.publishAt, new Date()));
 
 /** Posts readers can see: marked published and past their publish time. Scheduled posts appear on their own once the time passes. */
 export async function livePosts(limit = 100): Promise<Post[]> {
-  return db.select().from(blogPosts).where(liveWhere()).orderBy(desc(blogPosts.publishAt)).limit(limit);
+  return readable(() => db.select().from(blogPosts).where(liveWhere()).orderBy(desc(blogPosts.publishAt)).limit(limit), [] as Post[]);
 }
 
 export async function livePostBySlug(slug: string): Promise<Post | null> {
