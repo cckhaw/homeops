@@ -83,10 +83,10 @@ export function PushSettings({ publicKey, devices }: { publicKey: string | null;
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-tint/10 text-tint"><BellRing className="h-5 w-5" aria-hidden /></span>
         <div className="min-w-0">
           <p className="text-[17px] font-semibold">Push notifications</p>
-          <p className="text-[13px] text-secondary">The same reminders, as a notification on this device. Works even when HomeOps is closed.</p>
+          <p className="text-[13px] text-secondary">The same reminders, as a notification on this device. Works even when Wodejia is closed.</p>
         </div>
       </div>
-      {support === 'ios-install' && <p className="rounded-xl bg-warn/10 px-3 py-2 text-[14px] text-warn">On iPhone and iPad, add HomeOps to your Home Screen first (Share → Add to Home Screen), then open it from there to turn notifications on.</p>}
+      {support === 'ios-install' && <p className="rounded-xl bg-warn/10 px-3 py-2 text-[14px] text-warn">On iPhone and iPad, add Wodejia to your Home Screen first (Share → Add to Home Screen), then open it from there to turn notifications on.</p>}
       {support === 'no' && <p className="rounded-xl bg-warn/10 px-3 py-2 text-[14px] text-warn">This browser doesn&apos;t support push notifications.</p>}
       {support === 'yes' && (
         <div className="flex flex-wrap gap-3">
@@ -162,7 +162,7 @@ export function WhatsappSettings({ configured, number, verified, enabled, awaiti
             <Field label="WhatsApp number (with country code)">
               <input name="phone" type="tel" inputMode="tel" required maxLength={40} className="input" placeholder="+60 12-345 6789" />
             </Field>
-            <p className="px-1 text-[13px] text-secondary">By continuing you agree to receive HomeOps reminders on WhatsApp. We&apos;ll send a code to confirm the number is yours.</p>
+            <p className="px-1 text-[13px] text-secondary">By continuing you agree to receive Wodejia reminders on WhatsApp. We&apos;ll send a code to confirm the number is yours.</p>
             <Msg state={start.state} />
             <SubmitButton pending={start.pending} variant={asked ? 'secondary' : 'primary'}>{asked ? 'Send a new code' : 'Send code'}</SubmitButton>
           </form>

@@ -19,7 +19,7 @@ describe('iCalendar text', () => {
 
 describe('buildCalendar', () => {
   const now = new Date('2026-11-05T06:30:00Z');
-  const ics = buildCalendar('HomeOps, schedule', [
+  const ics = buildCalendar('Wodejia, schedule', [
     { uid: 'task-1', date: '2026-12-31', summary: 'Clean gutters, front', description: 'Home: Ada\'s Home\nRepeats every 6 months', alarm: true },
     { uid: 'warranty-9', date: '2027-02-28', summary: 'Warranty ends: Fridge' },
   ], now);
@@ -31,7 +31,7 @@ describe('buildCalendar', () => {
     expect((ics.match(/BEGIN:VEVENT/g) ?? []).length).toBe(2);
     expect((ics.match(/END:VEVENT/g) ?? []).length).toBe(2);
     expect(ics).toContain('VERSION:2.0');
-    expect(ics).toContain('X-WR-CALNAME:HomeOps\\, schedule');
+    expect(ics).toContain('X-WR-CALNAME:Wodejia\\, schedule');
   });
   it('writes all-day events with an exclusive end date (year-end rollover)', () => {
     expect(ics).toContain('DTSTART;VALUE=DATE:20261231');

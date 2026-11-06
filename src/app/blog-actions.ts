@@ -69,7 +69,7 @@ export async function saveBlogPost(id: string | null, _: FormState, fd: FormData
     publishAt = at;
   }
 
-  const values = { slug, title, excerpt, seoTitle, metaDescription, body, category, tags: parseTags(str(fd, 'tags', 300)).join(','), authorName: str(fd, 'author', 80) || 'HomeOps Team', status, publishAt, updatedAt: now };
+  const values = { slug, title, excerpt, seoTitle, metaDescription, body, category, tags: parseTags(str(fd, 'tags', 300)).join(','), authorName: str(fd, 'author', 80) || 'Wodejia Team', status, publishAt, updatedAt: now };
   let postId = id;
   if (before) {
     await db.update(blogPosts).set(values).where(eq(blogPosts.id, before.id));

@@ -11,7 +11,7 @@ export function SiteHeader({ active }: { active?: 'blog' }) {
   return (
     <header className="glass sticky top-0 z-20 border-x-0 border-t-0">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-2.5">
-        <Link href="/" aria-label="HomeOps"><Logo size={36} /></Link>
+        <Link href="/" aria-label="Wodejia"><Logo size={36} /></Link>
         <nav aria-label="Site" className="hidden items-center gap-7 text-[15px] font-medium text-secondary md:flex">
           {link('/#features', 'Features')}
           {link('/#how', 'How it works')}
@@ -31,9 +31,9 @@ export function SiteFooter() {
   return (
     <footer className="border-t px-5 py-10 hairline">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 sm:flex-row">
-        <Link href="/" aria-label="HomeOps"><Logo size={28} /></Link>
+        <Link href="/" aria-label="Wodejia"><Logo size={28} /></Link>
         <p className="text-[13px] text-secondary">
-          © {new Date().getFullYear()} HomeOps
+          © {new Date().getFullYear()} Wodejia
           {' · '}
           <Link href="/blog" className="font-semibold text-tint">Blog</Link>
           {' · '}

@@ -2,7 +2,7 @@
 export const BLOG_CATEGORIES = ['Maintenance', 'Warranties', 'Money', 'Buying & selling', 'Product updates'] as const;
 export const isBlogCategory = (c: string) => (BLOG_CATEGORIES as readonly string[]).includes(c);
 
-/** Admins schedule posts in Singapore / Malaysia time (UTC+8, no daylight saving) — the readers HomeOps is written for. */
+/** Admins schedule posts in Singapore / Malaysia time (UTC+8, no daylight saving) — the readers Wodejia is written for. */
 export const BLOG_TZ_LABEL = 'Singapore / Malaysia time (UTC+8)';
 const OFFSET_MS = 8 * 3_600_000;
 
@@ -51,7 +51,7 @@ export const categorySlug = (c: string) => c.toLowerCase().replace(/&/g, ' ').re
 export const categoryFromSlug = (s: string) => BLOG_CATEGORIES.find((c) => categorySlug(c) === s);
 
 /** Search-result text: the dedicated SEO title / description when the author wrote one, otherwise the post title / summary. */
-export const SEO_TITLE_MAX = 50; // the site adds " · HomeOps", which keeps the full title near Google's ~60-character display limit
+export const SEO_TITLE_MAX = 50; // the site adds " · Wodejia", which keeps the full title near Google's ~60-character display limit
 export const META_DESC_MAX = 160;
 export const searchTitle = (p: { title: string; seoTitle?: string | null }) => (p.seoTitle?.trim() || p.title);
 export const searchDescription = (p: { excerpt: string; metaDescription?: string | null }) => (p.metaDescription?.trim() || p.excerpt);
@@ -62,7 +62,7 @@ export function seoChecks(p: { title: string; seoTitle?: string | null; metaDesc
   const t = searchTitle(p);
   const d = searchDescription(p);
   return [
-    { ok: t.length > 0 && t.length <= SEO_TITLE_MAX, label: `Search title is ${t.length} characters`, hint: `Aim for ${SEO_TITLE_MAX} or fewer so it isn't cut off in Google (the site adds “· HomeOps”). Put the main keyword near the start.` },
+    { ok: t.length > 0 && t.length <= SEO_TITLE_MAX, label: `Search title is ${t.length} characters`, hint: `Aim for ${SEO_TITLE_MAX} or fewer so it isn't cut off in Google (the site adds “· Wodejia”). Put the main keyword near the start.` },
     { ok: d.length >= 70 && d.length <= META_DESC_MAX, label: `Search description is ${d.length} characters`, hint: 'Write 70–160 characters that promise a clear benefit; it is the snippet people read before clicking.' },
     { ok: p.slug.length > 0 && p.slug.length <= 60 && p.slug.split('-').length <= 8, label: `URL is ${p.slug.length} characters`, hint: 'Keep it short and keyword-led (3–6 words). Don’t change it after publishing — links and rankings depend on it.' },
     { ok: p.h2 >= 3, label: `${p.h2} section heading${p.h2 === 1 ? '' : 's'} (##)`, hint: 'Break the article into at least 3 sections with ## headings; use the phrases people actually search for.' },

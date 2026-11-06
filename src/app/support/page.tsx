@@ -26,7 +26,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
     <div className="min-h-dvh">
       <header className="glass sticky top-0 z-20 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-2.5">
-          <Link href="/" aria-label="HomeOps"><Logo size={36} /></Link>
+          <Link href="/" aria-label="Wodejia"><Logo size={36} /></Link>
           <Link href="/dashboard" className="flex min-h-[44px] items-center text-[15px] font-semibold text-tint">Back to app</Link>
         </div>
       </header>
@@ -37,7 +37,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
           <div>
             <h1 className="text-[28px] font-bold">Buy me a coffee</h1>
             <p className="mt-2 text-[16px] text-secondary">
-              HomeOps is free and always will be. If it keeps your home running smoothly and you&apos;d like to support its development, a coffee goes a long way. Thank you!
+              Wodejia is free and always will be. If it keeps your home running smoothly and you&apos;d like to support its development, a coffee goes a long way. Thank you!
             </p>
           </div>
 
@@ -64,7 +64,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
               {error && <p role="alert" className="text-center text-[15px] text-bad">{error}</p>}
               <SubmitButton full><Heart className="h-5 w-5" aria-hidden /> Donate with Stripe</SubmitButton>
               <p className="flex items-center justify-center gap-1.5 text-[12px] text-secondary">
-                <Lock className="h-3.5 w-3.5" aria-hidden /> Secure checkout by Stripe. Card details never touch HomeOps.
+                <Lock className="h-3.5 w-3.5" aria-hidden /> Secure checkout by Stripe. Card details never touch Wodejia.
               </p>
               <p className="text-center text-[12px] text-secondary">A voluntary, non-refundable gift — see our <Link href="/terms#donationware" className="font-semibold text-tint">Terms</Link>.</p>
             </form>

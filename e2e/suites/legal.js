@@ -9,7 +9,7 @@ const PW='correct horse battery staple';
  for (const [path,h1,needs] of [['/privacy','Privacy Policy',['do not sell','Neon','Delete my account','me@khaw.cc','Last updated: November 2026','Anthropic','Stripe']],['/terms','Terms of Service',['100% free','non-refundable','as is','Modifications','me@khaw.cc','Last updated: November 2026']]]) {
    await p.goto(BASE+path); assert((await p.textContent('h1')).trim()===h1,`${path} renders its title`);
    const txt=await p.textContent('body'); for (const n of needs) assert(txt.toLowerCase().includes(n.toLowerCase()),`${path} contains "${n}"`);
-   assert(await p.locator('a[aria-label="Back to HomeOps"]').getAttribute('href')==='/','back button goes to landing for signed-out visitors');
+   assert(await p.locator('a[aria-label="Back to Wodejia"]').getAttribute('href')==='/','back button goes to landing for signed-out visitors');
    await p.locator('details summary:has-text("Contents")').click(); const first=p.locator('details a').nth(2); const id=(await first.getAttribute('href')).slice(1); await first.click(); await p.waitForTimeout(400);
    assert(await p.evaluate(id=>{const r=document.getElementById(id).getBoundingClientRect();return r.top>=0&&r.top<260},id),`${path} contents link scrolls to its section`);
    assert(await p.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),`${path} has no horizontal scroll on mobile`);

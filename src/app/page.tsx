@@ -23,7 +23,7 @@ const GROUPS: Group[] = [
     lede: 'Every appliance, system and piece of paperwork, documented once and easy to find.',
     items: [
       { icon: Package, title: 'Asset passport', body: 'Make, model, serial number, install date, warranty and a photo — with logos from over 150 brands.' },
-      { icon: ScanLine, title: 'Receipt scanning', body: 'Photograph a receipt and HomeOps reads the model, serial and dates for you.' },
+      { icon: ScanLine, title: 'Receipt scanning', body: 'Photograph a receipt and Wodejia reads the model, serial and dates for you.' },
       { icon: FolderLock, title: 'Document vault', body: 'Insurance, mortgage, deeds and inspection reports, kept private with optional expiry dates.', isNew: true },
       { icon: QrCode, title: 'QR labels', body: 'Print a sticker for each appliance. Scan it to open its page — warranty, manual and history.', isNew: true },
     ],
@@ -44,7 +44,7 @@ const GROUPS: Group[] = [
     id: 'together',
     icon: Users,
     title: 'Run it together',
-    lede: 'Homes are shared by nature. HomeOps is built for the whole household.',
+    lede: 'Homes are shared by nature. Wodejia is built for the whole household.',
     items: [
       { icon: Building2, title: 'Many homes, one login', body: 'Give each home its own icon and switch in a tap or a search — family house, rental, holiday flat.' },
       { icon: UserCheck, title: 'Assign the work', body: 'Invite family or co-owners with a private link and give each task to the right person.' },
@@ -81,7 +81,7 @@ const PRIVACY = [
 ];
 
 const STEPS = [
-  { n: '1', title: 'Add what you own', body: 'Snap a receipt or type in an appliance. HomeOps fills in the rest and sets up its upkeep.' },
+  { n: '1', title: 'Add what you own', body: 'Snap a receipt or type in an appliance. Wodejia fills in the rest and sets up its upkeep.' },
   { n: '2', title: 'Let it remind you', body: 'Seasonal jobs, warranties and policy renewals reach you by e-mail or push notification.' },
   { n: '3', title: 'Share when it matters', body: 'Hand a buyer, agent or tenant a passport link or a complete move-out pack.' },
 ];
@@ -99,7 +99,7 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
     <div className="min-h-dvh overflow-x-clip">
       <header className="glass sticky top-0 z-20 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-2.5">
-          <Link href="/" aria-label="HomeOps"><Logo size={36} /></Link>
+          <Link href="/" aria-label="Wodejia"><Logo size={36} /></Link>
           <nav aria-label="Sections" className="hidden items-center gap-7 text-[15px] font-medium text-secondary md:flex">
             <a href="#features" className="transition hover:text-label">Features</a>
             <a href="#how" className="transition hover:text-label">How it works</a>
@@ -130,7 +130,7 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
               Everything about your home,{' '}<span className="whitespace-nowrap text-tint">in one place.</span>
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-balance text-[18px] leading-snug text-secondary sm:text-[21px]">
-              HomeOps keeps your appliances, warranties, paperwork, repairs and running costs organised — and reminds you before anything slips.
+              Wodejia keeps your appliances, warranties, paperwork, repairs and running costs organised — and reminds you before anything slips.
             </p>
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <AppleButton href="/register" className="min-w-[230px]">Get started — it&apos;s free</AppleButton>
@@ -219,7 +219,7 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
               <Eyebrow>Private by design</Eyebrow>
               <h2 className="text-[32px] font-bold leading-tight tracking-tight sm:text-[42px]">Your home is personal. We treat it that way.</h2>
               <p className="mt-4 max-w-md text-[17px] leading-snug text-secondary">
-                Receipts, policies and deeds are sensitive. HomeOps keeps them private, secured, and entirely under your control.
+                Receipts, policies and deeds are sensitive. Wodejia keeps them private, secured, and entirely under your control.
               </p>
               <div className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[15px] font-semibold text-tint">
                 <Link href="/privacy" className="inline-flex items-center gap-1.5">Privacy Policy <ArrowRight className="h-4 w-4" aria-hidden /></Link>
@@ -236,6 +236,17 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
               ))}
             </ul>
           </div>
+        </section>
+
+        {/* ---------------------------------------------------------------- the name */}
+        <section className="mx-auto max-w-3xl px-5 pb-4 pt-16 text-center sm:pt-24" aria-labelledby="name-heading">
+          <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.14em] text-tint">About the name</p>
+          <h2 id="name-heading" className="text-balance text-[28px] font-bold leading-tight tracking-tight sm:text-[38px]">
+            Wodejia <span className="whitespace-nowrap font-medium text-secondary">(wǒ de jiā · 我的家)</span> means “my home”.
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-balance text-[17px] leading-snug text-secondary">
+            A home is the most personal thing you look after. We named the app after it, so everything here — your appliances, paperwork and routines — feels like it belongs to you.
+          </p>
         </section>
 
         {/* ---------------------------------------------------------------- final call */}
@@ -257,9 +268,9 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
 
       <footer className="border-t px-5 py-10 hairline">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-5 sm:flex-row">
-          <Link href="/" aria-label="HomeOps"><Logo size={28} /></Link>
+          <Link href="/" aria-label="Wodejia"><Logo size={28} /></Link>
           <p className="text-[13px] text-secondary">
-            © {new Date().getFullYear()} HomeOps
+            © {new Date().getFullYear()} Wodejia
             {' · '}
             <Link href="/blog" className="font-semibold text-tint">Blog</Link>
             {' · '}

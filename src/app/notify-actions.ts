@@ -58,7 +58,7 @@ export async function sendTestPush(): Promise<FormState> {
   if (!pushConfigured()) return { error: 'Push notifications are not set up on this site yet.' };
   const limited = await enforce('push-test', user.id, 6, 600);
   if (limited) return { error: limited };
-  const r = await sendPushToUser(user.id, { title: 'HomeOps test', body: 'Push notifications are working on this device.', url: '/dashboard/settings' });
+  const r = await sendPushToUser(user.id, { title: 'Wodejia test', body: 'Push notifications are working on this device.', url: '/dashboard/settings' });
   revalidatePath('/dashboard/settings');
   return r.sent ? { ok: `Sent to ${r.sent} device${r.sent === 1 ? '' : 's'}.` } : { error: 'No device could be reached. Turn notifications on again from this device.' };
 }

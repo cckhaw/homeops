@@ -5,8 +5,8 @@ import { whatsappParam } from '@/lib/digest-core';
 
 /**
  * WhatsApp Business Cloud API (Meta). Business-initiated messages must use pre-approved *templates*:
- *   WHATSAPP_CODE_TEMPLATE      (default homeops_code)      body: "Your HomeOps verification code is {{1}}"
- *   WHATSAPP_REMINDER_TEMPLATE  (default homeops_reminder)  body: "{{1}}"
+ *   WHATSAPP_CODE_TEMPLATE      (default wodejia_code)      body: "Your Wodejia verification code is {{1}}"
+ *   WHATSAPP_REMINDER_TEMPLATE  (default wodejia_reminder)  body: "{{1}}"
  * Both take exactly one body variable. Language: WHATSAPP_LANG (default en).
  *
  * STATUS: coming soon. The code is complete but switched off — it only runs when WHATSAPP_ENABLED=1 *and* the credentials
@@ -16,7 +16,7 @@ export const whatsappConfigured = () => process.env.WHATSAPP_ENABLED === '1' && 
 
 export async function sendWhatsappTemplate(to: string, kind: 'code' | 'reminder', text: string): Promise<boolean> {
   if (!whatsappConfigured()) return false;
-  const template = kind === 'code' ? process.env.WHATSAPP_CODE_TEMPLATE ?? 'homeops_code' : process.env.WHATSAPP_REMINDER_TEMPLATE ?? 'homeops_reminder';
+  const template = kind === 'code' ? process.env.WHATSAPP_CODE_TEMPLATE ?? 'wodejia_code' : process.env.WHATSAPP_REMINDER_TEMPLATE ?? 'wodejia_reminder';
   const base = process.env.WHATSAPP_API_URL ?? 'https://graph.facebook.com/v21.0';
   try {
     const res = await fetch(`${base}/${process.env.WHATSAPP_PHONE_ID}/messages`, {

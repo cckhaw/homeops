@@ -5,7 +5,7 @@ import LegalLayout, { Callout, Section, SUPPORT_EMAIL, type LegalSection } from 
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'HomeOps is privacy-first: we do not sell your data, run ads or use third-party trackers. Here is exactly what we collect and why.',
+  description: 'Wodejia is privacy-first: we do not sell your data, run ads or use third-party trackers. Here is exactly what we collect and why.',
 };
 
 const sections: LegalSection[] = [
@@ -27,7 +27,7 @@ export default async function PrivacyPage() {
   return (
     <LegalLayout
       title="Privacy Policy"
-      intro="HomeOps is built privacy-first. This page explains in plain English what we collect, why, who helps us run the service, and how you stay in control."
+      intro="Wodejia is built privacy-first. This page explains in plain English what we collect, why, who helps us run the service, and how you stay in control."
       sections={sections}
       backHref={user ? '/dashboard' : '/'}
       other={{ href: '/terms', label: 'Terms of Service' }}
@@ -35,7 +35,7 @@ export default async function PrivacyPage() {
       <Section id="pledge" title="Our privacy pledge">
         <Callout>We do not sell your data. We do not show ads. We do not use third-party trackers or analytics.</Callout>
         <p>
-          HomeOps exists to help you look after your home. We only collect what is needed to do that, we never share it for marketing, and
+          Wodejia exists to help you look after your home. We only collect what is needed to do that, we never share it for marketing, and
           you can export or erase it whenever you like. This policy is written to follow the spirit of data-protection principles such as
           Malaysia&apos;s Personal Data Protection Act 2010 and Singapore&apos;s Personal Data Protection Act 2012: collect only what is necessary,
           use it only for the purpose you gave it, keep it secure, and let you access, correct and delete it.
@@ -66,7 +66,7 @@ export default async function PrivacyPage() {
         </ul>
         <p><strong>Donations</strong></p>
         <ul>
-          <li>If you donate, payment is handled entirely by Stripe. HomeOps never sees or stores your card details. Stripe may share the donor name, e-mail address and amount with the HomeOps owner through the Stripe dashboard, which is used to say thank you and for accounting.</li>
+          <li>If you donate, payment is handled entirely by Stripe. Wodejia never sees or stores your card details. Stripe may share the donor name, e-mail address and amount with the Wodejia owner through the Stripe dashboard, which is used to say thank you and for accounting.</li>
         </ul>
       </Section>
 
@@ -83,7 +83,7 @@ export default async function PrivacyPage() {
       </Section>
 
       <Section id="providers" title="Service providers we rely on">
-        <p>HomeOps is run on a small number of trusted services. They process data on our behalf, only to provide their service to us:</p>
+        <p>Wodejia is run on a small number of trusted services. They process data on our behalf, only to provide their service to us:</p>
         <ul>
           <li><strong>Vercel</strong>: website hosting and file storage (Vercel Blob) for uploaded receipts and manuals.</li>
           <li><strong>Neon</strong>: the encrypted Postgres database that stores your account and household records.</li>
@@ -100,13 +100,13 @@ export default async function PrivacyPage() {
           we will update this policy first and ask for your consent before collecting a number.
         </p>
         <p>
-          These providers may process data in countries other than Malaysia or Singapore, including the United States. By using HomeOps you
+          These providers may process data in countries other than Malaysia or Singapore, including the United States. By using Wodejia you
           understand your data may be transferred there; we choose providers that protect data in line with recognised industry standards.
         </p>
       </Section>
 
       <Section id="cookies" title="Cookies and local storage">
-        <p>HomeOps uses only the cookies and browser storage it needs to work. There are no advertising or tracking cookies.</p>
+        <p>Wodejia uses only the cookies and browser storage it needs to work. There are no advertising or tracking cookies.</p>
         <ul>
           <li><strong>Session cookie</strong>: keeps you signed in.</li>
           <li><strong>Active-home cookie</strong>: remembers which of your homes you are viewing.</li>
@@ -158,7 +158,7 @@ export default async function PrivacyPage() {
       </Section>
 
       <Section id="children" title="Children">
-        <p>HomeOps is meant for adults managing a household. It is not directed at anyone under 18, and we do not knowingly collect their data. If you believe a child has given us personal data, contact us and we will delete it.</p>
+        <p>Wodejia is meant for adults managing a household. It is not directed at anyone under 18, and we do not knowingly collect their data. If you believe a child has given us personal data, contact us and we will delete it.</p>
       </Section>
 
       <Section id="changes" title="Changes and contact">

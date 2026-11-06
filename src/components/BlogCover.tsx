@@ -2,9 +2,9 @@ import { BadgeCheck, Home, Newspaper, PiggyBank, Wrench, type LucideIcon } from 
 import { cn } from '@/lib/utils';
 
 const LOOK: Record<string, { icon: LucideIcon; from: string; to: string }> = {
-  Maintenance: { icon: Wrench, from: '#0e7fae', to: '#2bb3a3' },
-  Warranties: { icon: BadgeCheck, from: '#3a56d4', to: '#0e7fae' },
-  Money: { icon: PiggyBank, from: '#1f8f4e', to: '#0e7fae' },
+  Maintenance: { icon: Wrench, from: '#2b5bb5', to: '#4fa773' },
+  Warranties: { icon: BadgeCheck, from: '#1f3a6b', to: '#5b9df0' },
+  Money: { icon: PiggyBank, from: '#2f8f5a', to: '#2b5bb5' },
   'Buying & selling': { icon: Home, from: '#d9731a', to: '#e5a528' },
   'Product updates': { icon: Newspaper, from: '#7b3fc4', to: '#3a56d4' },
 };

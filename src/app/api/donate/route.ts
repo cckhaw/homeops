@@ -32,8 +32,8 @@ export async function POST(req: Request) {
     'line_items[0][quantity]': '1',
     'line_items[0][price_data][currency]': donationCurrency().toLowerCase(),
     'line_items[0][price_data][unit_amount]': String(cents),
-    'line_items[0][price_data][product_data][name]': 'Buy me a coffee ☕ — support HomeOps',
-    'custom_text[submit][message]': 'Thank you for supporting HomeOps!',
+    'line_items[0][price_data][product_data][name]': 'Buy me a coffee ☕ — support Wodejia',
+    'custom_text[submit][message]': 'Thank you for supporting Wodejia!',
     success_url: `${base}/support/thanks`,
     cancel_url: `${base}/support`,
   });

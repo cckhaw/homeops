@@ -69,7 +69,7 @@ export async function registerAccount(_: FormState, fd: FormData): Promise<FormS
   if (existing?.passwordHash && existing.emailVerifiedAt) {
     await sendEmail(
       email,
-      'You already have a HomeOps account',
+      'You already have a Wodejia account',
       emailLayout('You already have an account', `<p>Someone tried to register this e-mail address. If it was you, just sign in — or reset your password if you forgot it.</p>`, { label: 'Sign in', url: `${base()}/login` }),
     );
     return generic;
@@ -78,8 +78,8 @@ export async function registerAccount(_: FormState, fd: FormData): Promise<FormS
   const token = await issueToken(email, existing ? 'reset' : 'register', 60, name);
   await sendEmail(
     email,
-    'Finish creating your HomeOps account',
-    emailLayout('Welcome to HomeOps', `<p>Confirm your e-mail and choose a password (at least 12 characters). This link works once and expires in 1 hour.</p>`, { label: 'Set my password', url: `${base()}/reset-password?token=${encodeURIComponent(token)}` }),
+    'Finish creating your Wodejia account',
+    emailLayout('Welcome to Wodejia', `<p>Confirm your e-mail and choose a password (at least 12 characters). This link works once and expires in 1 hour.</p>`, { label: 'Set my password', url: `${base()}/reset-password?token=${encodeURIComponent(token)}` }),
   );
   return generic;
 }
@@ -105,7 +105,7 @@ export async function requestPasswordReset(_: FormState, fd: FormData): Promise<
     const token = await issueToken(email, 'reset', 60);
     await sendEmail(
       email,
-      'Reset your HomeOps password',
+      'Reset your Wodejia password',
       emailLayout('Reset your password', `<p>Use the button below to choose a new password. The link works once and expires in 1 hour. If you didn't ask for this, you can ignore this e-mail — your password won't change.</p>`, { label: 'Choose a new password', url: `${base()}/reset-password?token=${encodeURIComponent(token)}` }),
     );
   }

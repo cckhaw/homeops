@@ -13,10 +13,13 @@
   --glass: rgba(255, 255, 255, 0.72);
   --glass-border: rgba(0, 0, 0, 0.08);
   --hairline: rgba(60, 60, 67, 0.16);
-  /* Logo colour: always the default brand blue, regardless of the accent a user picks */
-  --brand: 14 127 174;
-  /* accent (default: HomeOps logo blue, darkened for AA contrast with white text) */
-  --tint: 14 127 174;
+  /* Brand blue: always the default, regardless of the accent a user picks (AA contrast with white text) */
+  --brand: 43 91 181;
+  /* accent (default: the Wodejia brand blue) */
+  --tint: 43 91 181;
+  /* Logo palette (full-colour logo) */
+  --logo-navy: 31 58 107;
+  --logo-green: 79 167 115;
   --on-tint: 255 255 255;
   color-scheme: light;
 }
@@ -43,9 +46,11 @@
     --glass: rgba(28, 28, 30, 0.72);
     --glass-border: rgba(255, 255, 255, 0.1);
     --hairline: rgba(84, 84, 88, 0.45);
-    --brand: 108 196 234;
-    --tint: 108 196 234;
+    --brand: 141 180 245;
+    --tint: 141 180 245;
     --on-tint: 0 0 0;
+    --logo-navy: 185 204 245;
+    --logo-green: 111 210 154;
     color-scheme: dark;
   }
 }
@@ -60,9 +65,11 @@
     --glass: rgba(28, 28, 30, 0.72);
     --glass-border: rgba(255, 255, 255, 0.1);
     --hairline: rgba(84, 84, 88, 0.45);
-    --brand: 108 196 234;
-    --tint: 108 196 234;
+    --brand: 141 180 245;
+    --tint: 141 180 245;
     --on-tint: 0 0 0;
+    --logo-navy: 185 204 245;
+    --logo-green: 111 210 154;
     color-scheme: dark;
   }
 

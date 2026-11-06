@@ -57,8 +57,8 @@ export async function adminSendReset(userId: string): Promise<AdminState> {
   const token = await issueToken(t.user.email, 'reset', 60);
   const ok = await sendEmail(
     t.user.email,
-    'Reset your HomeOps password',
-    emailLayout('Reset your password', '<p>A HomeOps administrator sent you a link to choose a new password. It works once and expires in 1 hour.</p>', {
+    'Reset your Wodejia password',
+    emailLayout('Reset your password', '<p>A Wodejia administrator sent you a link to choose a new password. It works once and expires in 1 hour.</p>', {
       label: 'Choose a new password',
       url: `${siteBaseUrl('http://localhost:3000')}/reset-password?token=${encodeURIComponent(token)}`,
     }),

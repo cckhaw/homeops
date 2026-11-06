@@ -49,5 +49,5 @@ async function alertAdmins(fp: string, message: string, route: string | null, so
     `<p><b>${escapeHtml(message)}</b></p><p style="color:#6e6e73">${source === 'client' ? 'In the browser' : 'On the server'}${route ? ` · ${escapeHtml(route)}` : ''}</p><p>No personal data is stored with errors.</p>`,
     { label: 'Open the error log', url: `${siteBaseUrl('http://localhost:3000')}/admin/errors` },
   );
-  await Promise.all(to.map((addr) => sendEmail(addr, `HomeOps error: ${message.slice(0, 80)}`, html)));
+  await Promise.all(to.map((addr) => sendEmail(addr, `Wodejia error: ${message.slice(0, 80)}`, html)));
 }

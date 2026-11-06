@@ -39,7 +39,7 @@ export default async function PublicPassport({ params: paramsPromise }: { params
     return (
       <main className="grid min-h-dvh place-items-center px-5">
         <GlassCard className="w-full max-w-sm space-y-5 p-7 text-center">
-          <Link href="/" aria-label="HomeOps" className="inline-block"><Logo size={36} /></Link>
+          <Link href="/" aria-label="Wodejia" className="inline-block"><Logo size={36} /></Link>
           <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-tint/10 text-tint"><Lock className="h-7 w-7" aria-hidden /></span>
           <h1 className="text-[24px] font-bold">This passport is protected</h1>
           <p className="text-[15px] text-secondary">Enter the password the owner shared with you.</p>
@@ -58,7 +58,7 @@ export default async function PublicPassport({ params: paramsPromise }: { params
     <div className="min-h-dvh pb-16">
       <header className="glass sticky top-0 z-10 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-2.5">
-          <Link href="/" aria-label="HomeOps"><Logo size={32} /></Link>
+          <Link href="/" aria-label="Wodejia"><Logo size={32} /></Link>
           <span className="flex items-center gap-1 text-[13px] font-semibold text-ok"><BadgeCheck className="h-4 w-4" aria-hidden /> Home Service Passport</span>
         </div>
       </header>
@@ -127,7 +127,7 @@ export default async function PublicPassport({ params: paramsPromise }: { params
         <GlassCard className="space-y-3 text-center">
           <h2 className="text-[22px] font-bold">Keep your own home this organized</h2>
           <p className="text-secondary">Create a free Home Service Passport in minutes — scan receipts, track warranties and never miss maintenance.</p>
-          <AppleButton href="/register">Get HomeOps free</AppleButton>
+          <AppleButton href="/register">Get Wodejia free</AppleButton>
         </GlassCard>
         <p className="mt-6 text-center text-[12px] text-secondary"><Link href="/privacy" className="font-semibold text-tint">Privacy</Link> · <Link href="/terms" className="font-semibold text-tint">Terms</Link></p>
       </main>

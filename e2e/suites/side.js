@@ -15,14 +15,14 @@ const assert=(c,m)=>{ if(!c){console.error('FAIL',m);process.exitCode=1}else con
  assert((await box('aside')).width<100 && await p.locator('aside button[aria-label="Expand sidebar"]').count()===1,'collapsed rail shows the expand button beside the theme toggle');
  await p.screenshot({path:S+'/side-collapsed.png',clip:{x:0,y:0,width:300,height:800}});
  await p.click('aside button[aria-label="Expand sidebar"]');
- // logo colour: flat + ignores the accent
- const stroke=async()=>p.evaluate(()=>[...document.querySelectorAll('aside svg[aria-label=HomeOps] path')].map(e=>getComputedStyle(e).stroke).filter((v,i,a)=>a.indexOf(v)===i));
- const light=await stroke(); assert(light.length===1 && light[0]==='rgb(14, 127, 174)',`logo mark is one flat colour in light mode (${light})`);
+ // inside the app the logo is one flat colour: the accent (the mask path inside <defs> is not drawn, so it is left out)
+ const stroke=async()=>p.evaluate(()=>[...document.querySelectorAll('aside svg[aria-label=Wodejia] > g > path, aside svg[aria-label=Wodejia] > path')].map(e=>getComputedStyle(e).stroke).filter((v,i,a)=>a.indexOf(v)===i));
+ const light=await stroke(); assert(light.length===1 && light[0]==='rgb(43, 91, 181)',`logo mark is one flat colour in light mode — the Wodejia blue (${light})`);
  await p.goto(BASE+'/dashboard/settings'); await p.click('[role=radio][aria-label=Violet]'); const after=await stroke(); assert(after.length===1 && after[0]==='rgb(150, 55, 200)','in the app the logo follows the accent colour (Violet)');
  assert(await p.locator('a[href="/admin"]:has-text("Admin portal")').count()>=1,'admins also get an Admin portal link in Settings (reachable on mobile)');
- const wm=await p.evaluate(()=>getComputedStyle(document.querySelector('aside span[aria-hidden=true]')).color); assert(wm==='rgb(150, 55, 200)','wordmark follows the accent too');
+ const wm=await p.evaluate(()=>getComputedStyle(document.querySelector('aside span[aria-hidden=true] > span')).color); assert(wm==='rgb(150, 55, 200)','wordmark follows the accent too');
  const d=await ctx('admin@test.dev','dark'); const dp=await d.newPage(); await dp.goto(BASE+'/dashboard'); await dp.waitForSelector('aside'); await dp.waitForTimeout(500);
- const dstroke=await dp.evaluate(()=>getComputedStyle(document.querySelector('aside svg[aria-label=HomeOps] path')).stroke); assert(dstroke==='rgb(108, 196, 234)',`dark mode uses the lighter brand blue (${dstroke})`);
+ const dstroke=await dp.evaluate(()=>getComputedStyle(document.querySelector('aside svg[aria-label=Wodejia] > g > path')).stroke); assert(dstroke==='rgb(141, 180, 245)',`dark mode uses the lighter brand blue (${dstroke})`);
  await dp.screenshot({path:S+'/side-dark.png',clip:{x:0,y:0,width:700,height:800}});
  const u=await ctx('user@test.dev'); const up=await u.newPage(); await up.goto(BASE+'/dashboard'); await up.waitForSelector('aside');
  assert(await up.locator('aside a[href="/admin"]').count()===0 && await up.locator('aside a[href="/support"]').count()===1,'non-admin: no Admin link, coffee link still shown');

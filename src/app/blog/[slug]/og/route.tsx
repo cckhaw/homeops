@@ -5,13 +5,13 @@ import { LogoMark, LOGO_COLOR_FIXED } from '@/components/Logo';
 export const runtime = 'nodejs';
 
 /**
- * Social-share / search card for an article: category, title and the HomeOps brand (1200×630 PNG).
+ * Social-share / search card for an article: category, title and the Wodejia brand (1200×630 PNG).
  * Served from our own route (not Next's immutable metadata image) so editing a title refreshes the card within the hour.
  */
 export async function GET(_: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = await livePostBySlug(slug).catch(() => null);
-  const title = post?.title ?? 'The HomeOps blog';
+  const title = post?.title ?? 'The Wodejia blog';
   const category = post?.category ?? 'Home care guides';
   return new ImageResponse(
     (
@@ -21,8 +21,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
         </div>
         <div style={{ display: 'flex', fontSize: title.length > 70 ? 56 : 68, fontWeight: 800, lineHeight: 1.1, letterSpacing: -1.5, maxWidth: 1040 }}>{title}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, fontSize: 34, fontWeight: 700 }}>
-          <div style={{ display: 'flex', background: '#ffffff', borderRadius: 18, padding: 10 }}><LogoMark size={56} color={LOGO_COLOR_FIXED} /></div>
-          HomeOps
+          <div style={{ display: 'flex', background: '#ffffff', borderRadius: 18, padding: 10 }}><LogoMark size={56} fixed /></div>
+          Wodejia
         </div>
       </div>
     ),

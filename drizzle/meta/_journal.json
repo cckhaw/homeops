@@ -85,6 +85,13 @@
       "when": 1793944530825,
       "tag": "0011_fluffy_lionheart",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793949128775,
+      "tag": "0012_rebrand_blog_posts",
+      "breakpoints": true
     }
   ]
 }

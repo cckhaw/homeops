@@ -130,7 +130,7 @@ export function verifyTotp(secretB32: string, token: string, lastStep?: number |
 }
 
 export function totpUri(secretB32: string, email: string): string {
-  return `otpauth://totp/HomeOps:${encodeURIComponent(email)}?secret=${secretB32}&issuer=HomeOps&algorithm=SHA1&digits=6&period=30`;
+  return `otpauth://totp/Wodejia:${encodeURIComponent(email)}?secret=${secretB32}&issuer=Wodejia&algorithm=SHA1&digits=6&period=30`;
 }
 
 // ---------------------------------------------------------------- Recovery codes

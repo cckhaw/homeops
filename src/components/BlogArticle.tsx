@@ -71,10 +71,10 @@ export default function BlogArticle({ post, related = [], preview }: { post: Pos
 
         <aside className="mt-10 flex items-center gap-4 rounded-2xl border bg-surface/60 p-5 hairline" aria-label="About the author">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-tint/10 text-[17px] font-bold text-tint" aria-hidden>{post.authorName.slice(0, 1).toUpperCase()}</span>
-          <p className="text-[15px] leading-snug text-secondary"><span className="block font-semibold text-label">Written by {post.authorName}</span>HomeOps helps households keep track of appliances, warranties and maintenance. These guides come from the same checklists we build into the app.</p>
+          <p className="text-[15px] leading-snug text-secondary"><span className="block font-semibold text-label">Written by {post.authorName}</span>Wodejia helps households keep track of appliances, warranties and maintenance. These guides come from the same checklists we build into the app.</p>
         </aside>
 
-        <aside className="mt-8 overflow-hidden rounded-[28px] bg-tint px-6 py-10 text-center text-ontint sm:px-10" aria-label="Try HomeOps">
+        <aside className="mt-8 overflow-hidden rounded-[28px] bg-tint px-6 py-10 text-center text-ontint sm:px-10" aria-label="Try Wodejia">
           <h2 className="text-balance text-[26px] font-bold leading-tight tracking-tight sm:text-[32px]">Keep your whole home on schedule.</h2>
           <p className="mx-auto mt-2 max-w-md text-[16px] opacity-90">Track appliances, warranties and maintenance — and get reminded before anything slips.</p>
           <Link href="/register" className="mt-5 inline-flex min-h-[48px] items-center justify-center rounded-xl bg-white px-6 text-[16px] font-semibold text-black shadow-lg transition active:scale-[0.97]">Create your free account</Link>

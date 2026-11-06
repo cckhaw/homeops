@@ -64,7 +64,7 @@ export default function BlogEditor({ post, minLocal }: { post?: EditorPost; minL
           </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Tags (comma separated)"><input name="tags" maxLength={300} defaultValue={post?.tags.split(',').join(', ') ?? ''} className="input" placeholder="aircon, maintenance, singapore" /></Field>
-            <Field label="Author name"><input name="author" maxLength={80} defaultValue={post?.authorName ?? 'HomeOps Team'} className="input" /></Field>
+            <Field label="Author name"><input name="author" maxLength={80} defaultValue={post?.authorName ?? 'Wodejia Team'} className="input" /></Field>
           </div>
         </div>
 
@@ -104,7 +104,7 @@ export default function BlogEditor({ post, minLocal }: { post?: EditorPost; minL
           </div>
           <div className="rounded-2xl border bg-surface p-4 hairline" aria-label="Search result preview">
             <p className="truncate text-[12.5px] text-secondary">homeops.khaw.cc › blog › {slug || 'your-url-name'}</p>
-            <p className="mt-0.5 truncate text-[19px] leading-snug text-[#1a0dab] dark:text-[#8ab4f8]">{shownTitle} · HomeOps</p>
+            <p className="mt-0.5 truncate text-[19px] leading-snug text-[#1a0dab] dark:text-[#8ab4f8]">{shownTitle} · Wodejia</p>
             <p className="mt-0.5 line-clamp-2 text-[14px] leading-snug text-secondary">{shownDesc}</p>
           </div>
           <ul className="space-y-1.5" aria-label="SEO checklist">

@@ -36,10 +36,10 @@ export default function LegalLayout({
     <div className="min-h-dvh pb-16">
       <header className="glass sticky top-0 z-30 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-1.5">
-          <Link href={backHref} className="flex min-h-[44px] items-center gap-1 rounded-xl pr-3 text-[17px] text-tint" aria-label="Back to HomeOps">
+          <Link href={backHref} className="flex min-h-[44px] items-center gap-1 rounded-xl pr-3 text-[17px] text-tint" aria-label="Back to Wodejia">
             <ArrowLeft className="h-5 w-5" aria-hidden /> Back
           </Link>
-          <Link href="/" aria-label="HomeOps"><Logo size={30} /></Link>
+          <Link href="/" aria-label="Wodejia"><Logo size={30} /></Link>
           <span className="w-[72px]" aria-hidden />
         </div>
       </header>

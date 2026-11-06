@@ -26,6 +26,6 @@ export async function GET(req: Request) {
   ];
   const csv = lines.map((l) => l.map(csvCell).join(',')).join('\r\n') + '\r\n';
   return new NextResponse(csv, {
-    headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="homeops-spending-${year}.csv"`, 'Cache-Control': 'private, no-store' },
+    headers: { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename="wodejia-spending-${year}.csv"`, 'Cache-Control': 'private, no-store' },
   });
 }

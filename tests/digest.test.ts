@@ -20,8 +20,8 @@ describe('digest wording', () => {
     expect(digestHeadline(items)).toBe('3 things need your attention');
   });
   it('builds a one-line message, naming homes only when there are several', () => {
-    expect(digestOneLine(items)).toBe('HomeOps: Replace filter — due today [Main] · Aircon (warranty) — expires in 5 days [Main] · Clean gutters — 3 days overdue [Cabin]');
-    expect(digestOneLine(items.slice(0, 2))).toBe('HomeOps: Replace filter — due today · Aircon (warranty) — expires in 5 days');
+    expect(digestOneLine(items)).toBe('Wodejia: Replace filter — due today [Main] · Aircon (warranty) — expires in 5 days [Main] · Clean gutters — 3 days overdue [Cabin]');
+    expect(digestOneLine(items.slice(0, 2))).toBe('Wodejia: Replace filter — due today · Aircon (warranty) — expires in 5 days');
   });
   it('truncates with a "+N more" tail instead of cutting an item in half', () => {
     const many = Array.from({ length: 20 }, (_, i) => ({ kind: 'task' as const, title: `Task number ${i}`, when: 'due today' }));

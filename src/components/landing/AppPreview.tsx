@@ -101,8 +101,8 @@ export default function AppPreview() {
 
       {/* floating reminder */}
       <div className="absolute -bottom-14 right-3 w-[16.5rem] rounded-2xl border bg-surface p-3.5 shadow-xl hairline sm:-bottom-12 sm:right-12 sm:w-80">
-        <div className="mb-1 flex items-center gap-2 text-[12px] font-semibold text-ok"><BellRing className="h-4 w-4" />HomeOps · now</div>
-        <p className="text-[13px] leading-snug">HomeOps: Service the aircon — due today · Replace water filter — due tomorrow</p>
+        <div className="mb-1 flex items-center gap-2 text-[12px] font-semibold text-ok"><BellRing className="h-4 w-4" />Wodejia · now</div>
+        <p className="text-[13px] leading-snug">Wodejia: Service the aircon — due today · Replace water filter — due tomorrow</p>
       </div>
     </div>
   );

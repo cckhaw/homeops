@@ -8,13 +8,13 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  const una=await sess('una@test.dev'); const p=await una.newPage(); p.on('pageerror',e=>errs.push(e.message));
 
  // ================= onboarding (brand-new user)
- await p.goto(BASE+'/dashboard'); await p.waitForSelector('text=Welcome to HomeOps'); assert(true,'first visit shows the welcome tour');
+ await p.goto(BASE+'/dashboard'); await p.waitForSelector('text=Welcome to Wodejia'); assert(true,'first visit shows the welcome tour');
  assert(await p.locator('text=Your home, documented').count()>0,'tour starts on slide 1');
  await p.click('button:has-text("Next")'); await p.waitForSelector('text=Never miss maintenance'); await p.click('button:has-text("Next")'); await p.click('button:has-text("Next")'); await p.waitForSelector('text=A passport you can share'); assert(true,'Next steps through the four slides');
  await p.click('button:has-text("Back")'); assert(await p.locator('text=Share with your household').count()>0,'Back goes to the previous slide');
  await p.click('button:has-text("Next")'); await p.click('button:has-text("Get started")'); await p.waitForTimeout(800);
- assert(await p.locator('text=Welcome to HomeOps').count()===0 && (await q("select welcome_seen_at w from profiles where email='una@test.dev'"))[0].w!==null,'finishing the tour closes it and remembers it');
- await p.reload(); assert(await p.locator('text=Welcome to HomeOps').count()===0,'the tour does not come back on the next visit');
+ assert(await p.locator('text=Welcome to Wodejia').count()===0 && (await q("select welcome_seen_at w from profiles where email='una@test.dev'"))[0].w!==null,'finishing the tour closes it and remembers it');
+ await p.reload(); assert(await p.locator('text=Welcome to Wodejia').count()===0,'the tour does not come back on the next visit');
  assert(await p.locator('text=Getting started').count()>0 && await p.locator('text=0 of 4 done').count()>0,'dashboard shows the getting-started checklist (0 of 4)');
 
  // ================= home icons
@@ -43,11 +43,11 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
 
  // ================= logo follows the accent colour (in the app only)
  await p.goto(BASE+'/dashboard/settings'); const stroke=async(pg,sel)=>pg.evaluate((s)=>getComputedStyle(document.querySelector(s)).stroke,sel);
- const before=await stroke(p,'aside svg[aria-label=HomeOps] path'); await p.click('[role=radio][aria-label=Violet]'); await p.waitForTimeout(500); const after=await stroke(p,'aside svg[aria-label=HomeOps] path');
- assert(before==='rgb(14, 127, 174)' && after==='rgb(150, 55, 200)',`sidebar logo follows the accent colour (${before} → ${after})`);
- const wm=await p.evaluate(()=>getComputedStyle(document.querySelector('aside span[aria-hidden=true]')).color); assert(wm==='rgb(150, 55, 200)','…including the HomeOps wordmark');
- const pub=await (await browser.newContext()).newPage(); await pub.goto(BASE+'/'); assert((await stroke(pub,'header svg[aria-label=HomeOps] path'))==='rgb(14, 127, 174)','public pages keep the default brand blue');
- await p.click('[role=radio][aria-label="HomeOps (default)"]');
+ const before=await stroke(p,'aside svg[aria-label=Wodejia] > g > path'); await p.click('[role=radio][aria-label=Violet]'); await p.waitForTimeout(500); const after=await stroke(p,'aside svg[aria-label=Wodejia] > g > path');
+ assert(before==='rgb(43, 91, 181)' && after==='rgb(150, 55, 200)',`sidebar logo follows the accent colour (${before} → ${after})`);
+ const wm=await p.evaluate(()=>getComputedStyle(document.querySelector('aside span[aria-hidden=true] > span')).color); assert(wm==='rgb(150, 55, 200)','…including the Wodejia wordmark');
+ const pub=await (await browser.newContext()).newPage(); await pub.goto(BASE+'/'); const pw=await pub.evaluate(()=>[...document.querySelectorAll('header span[aria-hidden=true] > span')].map(e=>getComputedStyle(e).color)); assert((await stroke(pub,'header svg[aria-label=Wodejia] > g > path'))==='rgb(31, 58, 107)' && pw[0]==='rgb(31, 58, 107)' && pw[1]==='rgb(79, 167, 115)','public pages show the full-colour logo (navy house, navy "wode", green "jia"), whatever accent a user picked');
+ await p.click('[role=radio][aria-label="Wodejia (default)"]');
 
  // ================= asset search
  const mk=async(name,cat,make,serial)=>{ await p.goto(BASE+'/dashboard/assets'); await p.click('text=Add asset'); await p.fill('input[name=name]',name); await p.selectOption('select[name=category]',cat); if(serial) await p.fill('input[name=serialNumber]',serial); await p.click('button:has-text("Add to passport")'); await p.waitForURL(/assets\/[0-9a-f-]{36}/); };
@@ -93,7 +93,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  // ================= checklist progress + replay
  await p.goto(BASE+'/dashboard'); assert(await p.locator('text=1 of 4 done').count()>0 || await p.locator('text=2 of 4 done').count()>0,'checklist ticks steps off from real data (assets added, task done)');
  await p.click('button[aria-label="Dismiss getting started"]'); await p.waitForTimeout(1000); await p.reload(); assert(await p.locator('text=Getting started').count()===0,'dismissing the checklist hides it');
- await p.goto(BASE+'/dashboard/settings'); await p.click('button:has-text("Replay the welcome tour")'); await p.waitForURL(BASE+'/dashboard'); await p.waitForSelector('text=Welcome to HomeOps'); assert(await p.locator('text=Getting started').count()>0,'"Replay the welcome tour" brings back the tour and the checklist');
+ await p.goto(BASE+'/dashboard/settings'); await p.click('button:has-text("Replay the welcome tour")'); await p.waitForURL(BASE+'/dashboard'); await p.waitForSelector('text=Welcome to Wodejia'); assert(await p.locator('text=Getting started').count()>0,'"Replay the welcome tour" brings back the tour and the checklist');
  await p.click('button:has-text("Skip")'); await p.waitForTimeout(600);
 
  // ================= admin on a phone

@@ -49,7 +49,7 @@ export function buildCalendar(name: string, events: IcsEvent[], now = new Date()
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//HomeOps//Maintenance schedule//EN',
+    'PRODID:-//Wodejia//Maintenance schedule//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${escapeText(name)}`,

@@ -22,7 +22,7 @@ export default async function Image({ params }: { params: Promise<{ token: strin
   return new ImageResponse(
     (
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg,#f5f5f7,#ffffff)', color: '#1d1d1f', padding: 60 }}>
-        <LogoMark size={150} color={LOGO_COLOR_FIXED} />
+        <LogoMark size={150} fixed />
         <div style={{ display: 'flex', marginTop: 20, fontSize: 30, fontWeight: 700, color: LOGO_COLOR_FIXED, letterSpacing: 4 }}>HOME SERVICE PASSPORT</div>
         <div style={{ display: 'flex', marginTop: 16, fontSize: 72, fontWeight: 800, textAlign: 'center' }}>{title.slice(0, 40)}</div>
         {stats.length > 0 && <div style={{ display: 'flex', marginTop: 20, fontSize: 36, color: '#6e6e73' }}>{stats.join('  ·  ')}</div>}
