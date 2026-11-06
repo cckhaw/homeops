@@ -9,6 +9,7 @@ import HomeIcon from './HomeIcon';
 import { cn } from '@/lib/utils';
 import { switchHome } from '@/app/actions';
 import { applyMode, readMode } from '@/lib/theme';
+import Tip from './Tip';
 import AppleButton from './AppleButton';
 import HomePicker, { PICKER_THRESHOLD } from './HomePicker';
 
@@ -112,18 +113,18 @@ export function Sheet({ title, open, onClose, children }: { title: string; open:
   );
 }
 
-/** Quick light/dark flip (explicit choice; full options live in Settings → Appearance). */
-export function ThemeToggle({ className }: { className?: string }) {
+/** Quick light/dark flip (explicit choice; full options live in Settings → Appearance). `tip` adds a hover tooltip. */
+export function ThemeToggle({ className, tip }: { className?: string; tip?: { side?: 'top' | 'right'; align?: 'start' | 'center' | 'end' } }) {
   const [dark, setDark] = useState(false);
   useEffect(() => {
     const m = readMode();
     setDark(m === 'dark' || (m === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches));
   }, []);
-  return (
+  const button = (
     <button
       type="button"
       aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-      title={dark ? 'Light mode' : 'Dark mode'}
+      title={tip ? undefined : dark ? 'Light mode' : 'Dark mode'}
       onClick={() => {
         applyMode(dark ? 'light' : 'dark');
         setDark(!dark);
@@ -133,6 +134,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       {dark ? <Sun className="h-5 w-5" aria-hidden /> : <Moon className="h-5 w-5" aria-hidden />}
     </button>
   );
+  return tip ? <Tip label={dark ? 'Switch to light mode' : 'Switch to dark mode'} side={tip.side} align={tip.align}>{button}</Tip> : button;
 }
 
 export type SwitcherHome = { id: string; name: string; icon: string };

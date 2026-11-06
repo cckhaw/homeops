@@ -11,7 +11,9 @@ export default function AppShell({ isAdmin, homes, activeId, donate, children }:
   const [collapsed, setCollapsed] = useState(false);
   useEffect(() => {
     try {
-      setCollapsed(localStorage.getItem(KEY) === '1');
+      const saved = localStorage.getItem(KEY);
+      // no saved choice yet: tablets (768–1023px) start as the compact icon rail so the content keeps its room
+      setCollapsed(saved === null ? window.innerWidth < 1024 : saved === '1');
     } catch {}
   }, []);
   const toggle = () =>

@@ -450,9 +450,21 @@ export async function updateProfile(_: FormState, fd: FormData): Promise<FormSta
   return { ok: 'Profile updated.' };
 }
 
-export async function updateHousehold(_: FormState, fd: FormData): Promise<FormState> {
+/** Resolves the home to edit: the one named in the form (`homeId`) when the user manages it, otherwise the current home. */
+async function manageableHome(homeId: string | null | undefined) {
+  const user = await requireUser();
+  const mine = await listMemberships(user.id);
+  const m = homeId ? mine.find((x) => x.household.id === homeId) : undefined;
+  if (homeId && !m) return { error: 'That home was not found.' as const };
+  if (m) return canManage(m.role ?? 'member') ? { household: m.household } : { error: 'Only owners and admins can edit the home.' as const };
   const { household, role } = await requireHousehold();
-  if (!canManage(role)) return { error: 'Only owners and admins can edit the home.' };
+  return canManage(role) ? { household } : { error: 'Only owners and admins can edit the home.' as const };
+}
+
+export async function updateHousehold(_: FormState, fd: FormData): Promise<FormState> {
+  const target = await manageableHome(str(fd, 'homeId', 40) || null);
+  if ('error' in target) return { error: target.error };
+  const household = target.household;
   const name = str(fd, 'name', 120);
   if (!name) return { error: 'The home needs a name.' };
   const currency = str(fd, 'currency', 3);
@@ -483,9 +495,10 @@ export async function setHomeIcon(householdId: string, icon: string) {
 }
 
 /** Adds the suggested seasonal tasks for this home's climate that are not on its schedule yet. */
-export async function addClimateTasks(): Promise<FormState> {
-  const { household, role } = await requireHousehold();
-  if (!canManage(role)) return { error: 'Only owners and admins can add suggested tasks.' };
+export async function addClimateTasks(homeId?: string): Promise<FormState> {
+  const target = await manageableHome(homeId ?? null);
+  if ('error' in target) return { error: target.error };
+  const household = target.household;
   const n = await addMissingClimateTasks(household.id, household.climate);
   revalidatePath('/dashboard', 'layout');
   return { ok: n ? `Added ${n} suggested task${n === 1 ? '' : 's'}.` : 'Your schedule already has all the suggested tasks.' };

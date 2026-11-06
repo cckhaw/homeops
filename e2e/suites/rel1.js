@@ -29,7 +29,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  assert(await p.locator("aside button[aria-pressed=true][aria-label=\"Una's Home\"]").count()===1,'clicking another home\'s icon switches to it');
  await p.goto(BASE+'/dashboard/homes'); await p.click('button[aria-label="Change icon for Una\'s Home"]'); await p.click('.fixed [role=radio][aria-label="Beach house"]'); await p.click('.fixed button:has-text("Save icon")'); await p.waitForTimeout(1200);
  assert((await q("select icon from households where name=$1",["Una's Home"]))[0].icon==='beach','an icon can be changed later from "My homes"');
- await p.goto(BASE+'/dashboard/settings/home'); assert(await p.locator('form [role=radio][aria-label=Villa]').count()===1,'home settings also offer the icon picker');
+ await p.goto(BASE+'/dashboard/homes'); await p.locator('[data-testid=edit-home][data-current=true]').click(); await p.waitForSelector('[role=dialog] input[name=name]'); assert(await p.locator('[role=dialog] [role=radio][aria-label=Villa]').count()===1,'the home editor in My homes offers the icon picker'); await p.keyboard.press('Escape'); await p.waitForTimeout(300);
  await p.click('aside button[aria-label="Collapse sidebar"]'); await p.waitForTimeout(400); assert(await p.locator('aside button[aria-label="Lake Cabin"]').isVisible(),'collapsed sidebar still shows the home icons (stacked)'); await p.click('aside button[aria-label="Expand sidebar"]');
  await p.screenshot({path:S+'/rel1-sidebar.png',clip:{x:0,y:0,width:520,height:700}});
  // mobile bar
@@ -113,7 +113,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  await ap.screenshot({path:S+'/rel1-admin-m.png'});
  // settings: one page per topic, reached from the left menu
  await p.setViewportSize({width:1280,height:900}); await p.goto(BASE+'/dashboard/settings'); await p.waitForURL(/\/dashboard\/settings\/profile$/); await p.waitForSelector('#settings-sections');
- assert(await p.locator('#settings-sections a').count()===6 && await p.locator('nav[aria-label="Settings pages"]:visible').count()===0,'/settings opens Profile; the left menu lists the six Settings pages; no second menu beside the content');
+ assert(await p.locator('#settings-sections a').count()===5 && await p.locator('nav[aria-label="Settings pages"]:visible').count()===0,'/settings opens Profile; the left menu lists the five Settings pages; no second menu beside the content');
  assert(await p.locator('button:has-text("Replay the welcome tour")').count()===1 && await p.locator('button:has-text("Sign out")').count()>=1,'Profile has the welcome tour replay and Sign out');
  assert(await p.locator('main a[href="/admin"], main a[href="/support"]').count()===0,'no Admin portal or coffee links in Settings');
  await p.locator('#settings-sections a:has-text("Security")').click(); await p.waitForURL(/\/settings\/security$/); assert(await p.locator('h1:has-text("Security")').count()===1 && await p.locator('button:has-text("Set up 2FA"), button:has-text("Turn off")').count()>=0 && await p.locator('input[name=fullName]').count()===0,'each section is its own page');

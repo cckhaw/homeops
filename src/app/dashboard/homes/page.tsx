@@ -11,12 +11,15 @@ import AppleButton from '@/components/AppleButton';
 import { HomeForm } from '@/components/forms';
 import { ConfirmButton } from '@/components/misc';
 import HomeIconButton from '@/components/HomeIconButton';
+import EditHomeButton from '@/components/EditHomeButton';
+import { getPrefs } from '@/lib/prefs';
 
 export const metadata = { title: 'My homes' };
 
 export default async function HomesPage() {
   const { user, household } = await requireHousehold();
   const mine = await listMemberships(user.id);
+  const prefs = await getPrefs();
   const ids = mine.map((m) => m.household.id);
   const [assetCounts, memberCounts] = await Promise.all([
     db.select({ id: assets.householdId, n: count() }).from(assets).where(inArray(assets.householdId, ids)).groupBy(assets.householdId),
@@ -27,7 +30,7 @@ export default async function HomesPage() {
 
   return (
     <>
-      <PageHeader title="My homes" subtitle="Switch between properties, or add another" />
+      <PageHeader title="My homes" subtitle="Switch between properties, edit their details, or add another" />
       <div className="grid items-start gap-x-8 gap-y-6 xl:grid-cols-2">
         <section>
           <GlassCard className="py-2">
@@ -37,20 +40,25 @@ export default async function HomesPage() {
                 return (
                   <li key={h.id} className="flex flex-wrap items-center gap-3 py-3">
                     <HomeIconButton id={h.id} name={h.name} icon={h.icon} editable={role === 'owner' || role === 'admin'} />
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-[9rem] flex-1">
                       <p className="truncate text-[17px] font-semibold">{h.name}</p>
                       <p className="truncate text-[13px] capitalize text-secondary">{role} · {a.get(h.id) ?? 0} assets · {m.get(h.id) ?? 1} member{(m.get(h.id) ?? 1) === 1 ? '' : 's'}</p>
                     </div>
-                    {current ? (
-                      <span className="flex items-center gap-1 text-[15px] font-semibold text-ok"><Check className="h-4 w-4" aria-hidden /> Current</span>
-                    ) : (
-                      <form action={switchHome.bind(null, h.id)}><AppleButton type="submit" variant="secondary">Switch</AppleButton></form>
-                    )}
-                    {role === 'owner' && (
-                      <form action={deleteHome.bind(null, h.id)}>
-                        <ConfirmButton message={`Delete “${h.name}” and all its assets, tasks and invites for every member? This cannot be undone.`}>Delete</ConfirmButton>
-                      </form>
-                    )}
+                    <div className="flex items-center gap-2 max-sm:w-full max-sm:justify-end">
+                      {(role === 'owner' || role === 'admin') && (
+                        <EditHomeButton current={current} home={{ id: h.id, name: h.name, address: h.address, currency: h.currency ?? prefs.currency, climate: h.climate, icon: h.icon }} />
+                      )}
+                      {current ? (
+                        <span className="flex items-center gap-1 text-[15px] font-semibold text-ok"><Check className="h-4 w-4" aria-hidden /> Current</span>
+                      ) : (
+                        <form action={switchHome.bind(null, h.id)}><AppleButton type="submit" variant="secondary">Switch</AppleButton></form>
+                      )}
+                      {role === 'owner' && (
+                        <form action={deleteHome.bind(null, h.id)}>
+                          <ConfirmButton message={`Delete “${h.name}” and all its assets, tasks and invites for every member? This cannot be undone.`}>Delete</ConfirmButton>
+                        </form>
+                      )}
+                    </div>
                   </li>
                 );
               })}

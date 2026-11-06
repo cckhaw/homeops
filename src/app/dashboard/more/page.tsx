@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { BarChart3, Building2, ChevronRight, FileArchive, FolderLock, HardHat, QrCode, Receipt, Settings } from 'lucide-react';
+import { BarChart3, Building2, ChevronRight, Coffee, FileArchive, FolderLock, HardHat, QrCode, Receipt, Settings, ShieldCheck } from 'lucide-react';
+import { donationsEnabled } from '@/lib/donate';
 import { requireHousehold } from '@/lib/auth';
 import GlassCard from '@/components/GlassCard';
 import PageHeader from '@/components/PageHeader';
@@ -26,18 +27,24 @@ const GROUPS = [
   {
     title: 'Account',
     items: [
-      { href: '/dashboard/homes', label: 'My homes', hint: 'Add or manage homes', icon: Building2 },
+      { href: '/dashboard/homes', label: 'My homes', hint: 'Switch, edit or add homes', icon: Building2 },
       { href: '/dashboard/settings', label: 'Settings', hint: 'Reminders, security, appearance', icon: Settings },
     ],
   },
 ];
 
 export default async function MorePage() {
-  await requireHousehold();
+  const { user } = await requireHousehold();
+  const groups = [...GROUPS];
+  const extra = [
+    ...(user.isAdmin ? [{ href: '/admin', label: 'Admin portal', hint: 'Users, blog, branding, site config', icon: ShieldCheck }] : []),
+    ...(donationsEnabled() ? [{ href: '/support', label: 'Buy me a coffee', hint: 'Support Wodejia', icon: Coffee }] : []),
+  ];
+  if (extra.length) groups.push({ title: 'Owner & support', items: extra });
   return (
     <>
       <PageHeader title="More" />
-      {GROUPS.map((g) => (
+      {groups.map((g) => (
         <section key={g.title} className="mb-6">
           <h2 className="mb-2 px-1 text-[13px] font-semibold uppercase tracking-wide text-secondary">{g.title}</h2>
           <GlassCard className="py-1">

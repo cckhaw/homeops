@@ -18,7 +18,7 @@ const iso=(d)=>{const x=new Date(Date.now()+d*86400000);return `${x.getFullYear(
  let tasks=(await q("select title from maintenance_tasks where household_id=$1",[h.id])).map(r=>r.title);
  assert(tasks.includes('Termite inspection') && tasks.some(t=>/air-conditioner filters/.test(t)) && !tasks.some(t=>/Winterize/.test(t)),`tropical seasonal tasks seeded, no winterizing (${tasks.length} tasks)`);
  await p.goto(BASE+'/dashboard/settings/appearance'); assert(await p.locator('select[name=locale] option:checked').textContent().then(t=>/Bahasa Melayu — Malaysia/.test(t)),'settings shows the detected language as "Automatic"');
- await p.goto(BASE+'/dashboard/settings/home'); assert((await p.locator('select[name=currency]').inputValue())==='MYR' && (await p.locator('select[name=climate]').inputValue())==='tropical','home settings show MYR + tropical');
+ await p.goto(BASE+'/dashboard/homes'); await p.locator('[data-testid=edit-home][data-current=true]').click(); await p.waitForSelector('[role=dialog] input[name=name]'); assert((await p.locator('[role=dialog] select[name=currency]').inputValue())==='MYR' && (await p.locator('[role=dialog] select[name=climate]').inputValue())==='tropical','home settings show MYR + tropical');
  // asset with an Air Conditioner category -> aircon tasks; warranty in 10 days
  await p.goto(BASE+'/dashboard/assets'); await p.click('text=Add asset'); await p.fill('input[name=name]','Living room aircon'); await p.selectOption('select[name=category]','Air Conditioner'); await p.fill('input[name=warrantyExpiry]',iso(10)); await p.click('button:has-text("Add to passport")'); await p.waitForURL(/assets\/[0-9a-f-]{36}/);
  const aid=p.url().match(/assets\/([0-9a-f-]{36})/)[1];
@@ -28,9 +28,9 @@ const iso=(d)=>{const x=new Date(Date.now()+d*86400000);return `${x.getFullYear(
  await p.fill('input[name=description]','Gas top-up'); await p.fill('input[name=cost]','150'); await p.click('button:has-text("Add service record")'); await p.waitForSelector('text=Gas top-up');
  assert(/RM\s?150\.00/.test(await p.textContent('body')),'service cost is displayed as RM150.00');
  // change home currency to SGD, climate -> temperate and add suggested tasks
- await p.goto(BASE+'/dashboard/settings/home'); await p.selectOption('select[name=currency]','SGD'); await p.selectOption('select[name=climate]','temperate'); await p.click('button:has-text("Save home")'); await p.waitForSelector('text=Home updated');
+ await p.goto(BASE+'/dashboard/homes'); await p.locator('[data-testid=edit-home][data-current=true]').click(); await p.waitForSelector('[role=dialog] input[name=name]'); await p.selectOption('[role=dialog] select[name=currency]','SGD'); await p.selectOption('[role=dialog] select[name=climate]','temperate'); await p.click('[role=dialog] button:has-text("Save home")'); await p.waitForSelector('text=Home updated');
  await p.goto(BASE+'/dashboard/assets/'+aid); assert(/SGD\s?150\.00/.test(await p.textContent('body')) && !/RM\s?150/.test(await p.textContent('body')),'changing the home currency re-formats existing costs (ms-MY writes "SGD 150.00")');
- await p.goto(BASE+'/dashboard/settings/home'); await p.click('button:has-text("Add suggested tasks")'); await p.waitForSelector('text=Added');
+ await p.goto(BASE+'/dashboard/homes'); await p.locator('[data-testid=edit-home][data-current=true]').click(); await p.waitForSelector('[role=dialog] input[name=name]'); await p.click('button:has-text("Add suggested tasks")'); await p.waitForSelector('text=Added');
  tasks=(await q("select title from maintenance_tasks where household_id=$1",[h.id])).map(r=>r.title);
  assert(tasks.includes('Winterize outdoor faucets') && tasks.includes('Termite inspection'),'"Add suggested tasks" adds the temperate set without removing existing tasks');
  await p.click('button:has-text("Add suggested tasks")'); await p.waitForSelector('text=already has all');
