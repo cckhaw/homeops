@@ -10,9 +10,9 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  // ================= onboarding (brand-new user)
  await p.goto(BASE+'/dashboard'); await p.waitForSelector('text=Welcome to Wodejia'); assert(true,'first visit shows the welcome tour');
  assert(await p.locator('text=Your home, documented').count()>0,'tour starts on slide 1');
- await p.click('button:has-text("Next")'); await p.waitForSelector('text=Never miss maintenance'); await p.click('button:has-text("Next")'); await p.click('button:has-text("Next")'); await p.waitForSelector('text=A passport you can share'); assert(true,'Next steps through the four slides');
- await p.click('button:has-text("Back")'); assert(await p.locator('text=Share with your household').count()>0,'Back goes to the previous slide');
- await p.click('button:has-text("Next")'); await p.click('button:has-text("Get started")'); await p.waitForTimeout(800);
+ await p.click('button:has-text("Next")'); await p.waitForSelector('text=Never miss maintenance'); for(const t of ['Records, bills and spending','Trusted contractors','Share with your household','A passport you can share']){ await p.click('button:has-text("Next")'); await p.waitForSelector('h3:has-text("'+t+'")'); } assert(true,'Next steps through the slides, covering vault, bills, contractors, sharing and the passport');
+ await p.click('button:has-text("Back")'); assert(await p.locator('h3:has-text("Share with your household")').count()>0,'Back goes to the previous slide');
+ await p.click('button:has-text("Next")'); await p.click('button:has-text("Next")'); await p.waitForSelector('h3:has-text("Make it yours")'); await p.click('button:has-text("Get started")'); await p.waitForTimeout(800);
  assert(await p.locator('text=Welcome to Wodejia').count()===0 && (await q("select welcome_seen_at w from profiles where email='una@test.dev'"))[0].w!==null,'finishing the tour closes it and remembers it');
  await p.reload(); assert(await p.locator('text=Welcome to Wodejia').count()===0,'the tour does not come back on the next visit');
  assert(await p.locator('text=Getting started').count()>0 && await p.locator('text=0 of 4 done').count()>0,'dashboard shows the getting-started checklist (0 of 4)');

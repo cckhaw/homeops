@@ -10,7 +10,9 @@ Mobile-first PWA: a digital passport for your home — assets and warranties, se
 | Reminders | One daily digest by **e-mail** and/or **push notification** (per device); tasks, warranties and expiring documents. WhatsApp: *coming soon* (see below) |
 | Records | Document vault with expiry dates, contractors book (one contractor can cover several homes), utility bills with spike warnings, yearly spending report (CSV) |
 | Sharing | Home Service Passport (read-only link, off by default, optional password), owner/admin-only move-out pack (zip + printable summary) |
+| Welcome tour | Seven-slide first-run tour of every feature; replayable from Settings |
 | Homes & people | Many homes per user (icon switcher, searchable when you have more than four), invite links, owner/admin/member roles |
+| Blog & branding | Public blog with scheduled publishing and SEO checks, admin menu for posts; admin can upload their own logo, app icon and share image (Admin → Branding) |
 | Account | E-mail + password, 2FA, optional Google / Apple sign-in, data export and account deletion |
 
 ## Reminder channels
