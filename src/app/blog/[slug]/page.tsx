@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { livePostBySlug, relatedPosts } from '@/lib/blog';
+import { livePosts, livePostBySlug, relatedPosts } from '@/lib/blog';
 import { categorySlug, searchDescription, searchTitle } from '@/lib/blog-core';
 import { siteBaseUrl } from '@/lib/donate';
 import { blocksText, parseMarkdown } from '@/lib/markdown-core';
@@ -12,6 +12,11 @@ import BlogArticle from '@/components/BlogArticle';
 export const revalidate = 300;
 
 type Props = { params: Promise<{ slug: string }> };
+
+/** Live posts are generated at build time; anything else (e.g. a post that goes live later) is generated on first request. Both are cached and refreshed every 5 minutes. */
+export async function generateStaticParams() {
+  return (await livePosts()).map((p) => ({ slug: p.slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -37,8 +42,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       authors: [post.authorName],
       tags,
       locale: 'en_SG',
+      images: [{ url: `/blog/${post.slug}/og`, width: 1200, height: 630, alt: post.title }],
     },
-    twitter: { card: 'summary_large_image', title: post.title, description },
+    twitter: { card: 'summary_large_image', title: post.title, description, images: [`/blog/${post.slug}/og`] },
   };
 }
 
@@ -58,7 +64,7 @@ export default async function BlogPost({ params }: Props) {
         '@id': `${url}#article`,
         headline: post.title,
         description: searchDescription(post),
-        image: [`${url}/opengraph-image`],
+        image: [`${url}/og`],
         datePublished: post.publishAt?.toISOString(),
         dateModified: post.updatedAt.toISOString(),
         author: { '@type': 'Organization', name: post.authorName, url: base },

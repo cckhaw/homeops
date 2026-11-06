@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { livePosts } from '@/lib/blog';
-import { categoryFromSlug, categorySlug } from '@/lib/blog-core';
+import { BLOG_CATEGORIES, categoryFromSlug, categorySlug } from '@/lib/blog-core';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import BlogList from '@/components/BlogList';
 
@@ -11,6 +11,10 @@ import BlogList from '@/components/BlogList';
 export const revalidate = 300;
 
 type Props = { params: Promise<{ category: string }> };
+
+export function generateStaticParams() {
+  return BLOG_CATEGORIES.map((c) => ({ category: categorySlug(c) }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const category = categoryFromSlug((await params).category);

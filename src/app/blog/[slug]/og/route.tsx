@@ -3,13 +3,12 @@ import { livePostBySlug } from '@/lib/blog';
 import { LogoMark, LOGO_COLOR_FIXED } from '@/components/Logo';
 
 export const runtime = 'nodejs';
-export const revalidate = 300;
-export const alt = 'HomeOps blog';
-export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
 
-/** A social-share / search-card image for each article: category, title and the HomeOps brand. */
-export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
+/**
+ * Social-share / search card for an article: category, title and the HomeOps brand (1200×630 PNG).
+ * Served from our own route (not Next's immutable metadata image) so editing a title refreshes the card within the hour.
+ */
+export async function GET(_: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const post = await livePostBySlug(slug).catch(() => null);
   const title = post?.title ?? 'The HomeOps blog';
@@ -27,6 +26,6 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         </div>
       </div>
     ),
-    { ...size },
+    { width: 1200, height: 630, headers: { 'Cache-Control': post ? 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400' : 'public, max-age=60' }, status: post ? 200 : 404 },
   );
 }
