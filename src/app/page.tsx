@@ -104,6 +104,7 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
             <a href="#features" className="transition hover:text-label">Features</a>
             <a href="#how" className="transition hover:text-label">How it works</a>
             <a href="#private" className="transition hover:text-label">Privacy</a>
+            <Link href="/blog" className="transition hover:text-label">Blog</Link>
           </nav>
           <div className="flex items-center gap-1.5">
             <AppleButton href="/login" variant="plain">Sign in</AppleButton>
@@ -259,6 +260,8 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
           <Link href="/" aria-label="HomeOps"><Logo size={28} /></Link>
           <p className="text-[13px] text-secondary">
             © {new Date().getFullYear()} HomeOps
+            {' · '}
+            <Link href="/blog" className="font-semibold text-tint">Blog</Link>
             {' · '}
             <Link href="/privacy" className="font-semibold text-tint">Privacy</Link>
             {' · '}

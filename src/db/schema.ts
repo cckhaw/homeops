@@ -317,3 +317,26 @@ export const pushSubscriptions = pgTable(
   },
   (t) => ({ byUser: index('push_subscriptions_user_idx').on(t.userId) }),
 );
+
+/** Blog posts written in the admin portal. Visible to readers once status='published' and publish_at has passed. */
+export const blogPosts = pgTable(
+  'blog_posts',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    slug: text('slug').notNull().unique(),
+    title: text('title').notNull(),
+    excerpt: text('excerpt').notNull(),
+    seoTitle: text('seo_title'), // optional <title> for search results (≈50 chars); falls back to the post title
+    metaDescription: text('meta_description'), // optional search-result snippet (≤160 chars); falls back to the excerpt
+    body: text('body').notNull(), // Markdown (see lib/markdown-core.ts)
+    category: text('category').notNull(),
+    tags: text('tags').default('').notNull(), // comma-separated, lower-case
+    authorName: text('author_name').default('HomeOps Team').notNull(),
+    status: text('status').default('draft').notNull(), // 'draft' | 'published'
+    publishAt: timestamp('publish_at'), // when it goes live (future = scheduled)
+    createdBy: uuid('created_by').references(() => profiles.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (t) => ({ live: index('blog_posts_live_idx').on(t.status, t.publishAt) }),
+);

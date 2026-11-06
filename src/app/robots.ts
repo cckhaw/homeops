@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        allow: ['/', '/privacy', '/terms', '/register', '/login'],
+        allow: ['/', '/blog', '/privacy', '/terms', '/register', '/login'],
         // Private areas, tokens, API and one-off pages are never indexed.
         disallow: ['/dashboard', '/admin', '/api/', '/passport/', '/join/', '/reset-password', '/forgot-password', '/support/thanks'],
       },

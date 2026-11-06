@@ -10,7 +10,12 @@ const nextConfig = {
     return [{ source: '/.well-known/apple-developer-domainassociation.txt', destination: '/api/apple-domain-association' }];
   },
   async headers() {
+    // Public blog pages don't depend on who is looking, so let the CDN serve them: fast pages rank better, and a scheduled
+    // post still appears within five minutes of its time.
+    const publicCache = [{ key: 'Cache-Control', value: 'public, max-age=0, s-maxage=300, stale-while-revalidate=3600' }];
     return [
+      { source: '/blog', headers: publicCache },
+      { source: '/blog/:path*', headers: publicCache },
       {
         source: '/sw.js',
         headers: [
