@@ -340,3 +340,16 @@ export const blogPosts = pgTable(
   },
   (t) => ({ live: index('blog_posts_live_idx').on(t.status, t.publishAt) }),
 );
+
+/** Admin-uploaded brand images (logo, icon, social-share image). Stored in the database (base64) so they need no file storage and survive redeploys. */
+export const brandAssets = pgTable('brand_assets', {
+  kind: text('kind').primaryKey(), // 'logo' | 'icon' | 'share'
+  contentType: text('content_type').notNull(),
+  data: text('data').notNull(), // base64
+  bytes: integer('bytes').notNull(),
+  width: integer('width'),
+  height: integer('height'),
+  rev: text('rev').notNull(), // changes on every upload; used to bust caches
+  updatedBy: uuid('updated_by').references(() => profiles.id, { onDelete: 'set null' }),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});

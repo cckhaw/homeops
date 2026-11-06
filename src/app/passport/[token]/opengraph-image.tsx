@@ -1,5 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { LogoMark, LOGO_COLOR_FIXED } from '@/components/Logo';
+import { LogoMark, LOGO_COLOR_FIXED } from '@/components/LogoArt';
 import { findPassportHome, isPassportUnlocked, loadPassport } from '@/lib/passport';
 
 export const alt = 'Home Service Passport';
