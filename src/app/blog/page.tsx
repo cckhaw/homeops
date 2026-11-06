@@ -5,7 +5,9 @@ import { siteBaseUrl } from '@/lib/donate';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import BlogList from '@/components/BlogList';
 
-export const dynamic = 'force-dynamic';
+// Incremental static regeneration: the page is cached at the CDN and refreshed every minute (and at once when an admin saves),
+// so a scheduled post appears about a minute after its time. Public pages must not depend on cookies or the visitor.
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: 'Blog: home care guides for Singapore and Malaysia',

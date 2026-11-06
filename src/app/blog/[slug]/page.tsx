@@ -1,15 +1,22 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { livePostBySlug, relatedPosts } from '@/lib/blog';
+import { livePosts, livePostBySlug, relatedPosts } from '@/lib/blog';
 import { categorySlug, searchDescription, searchTitle } from '@/lib/blog-core';
 import { siteBaseUrl } from '@/lib/donate';
 import { blocksText, parseMarkdown } from '@/lib/markdown-core';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import BlogArticle from '@/components/BlogArticle';
 
-export const dynamic = 'force-dynamic';
+// Incremental static regeneration: the page is cached at the CDN and refreshed every minute (and at once when an admin saves),
+// so a scheduled post appears about a minute after its time. Public pages must not depend on cookies or the visitor.
+export const revalidate = 60;
 
 type Props = { params: Promise<{ slug: string }> };
+
+/** Live posts are generated at build time; anything else (e.g. a post that goes live later) is generated on first request. Both are cached and refreshed every minute. */
+export async function generateStaticParams() {
+  return (await livePosts()).map((p) => ({ slug: p.slug }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -35,8 +42,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       authors: [post.authorName],
       tags,
       locale: 'en_SG',
+      images: [{ url: `/blog/${post.slug}/og`, width: 1200, height: 630, alt: post.title }],
     },
-    twitter: { card: 'summary_large_image', title: post.title, description },
+    twitter: { card: 'summary_large_image', title: post.title, description, images: [`/blog/${post.slug}/og`] },
   };
 }
 
@@ -56,7 +64,7 @@ export default async function BlogPost({ params }: Props) {
         '@id': `${url}#article`,
         headline: post.title,
         description: searchDescription(post),
-        image: [`${url}/opengraph-image`],
+        image: [`${url}/og`],
         datePublished: post.publishAt?.toISOString(),
         dateModified: post.updatedAt.toISOString(),
         author: { '@type': 'Organization', name: post.authorName, url: base },

@@ -5,7 +5,7 @@ import { categorySlug } from '@/lib/blog-core';
 
 const UPDATED = new Date('2026-11-05');
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteBaseUrl('http://localhost:3000');
