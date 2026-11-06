@@ -1,5 +1,5 @@
 export const ACCENTS = [
-  { id: 'logo', label: 'Wodejia (default)', swatch: '#2B5BB5' },
+  { id: 'logo', label: 'Wodejia (default)', swatch: '#1F3A6B' },
   { id: 'red', label: 'Red', swatch: '#ff3b30' },
   { id: 'orange', label: 'Orange', swatch: '#ff9500' },
   { id: 'yellow', label: 'Yellow', swatch: '#ffcc00' },

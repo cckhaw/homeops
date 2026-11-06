@@ -11,7 +11,7 @@ export const escapeHtml = (s: string) =>
 export function emailLayout(title: string, bodyHtml: string, cta?: { label: string; url: string }): string {
   return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;max-width:480px;margin:auto;padding:24px;color:#1d1d1f">
 <h2 style="margin:0 0 12px">${escapeHtml(title)}</h2>${bodyHtml}
-${cta ? `<p style="margin:24px 0"><a href="${escapeHtml(cta.url)}" style="display:inline-block;background:#2b5bb5;color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:600">${escapeHtml(cta.label)}</a></p>` : ''}
+${cta ? `<p style="margin:24px 0"><a href="${escapeHtml(cta.url)}" style="display:inline-block;background:#1F3A6B;color:#fff;padding:12px 22px;border-radius:12px;text-decoration:none;font-weight:600">${escapeHtml(cta.label)}</a></p>` : ''}
 <p style="color:#86868b;font-size:12px;margin-top:28px">Wodejia — the digital passport for your home.</p></div>`;
 }
 

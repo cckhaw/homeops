@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     ...baseMetadata,
     icons: {
-      icon: b.icon ? [{ url: b.icon }] : [{ url: '/favicon.ico', sizes: 'any' }, { url: '/brand/icon.svg', type: 'image/svg+xml' }],
+      icon: b.icon ? [{ url: b.icon }] : [{ url: '/favicon.ico?v=3', sizes: 'any' }, { url: '/brand/icon.svg?v=3', type: 'image/svg+xml' }],
       apple: `/icons/180${v}`,
     },
   };

@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 export const LOGO_FIXED = { navy: '#1F3A6B', green: '#4FA773' } as const;
 /** The brand blue used for UI accents (buttons, links) and wherever one flat colour is needed. */
 export const LOGO_COLOR = 'rgb(var(--brand))';
-export const LOGO_COLOR_FIXED = '#2B5BB5';
+export const LOGO_COLOR_FIXED = '#1F3A6B';
 
 const CHECK = 'M44 68 56 80 103 25';
 
