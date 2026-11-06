@@ -29,7 +29,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  assert(await p.locator("aside button[aria-pressed=true][aria-label=\"Una's Home\"]").count()===1,'clicking another home\'s icon switches to it');
  await p.goto(BASE+'/dashboard/homes'); await p.click('button[aria-label="Change icon for Una\'s Home"]'); await p.click('.fixed [role=radio][aria-label="Beach house"]'); await p.click('.fixed button:has-text("Save icon")'); await p.waitForTimeout(1200);
  assert((await q("select icon from households where name=$1",["Una's Home"]))[0].icon==='beach','an icon can be changed later from "My homes"');
- await p.goto(BASE+'/dashboard/settings'); assert(await p.locator('form [role=radio][aria-label=Villa]').count()===1,'home settings also offer the icon picker');
+ await p.goto(BASE+'/dashboard/settings/home'); assert(await p.locator('form [role=radio][aria-label=Villa]').count()===1,'home settings also offer the icon picker');
  await p.click('aside button[aria-label="Collapse sidebar"]'); await p.waitForTimeout(400); assert(await p.locator('aside button[aria-label="Lake Cabin"]').isVisible(),'collapsed sidebar still shows the home icons (stacked)'); await p.click('aside button[aria-label="Expand sidebar"]');
  await p.screenshot({path:S+'/rel1-sidebar.png',clip:{x:0,y:0,width:520,height:700}});
  // mobile bar
@@ -42,7 +42,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  const vic=await sess('vic@test.dev'); const vp=await vic.newPage(); await vp.goto(BASE+'/dashboard/homes'); await vp.waitForSelector('text=Lake Cabin'); assert(await vp.locator('button[aria-label="Change icon for Lake Cabin"]').count()===0,'a plain member cannot change the home\'s icon');
 
  // ================= logo follows the accent colour (in the app only)
- await p.goto(BASE+'/dashboard/settings'); const stroke=async(pg,sel)=>pg.evaluate((s)=>getComputedStyle(document.querySelector(s)).stroke,sel);
+ await p.goto(BASE+'/dashboard/settings/appearance'); const stroke=async(pg,sel)=>pg.evaluate((s)=>getComputedStyle(document.querySelector(s)).stroke,sel);
  const before=await stroke(p,'aside svg[aria-label=Wodejia] > g > path'); await p.click('[role=radio][aria-label=Violet]'); await p.waitForTimeout(500); const after=await stroke(p,'aside svg[aria-label=Wodejia] > g > path');
  assert(before==='rgb(31, 58, 107)' && after==='rgb(150, 55, 200)',`sidebar logo follows the accent colour (${before} → ${after})`);
  const wm=await p.evaluate(()=>getComputedStyle(document.querySelector('aside span[aria-hidden=true] > span')).color); assert(wm==='rgb(150, 55, 200)','…including the Wodejia wordmark');
@@ -77,7 +77,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  await q("delete from household_members where household_id=$1 and user_id=$2",[cabinId,vic0]); await q("update maintenance_tasks set assigned_to=null where assigned_to=$1",[vic0]); // (the app does this in removeMember; simulated here since removal runs through the UI button in another test)
 
  // ================= calendar feed
- await p.goto(BASE+'/dashboard/settings'); await p.click('button:has-text("Create my calendar link")'); await p.waitForSelector('[data-testid=calendar-url]');
+ await p.goto(BASE+'/dashboard/settings/notifications'); await p.click('button:has-text("Create my calendar link")'); await p.waitForSelector('[data-testid=calendar-url]');
  const url=(await p.textContent('[data-testid=calendar-url]')).trim(); assert(/\/api\/calendar\/[A-Za-z0-9_-]{20,}\/homeops\.ics$/.test(url),'a secret calendar link is created');
  const feed=await una.request.get(url.replace(/^https?:\/\/[^/]+/,BASE)); const txt=await feed.text();
  assert(feed.status()===200 && /text\/calendar/.test(feed.headers()['content-type']) && txt.startsWith('BEGIN:VCALENDAR') && (txt.match(/BEGIN:VEVENT/g)||[]).length>5,`feed is a valid calendar with events (${(txt.match(/BEGIN:VEVENT/g)||[]).length})`);
@@ -93,7 +93,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  // ================= checklist progress + replay
  await p.goto(BASE+'/dashboard'); assert(await p.locator('text=1 of 4 done').count()>0 || await p.locator('text=2 of 4 done').count()>0,'checklist ticks steps off from real data (assets added, task done)');
  await p.click('button[aria-label="Dismiss getting started"]'); await p.waitForTimeout(1000); await p.reload(); assert(await p.locator('text=Getting started').count()===0,'dismissing the checklist hides it');
- await p.goto(BASE+'/dashboard/settings'); await p.click('button:has-text("Replay the welcome tour")'); await p.waitForURL(BASE+'/dashboard'); await p.waitForSelector('text=Welcome to Wodejia'); assert(await p.locator('text=Getting started').count()>0,'"Replay the welcome tour" brings back the tour and the checklist');
+ await p.goto(BASE+'/dashboard/settings/profile'); await p.click('button:has-text("Replay the welcome tour")'); await p.waitForURL(BASE+'/dashboard'); await p.waitForSelector('text=Welcome to Wodejia'); assert(await p.locator('text=Getting started').count()>0,'"Replay the welcome tour" brings back the tour and the checklist');
  await p.click('button:has-text("Skip")'); await p.waitForTimeout(600);
 
  // ================= admin on a phone
@@ -111,11 +111,13 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  const gp=await dp.locator('aside[aria-label=Admin] nav p').allTextContents(); assert(gp.join('|')==='Overview|People|Content|System','grouped as Overview › People › Content › System');
  const sb=await dp.locator('aside[aria-label=Admin]').boundingBox(); const cb=await dp.locator('main > div').boundingBox(); assert(sb.x===0 && sb.width>=240 && cb.x>=sb.width,'the page content sits beside the sidebar, not under it');
  await ap.screenshot({path:S+'/rel1-admin-m.png'});
- // settings sections live in the left menu (no second menu)
- await p.setViewportSize({width:1280,height:900}); await p.goto(BASE+'/dashboard/settings'); await p.waitForSelector('#settings-sections');
- assert(await p.locator('#settings-sections a').count()===6 && await p.locator('main nav[aria-label="Settings sections"]:visible').count()===0,'Settings expands in the left menu with its six sections; no second menu beside the content');
- await p.locator('#settings-sections a:has-text("Security")').click(); await p.waitForTimeout(400); assert(/#security$/.test(p.url()) && await p.locator('#security-h').isVisible(),'a section link jumps to that section');
+ // settings: one page per topic, reached from the left menu
+ await p.setViewportSize({width:1280,height:900}); await p.goto(BASE+'/dashboard/settings'); await p.waitForURL(/\/dashboard\/settings\/profile$/); await p.waitForSelector('#settings-sections');
+ assert(await p.locator('#settings-sections a').count()===6 && await p.locator('nav[aria-label="Settings pages"]:visible').count()===0,'/settings opens Profile; the left menu lists the six Settings pages; no second menu beside the content');
+ assert(await p.locator('button:has-text("Replay the welcome tour")').count()===1 && await p.locator('button:has-text("Sign out")').count()>=1,'Profile has the welcome tour replay and Sign out');
+ assert(await p.locator('main a[href="/admin"], main a[href="/support"]').count()===0,'no Admin portal or coffee links in Settings');
+ await p.locator('#settings-sections a:has-text("Security")').click(); await p.waitForURL(/\/settings\/security$/); assert(await p.locator('h1:has-text("Security")').count()===1 && await p.locator('button:has-text("Set up 2FA"), button:has-text("Turn off")').count()>=0 && await p.locator('input[name=fullName]').count()===0,'each section is its own page');
  await p.click('button[aria-label="Hide settings sections"]'); assert(await p.locator('#settings-sections').count()===0,'the Settings entry collapses'); await p.click('button[aria-label="Show settings sections"]'); assert(await p.locator('#settings-sections').count()===1,'and expands again');
- await p.setViewportSize({width:390,height:844}); await p.goto(BASE+'/dashboard/settings'); assert(await p.locator('nav[aria-label="Settings sections"]:visible').count()===1,'phones get a row of section chips instead');
+ await p.setViewportSize({width:390,height:844}); await p.goto(BASE+'/dashboard/settings/notifications'); assert(await p.locator('nav[aria-label="Settings pages"]:visible').count()===1,'phones get a row of Settings tabs instead');
  console.log('page errors:',errs); await browser.close(); await pool.end();
 })().catch(e=>{console.error(e);process.exit(1)});

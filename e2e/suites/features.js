@@ -17,8 +17,8 @@ const iso=(d)=>{const x=new Date(Date.now()+d*86400000);return `${x.getFullYear(
  assert(h.currency==='MYR' && h.climate==='tropical','new home defaults from the browser language (ms-MY → MYR + tropical)');
  let tasks=(await q("select title from maintenance_tasks where household_id=$1",[h.id])).map(r=>r.title);
  assert(tasks.includes('Termite inspection') && tasks.some(t=>/air-conditioner filters/.test(t)) && !tasks.some(t=>/Winterize/.test(t)),`tropical seasonal tasks seeded, no winterizing (${tasks.length} tasks)`);
- await p.goto(BASE+'/dashboard/settings'); assert(await p.locator('select[name=locale] option:checked').textContent().then(t=>/Bahasa Melayu — Malaysia/.test(t)),'settings shows the detected language as "Automatic"');
- assert((await p.locator('select[name=currency]').inputValue())==='MYR' && (await p.locator('select[name=climate]').inputValue())==='tropical','home settings show MYR + tropical');
+ await p.goto(BASE+'/dashboard/settings/appearance'); assert(await p.locator('select[name=locale] option:checked').textContent().then(t=>/Bahasa Melayu — Malaysia/.test(t)),'settings shows the detected language as "Automatic"');
+ await p.goto(BASE+'/dashboard/settings/home'); assert((await p.locator('select[name=currency]').inputValue())==='MYR' && (await p.locator('select[name=climate]').inputValue())==='tropical','home settings show MYR + tropical');
  // asset with an Air Conditioner category -> aircon tasks; warranty in 10 days
  await p.goto(BASE+'/dashboard/assets'); await p.click('text=Add asset'); await p.fill('input[name=name]','Living room aircon'); await p.selectOption('select[name=category]','Air Conditioner'); await p.fill('input[name=warrantyExpiry]',iso(10)); await p.click('button:has-text("Add to passport")'); await p.waitForURL(/assets\/[0-9a-f-]{36}/);
  const aid=p.url().match(/assets\/([0-9a-f-]{36})/)[1];
@@ -28,21 +28,21 @@ const iso=(d)=>{const x=new Date(Date.now()+d*86400000);return `${x.getFullYear(
  await p.fill('input[name=description]','Gas top-up'); await p.fill('input[name=cost]','150'); await p.click('button:has-text("Add service record")'); await p.waitForSelector('text=Gas top-up');
  assert(/RM\s?150\.00/.test(await p.textContent('body')),'service cost is displayed as RM150.00');
  // change home currency to SGD, climate -> temperate and add suggested tasks
- await p.goto(BASE+'/dashboard/settings'); await p.selectOption('select[name=currency]','SGD'); await p.selectOption('select[name=climate]','temperate'); await p.click('button:has-text("Save home")'); await p.waitForSelector('text=Home updated');
+ await p.goto(BASE+'/dashboard/settings/home'); await p.selectOption('select[name=currency]','SGD'); await p.selectOption('select[name=climate]','temperate'); await p.click('button:has-text("Save home")'); await p.waitForSelector('text=Home updated');
  await p.goto(BASE+'/dashboard/assets/'+aid); assert(/SGD\s?150\.00/.test(await p.textContent('body')) && !/RM\s?150/.test(await p.textContent('body')),'changing the home currency re-formats existing costs (ms-MY writes "SGD 150.00")');
- await p.goto(BASE+'/dashboard/settings'); await p.click('button:has-text("Add suggested tasks")'); await p.waitForSelector('text=Added');
+ await p.goto(BASE+'/dashboard/settings/home'); await p.click('button:has-text("Add suggested tasks")'); await p.waitForSelector('text=Added');
  tasks=(await q("select title from maintenance_tasks where household_id=$1",[h.id])).map(r=>r.title);
  assert(tasks.includes('Winterize outdoor faucets') && tasks.includes('Termite inspection'),'"Add suggested tasks" adds the temperate set without removing existing tasks');
  await p.click('button:has-text("Add suggested tasks")'); await p.waitForSelector('text=already has all');
  assert(true,'running it again adds nothing (no duplicates)');
  // locale: switch to en-GB -> dates re-format
- await p.selectOption('select[name=locale]','en-US'); await p.click('form:has(select[name=locale]) button:has-text("Save")'); await p.waitForSelector('text=Saved.'); await p.goto(BASE+'/dashboard/assets/'+aid);
- const us=await p.textContent('body'); await p.goto(BASE+'/dashboard/settings'); await p.selectOption('select[name=locale]','en-GB'); await p.click('form:has(select[name=locale]) button:has-text("Save")'); await p.waitForSelector('text=Saved.'); await p.goto(BASE+'/dashboard/assets/'+aid);
+ await p.goto(BASE+'/dashboard/settings/appearance'); await p.selectOption('select[name=locale]','en-US'); await p.click('form:has(select[name=locale]) button:has-text("Save")'); await p.waitForSelector('text=Saved.'); await p.goto(BASE+'/dashboard/assets/'+aid);
+ const us=await p.textContent('body'); await p.goto(BASE+'/dashboard/settings/appearance'); await p.selectOption('select[name=locale]','en-GB'); await p.click('form:has(select[name=locale]) button:has-text("Save")'); await p.waitForSelector('text=Saved.'); await p.goto(BASE+'/dashboard/assets/'+aid);
  const gb=await p.textContent('body'); const mUS=us.match(/([A-Za-z]{3}) (\d{1,2}), (\d{4})\s*·?/), mGB=gb.match(/(\d{1,2}) ([A-Za-z]{3}) (\d{4})/);
  assert(mUS && mGB,`dates follow the chosen format (US: "${mUS&&mUS[0]}", UK: "${mGB&&mGB[0]}")`);
 
  // =============== B. warranty reminders
- await p.goto(BASE+'/dashboard/settings'); await p.locator('input[name=notify]').check(); await p.selectOption('select[name=warranty]','30'); await p.click('form:has(input[name=notify]) button:has-text("Save")'); await p.waitForSelector('text=Reminders are on');
+ await p.goto(BASE+'/dashboard/settings/notifications'); await p.locator('input[name=notify]').check(); await p.selectOption('select[name=warranty]','30'); await p.click('form:has(input[name=notify]) button:has-text("Save")'); await p.waitForSelector('text=Reminders are on');
  assert((await q("select warranty_lead_days w, notify_reminders n from profiles where email='siti@test.dev'"))[0].w===30,'warranty lead time saved');
  let before=mails().length; await p.click('button:has-text("Send me a test reminder")'); await p.waitForSelector('text=/Sent by e-mail/'); let m=mails().at(-1);
  assert(mails().length===before+1 && /Warranties ending soon/.test(m.html) && /Living room aircon/.test(m.html) && /warranty/.test(m.subject),'test e-mail lists the warranty that ends in 10 days');

@@ -173,7 +173,7 @@ export async function confirmTwoFactor(code: string): Promise<{ error?: string; 
   if (step === null) return { error: 'That code is not correct. Check the time on your phone and try again.' };
   const { plain, hashes } = generateRecoveryCodes();
   await db.update(profiles).set({ totpEnabled: true, totpLastStep: step, recoveryCodes: JSON.stringify(hashes) }).where(eq(profiles.id, user.id));
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { recoveryCodes: plain };
 }
 
@@ -185,7 +185,7 @@ export async function disableTwoFactor(password: string, code: string): Promise<
   const recovery: string[] = user.recoveryCodes ? JSON.parse(user.recoveryCodes) : [];
   if (!validTotp && !recovery.includes(hashCode(code))) return { error: 'That code is not correct.' };
   await db.update(profiles).set({ totpEnabled: false, totpSecret: null, totpLastStep: null, recoveryCodes: null }).where(eq(profiles.id, user.id));
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { ok: true };
 }
 
@@ -217,7 +217,7 @@ export async function setCalendarFeed(mode: 'enable' | 'regenerate' | 'disable')
   const user = await requireUser();
   const token = mode === 'disable' ? null : mode === 'enable' && user.calendarToken ? user.calendarToken : newToken(32);
   await db.update(profiles).set({ calendarToken: token }).where(eq(profiles.id, user.id));
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { ok: mode === 'disable' ? 'Calendar link turned off.' : mode === 'regenerate' ? 'New link created. Old links no longer work.' : 'Calendar link is ready.' };
 }
 
@@ -235,7 +235,7 @@ export async function saveReminderSettings(_: FormState, fd: FormData): Promise<
     .update(profiles)
     .set({ notifyReminders: on, reminderLeadDays: LEAD_DAYS.includes(lead) ? lead : 3, warrantyLeadDays: WARRANTY_DAYS.includes(warranty) ? warranty : 30 })
     .where(eq(profiles.id, user.id));
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { ok: on ? 'Reminders are on.' : 'Reminders are off.' };
 }
 

@@ -25,7 +25,7 @@ const PW='correct horse battery staple';
  assert((await pool.query("select is_admin from profiles where email='admin@test.dev'")).rows[0].is_admin===false,'ADMIN_EMAILS user is NOT admin until e-mail verified');
  await c2.close();
  // ---- change password (forces re-login)
- await page.goto(BASE+'/dashboard/settings');
+ await page.goto(BASE+'/dashboard/settings/security');
  await page.fill('input[name=current]',PW); await page.locator('input[name=password]').first().fill('new password number two'); await page.locator('input[name=confirm]').first().fill('new password number two');
  await page.click('button:has-text("Change password")'); await page.waitForURL(/\/login\?changed=1/); assert(true,'password change signs the user out');
  await page.goto(BASE+'/dashboard'); await page.waitForURL(/\/login/); assert(true,'old session is revoked after password change');
@@ -37,7 +37,7 @@ const PW='correct horse battery staple';
  await pool.query("update profiles set locked_until=null, failed_attempts=0 where email='dana@test.dev'");
  await page.goto(BASE+'/login'); await page.fill('input[type=email]','dana@test.dev'); await page.locator('input[type=password]').fill(NEW); await page.click('button:has-text("Sign in")'); await page.waitForURL(BASE+'/dashboard'); assert(true,'login works with new password after lock cleared');
  // ---- enable 2FA
- await page.goto(BASE+'/dashboard/settings'); await page.click('button:has-text("Set up 2FA")'); await page.waitForSelector('img[alt*="QR"]');
+ await page.goto(BASE+'/dashboard/settings/security'); await page.click('button:has-text("Set up 2FA")'); await page.waitForSelector('img[alt*="QR"]');
  const secret=(await page.locator('code').first().textContent()).trim(); assert(/^[A-Z2-7]{32}$/.test(secret),'2FA secret + QR shown');
  await page.fill('input[aria-label="6-digit code"]','000000'); await page.click('button:has-text("Turn on")'); await page.waitForSelector('text=not correct'); assert(true,'wrong 2FA setup code rejected');
  await page.fill('input[aria-label="6-digit code"]',totp(secret)); await page.click('button:has-text("Turn on")'); await page.waitForSelector('text=Save your recovery codes');

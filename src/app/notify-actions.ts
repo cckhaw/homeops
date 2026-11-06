@@ -36,21 +36,21 @@ export async function savePushSubscription(input: { endpoint: string; p256dh: st
     .insert(pushSubscriptions)
     .values({ userId: user.id, endpoint: input.endpoint, p256dh: input.p256dh, auth: input.auth, label })
     .onConflictDoUpdate({ target: pushSubscriptions.endpoint, set: { userId: user.id, p256dh: input.p256dh, auth: input.auth, label } });
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { ok: 'Notifications are on for this device.' };
 }
 
 export async function removePushSubscription(endpoint: string): Promise<FormState> {
   const user = await requireUser();
   await db.delete(pushSubscriptions).where(and(eq(pushSubscriptions.userId, user.id), eq(pushSubscriptions.endpoint, String(endpoint).slice(0, 2048))));
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { ok: 'Notifications are off for this device.' };
 }
 
 export async function removePushDevice(id: string): Promise<void> {
   const user = await requireUser();
   await db.delete(pushSubscriptions).where(and(eq(pushSubscriptions.userId, user.id), eq(pushSubscriptions.id, id)));
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
 }
 
 export async function sendTestPush(): Promise<FormState> {
@@ -58,8 +58,8 @@ export async function sendTestPush(): Promise<FormState> {
   if (!pushConfigured()) return { error: 'Push notifications are not set up on this site yet.' };
   const limited = await enforce('push-test', user.id, 6, 600);
   if (limited) return { error: limited };
-  const r = await sendPushToUser(user.id, { title: 'Wodejia test', body: 'Push notifications are working on this device.', url: '/dashboard/settings' });
-  revalidatePath('/dashboard/settings');
+  const r = await sendPushToUser(user.id, { title: 'Wodejia test', body: 'Push notifications are working on this device.', url: '/dashboard/settings/notifications' });
+  revalidatePath('/dashboard/settings', 'layout');
   return r.sent ? { ok: `Sent to ${r.sent} device${r.sent === 1 ? '' : 's'}.` } : { error: 'No device could be reached. Turn notifications on again from this device.' };
 }
 
@@ -87,7 +87,7 @@ export async function startWhatsappVerification(_: FormState, fd: FormData): Pro
     })
     .where(eq(profiles.id, user.id));
   if (!(await sendWhatsappTemplate(number, 'code', code))) return { error: 'We could not send the code. Check the number and try again.' };
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { ok: `Code sent to ${maskPhone(number)}. It is valid for 10 minutes.` };
 }
 
@@ -106,7 +106,7 @@ export async function confirmWhatsapp(_: FormState, fd: FormData): Promise<FormS
     .update(profiles)
     .set({ whatsappVerifiedAt: new Date(), notifyWhatsapp: true, whatsappCodeHash: null, whatsappCodeExpires: null, whatsappCodeAttempts: 0 })
     .where(eq(profiles.id, user.id));
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { ok: 'WhatsApp reminders are on.' };
 }
 
@@ -114,7 +114,7 @@ export async function setWhatsappReminders(on: boolean): Promise<FormState> {
   const user = await requireUser();
   if (on && !user.whatsappVerifiedAt) return { error: 'Verify your number first.' };
   await db.update(profiles).set({ notifyWhatsapp: on }).where(eq(profiles.id, user.id));
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { ok: on ? 'WhatsApp reminders are on.' : 'WhatsApp reminders are off.' };
 }
 
@@ -125,6 +125,6 @@ export async function removeWhatsapp(): Promise<FormState> {
     .update(profiles)
     .set({ notifyWhatsapp: false, whatsappNumber: null, whatsappVerifiedAt: null, whatsappCodeHash: null, whatsappCodeExpires: null, whatsappCodeAttempts: 0 })
     .where(eq(profiles.id, user.id));
-  revalidatePath('/dashboard/settings');
+  revalidatePath('/dashboard/settings', 'layout');
   return { ok: 'Your number has been removed.' };
 }

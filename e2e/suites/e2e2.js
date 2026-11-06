@@ -25,7 +25,7 @@ const assert = (c, m) => { if (!c) { console.error('FAIL', m); process.exitCode 
   await page.click('button[aria-label="Expand sidebar"]');
 
   // --- theme
-  await page.goto(BASE + '/dashboard/settings');
+  await page.goto(BASE + '/dashboard/settings/appearance');
   await page.click('[role=radio][aria-label=Violet]');
   assert(await page.evaluate(() => document.documentElement.dataset.accent) === 'violet', 'accent applied');
   const tint = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--tint').trim());

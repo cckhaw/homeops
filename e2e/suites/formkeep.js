@@ -12,10 +12,10 @@ const BASE='http://localhost:3100'; const assert=(c,m)=>{ if(!c){console.error('
  await p.goto(BASE+'/dashboard/schedule'); await p.fill('form:has(input[name=dueDate]) input[name=title]','Check hoses'); await p.click('button:has-text("Add task")'); await p.waitForSelector('text=Task added'); await p.waitForTimeout(700);
  assert((await p.inputValue('form:has(button:has-text("Add task")) input[name=title]'))==='','task form empties after adding a task');
  // profile + locale keep their values after saving
- await p.goto(BASE+'/dashboard/settings'); await p.fill('input[name=fullName]','Una Updated'); await p.click('button:has-text("Save profile")'); await p.waitForSelector('text=Profile updated'); await p.waitForTimeout(700);
+ await p.goto(BASE+'/dashboard/settings/profile'); await p.fill('input[name=fullName]','Una Updated'); await p.click('button:has-text("Save profile")'); await p.waitForSelector('text=Profile updated'); await p.waitForTimeout(700);
  assert((await p.inputValue('input[name=fullName]'))==='Una Updated','profile name stays as typed after saving');
- await p.selectOption('select[name=locale]','en-GB'); await p.click('form:has(select[name=locale]) button:has-text("Save")'); await p.waitForSelector('text=Saved.'); await p.waitForTimeout(700);
+ await p.goto(BASE+'/dashboard/settings/appearance'); await p.selectOption('select[name=locale]','en-GB'); await p.click('form:has(select[name=locale]) button:has-text("Save")'); await p.waitForSelector('text=Saved.'); await p.waitForTimeout(700);
  assert((await p.inputValue('select[name=locale]'))==='en-GB','language & region keeps the chosen format after saving');
- await p.locator('input[name=notify]').check(); await p.selectOption('select[name=warranty]','60'); await p.click('form:has(input[name=notify]) button:has-text("Save")'); await p.waitForSelector('text=Reminders are on'); await p.waitForTimeout(700);
+ await p.goto(BASE+'/dashboard/settings/notifications'); await p.locator('input[name=notify]').check(); await p.selectOption('select[name=warranty]','60'); await p.click('form:has(input[name=notify]) button:has-text("Save")'); await p.waitForSelector('text=Reminders are on'); await p.waitForTimeout(700);
  assert((await p.inputValue('select[name=warranty]'))==='60' && await p.locator('input[name=notify]').isChecked(),'reminder settings keep their values after saving');
  await b.close(); })();

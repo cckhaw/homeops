@@ -144,7 +144,7 @@ export default async function PrivacyPage() {
 
       <Section id="rights" title="Your rights">
         <ul>
-          <li><strong>Access and export.</strong> Download everything you can see, as JSON or a spreadsheet of your assets, any time in <Link href="/dashboard/settings">Settings → Privacy &amp; data</Link>.</li>
+          <li><strong>Access and export.</strong> Download everything you can see, as JSON or a spreadsheet of your assets, any time in <Link href="/dashboard/settings/privacy">Settings → Privacy &amp; data</Link>.</li>
           <li><strong>Correction.</strong> Edit your profile, homes, assets and tasks directly in the app.</li>
           <li><strong>Withdraw consent.</strong> Turn reminder e-mails off in Settings, or switch off Home Passport sharing.</li>
           <li>

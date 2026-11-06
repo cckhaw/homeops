@@ -39,7 +39,7 @@ export default async function DashboardPage() {
     { label: 'Add your first asset', hint: 'An appliance, a system, anything with a warranty', href: '/dashboard/assets', done: homeAssets.length > 0 },
     { label: 'Check off a maintenance task', hint: 'Tick one on the schedule — it reschedules itself', href: '/dashboard/schedule', done: !!doneTask },
     { label: 'Invite someone to your home', hint: 'Share the checklist with family or co-owners', href: '/dashboard/household', done: members.length > 1 || !!anyInvite },
-    { label: 'Turn on e-mail reminders', hint: 'Get a nudge before tasks and warranties run out', href: '/dashboard/settings', done: user.notifyReminders },
+    { label: 'Turn on e-mail reminders', hint: 'Get a nudge before tasks and warranties run out', href: '/dashboard/settings/notifications', done: user.notifyReminders },
   ];
   const showChecklist = !user.checklistDismissedAt && steps.some((s) => !s.done);
 

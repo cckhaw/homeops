@@ -43,7 +43,7 @@ const PW='correct horse battery staple';
  await login(p2,'old@test.dev',NEWPW); await p2.waitForSelector('text=confirm your e-mail'); assert(true,'unverified account cannot sign in once e-mail is configured');
 
  // ---- reminders
- await page.goto(BASE+'/dashboard/settings'); await page.locator('input[name=notify]').check(); await page.selectOption('select[name=lead]','14'); await page.click('form:has(input[name=notify]) button:has-text("Save")'); await page.waitForSelector('text=Reminders are on');
+ await page.goto(BASE+'/dashboard/settings/notifications'); await page.locator('input[name=notify]').check(); await page.selectOption('select[name=lead]','14'); await page.click('form:has(input[name=notify]) button:has-text("Save")'); await page.waitForSelector('text=Reminders are on');
  const mb=mails().length; await page.click('button:has-text("Send me a test reminder")'); await page.waitForSelector('text=/Sent by e-mail/'); const tm=mails().at(-1);
  assert(mails().length===mb+1 && /Maintenance/.test(tm.html) && /need.? your attention/.test(tm.html) && tm.to==='admin@test.dev','test reminder e-mail delivered with task list');
  const rq=await ctx.request; 
