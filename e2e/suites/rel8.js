@@ -28,7 +28,7 @@ const AIRCON='how-often-service-aircon-singapore-malaysia', WARRANTY='home-appli
  assert(await a.locator('nav[aria-label="In this article"] a').count()>=5,'a contents list links to the sections');
  assert(await a.locator('article a[href="/register"]').count()>=1 && await a.locator('aside a:has-text("Create your free account")').count()===1,'calls to action link to sign-up');
  const meta=await a.evaluate(()=>({d:document.querySelector('meta[name=description]')?.content, c:document.querySelector('link[rel=canonical]')?.href, og:document.querySelector('meta[property="og:type"]')?.content, ld:document.querySelector('script[type="application/ld+json"]')?.textContent}));
- assert(meta.d&&meta.d.length>40 && /\/blog\/how-often/.test(meta.c) && meta.og==='article' && JSON.parse(meta.ld)['@type']==='BlogPosting','SEO: description, canonical URL, article Open Graph and BlogPosting data');
+ assert(meta.d&&meta.d.length>40 && /\/blog\/how-often/.test(meta.c) && meta.og==='article' && JSON.parse(meta.ld)['@graph'].some(x=>x['@type']==='BlogPosting'),'SEO: description, canonical URL, article Open Graph and BlogPosting data');
  assert(await a.locator('script:not([type]), article script').evaluateAll(els=>els.every(e=>!/alert\(/.test(e.textContent||''))),'no script injected through the article body');
  const sm=await (await a.request.get(BASE+'/sitemap.xml')).text(); assert(sm.includes('/blog/'+AIRCON) && sm.includes('/blog</loc>'),'the sitemap lists the blog and the live article');
  assert((await (await a.request.get(BASE+'/blog/rss.xml')).text()).includes('<title>How often should you service'),'the RSS feed lists it');
