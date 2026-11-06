@@ -44,7 +44,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  // ================= logo follows the accent colour (in the app only)
  await p.goto(BASE+'/dashboard/settings'); const stroke=async(pg,sel)=>pg.evaluate((s)=>getComputedStyle(document.querySelector(s)).stroke,sel);
  const before=await stroke(p,'aside svg[aria-label=Wodejia] > g > path'); await p.click('[role=radio][aria-label=Violet]'); await p.waitForTimeout(500); const after=await stroke(p,'aside svg[aria-label=Wodejia] > g > path');
- assert(before==='rgb(43, 91, 181)' && after==='rgb(150, 55, 200)',`sidebar logo follows the accent colour (${before} → ${after})`);
+ assert(before==='rgb(31, 58, 107)' && after==='rgb(150, 55, 200)',`sidebar logo follows the accent colour (${before} → ${after})`);
  const wm=await p.evaluate(()=>getComputedStyle(document.querySelector('aside span[aria-hidden=true] > span')).color); assert(wm==='rgb(150, 55, 200)','…including the Wodejia wordmark');
  const pub=await (await browser.newContext()).newPage(); await pub.goto(BASE+'/'); const pw=await pub.evaluate(()=>[...document.querySelectorAll('header span[aria-hidden=true] > span')].map(e=>getComputedStyle(e).color)); assert((await stroke(pub,'header svg[aria-label=Wodejia] > g > path'))==='rgb(31, 58, 107)' && pw[0]==='rgb(31, 58, 107)' && pw[1]==='rgb(79, 167, 115)','public pages show the full-colour logo (navy house, navy "wode", green "jia"), whatever accent a user picked');
  await p.click('[role=radio][aria-label="Wodejia (default)"]');

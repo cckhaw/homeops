@@ -5,6 +5,7 @@ import { CheckCircle2, ImageUp, RotateCcw, XCircle } from 'lucide-react';
 import AppleButton from './AppleButton';
 import { useServerForm } from './useServerForm';
 import { resetBrandAsset, uploadBrandAsset } from '@/app/branding-actions';
+import { LogoMark as ArtMark, Wordmark } from './LogoArt';
 import type { BrandKind } from '@/lib/brand-core';
 
 export type BrandCardData = { kind: BrandKind; label: string; help: string; accept: string; custom: { url: string; bytes: number; size: string | null; updated: string } | null; fallback: string };
@@ -28,6 +29,7 @@ export default function BrandCard({ d }: { d: BrandCardData }) {
   const input = useRef<HTMLInputElement>(null);
   const src = blobUrl ?? d.custom?.url ?? d.fallback;
   const tall = d.kind === 'icon';
+  const builtin = !blobUrl && !d.custom && d.kind !== 'share'; // built-in artwork is drawn live so the dark preview can show it in white
   const shown = up.state?.ok ? undefined : up.state;
 
   return (
@@ -45,8 +47,16 @@ export default function BrandCard({ d }: { d: BrandCardData }) {
           <div key={t.n} className="rounded-xl border p-3 hairline" style={{ background: t.bg }}>
             <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide" style={{ color: t.bg === '#ffffff' ? '#86868b' : '#a1a1a6' }}>{t.n}</p>
             <div className="flex min-h-[72px] items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt={`${d.label} preview (${t.n})`} className={t.n === 'App tile' ? 'h-16 w-16 rounded-[22%] object-contain shadow' : d.kind === 'share' ? 'max-h-32 w-auto rounded-md' : tall ? 'h-16 w-16 object-contain' : 'max-h-16 w-auto max-w-full object-contain'} />
+              {builtin ? (
+                d.kind === 'logo' ? (
+                  <span className="inline-flex items-center gap-2.5"><ArtMark size={44} color={t.bg === '#1c1c1e' ? '#fff' : undefined} fixed /><Wordmark size={31} color={t.bg === '#1c1c1e' ? '#fff' : undefined} fixed /></span>
+                ) : (
+                  <ArtMark size={64} color={t.bg === '#1c1c1e' ? '#fff' : undefined} fixed />
+                )
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={src} alt={`${d.label} preview (${t.n})`} className={t.n === 'App tile' ? 'h-16 w-16 rounded-[22%] object-contain shadow' : d.kind === 'share' ? 'max-h-32 w-auto rounded-md' : tall ? 'h-16 w-16 object-contain' : 'max-h-16 w-auto max-w-full object-contain'} />
+              )}
             </div>
           </div>
         ))}

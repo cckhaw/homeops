@@ -14,7 +14,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         <main>
           <h1 style={{ fontSize: 28, margin: '0 0 8px' }}>Something went wrong</h1>
           <p style={{ color: '#6e6e73', margin: '0 0 20px' }}>Wodejia hit an unexpected problem. Your data is safe.</p>
-          <button onClick={reset} style={{ minHeight: 44, padding: '0 22px', border: 0, borderRadius: 12, background: '#2b5bb5', color: '#fff', fontSize: 17, fontWeight: 600 }}>
+          <button onClick={reset} style={{ minHeight: 44, padding: '0 22px', border: 0, borderRadius: 12, background: '#1F3A6B', color: '#fff', fontSize: 17, fontWeight: 600 }}>
             Try again
           </button>
         </main>

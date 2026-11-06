@@ -9,7 +9,7 @@ import { HomeSwitcher, ThemeToggle, type SwitcherHome } from './misc';
 import Logo, { LogoMark } from './Logo';
 
 // Inside the signed-in app the logo takes the user's accent colour; public pages keep the default brand blue.
-const ACCENT = 'rgb(var(--tint))';
+const ACCENT = 'rgb(var(--logo-mono))';
 
 const items = [
   { href: '/dashboard', label: 'Home', icon: Home, exact: true },

@@ -6,7 +6,7 @@ import BrandingAdmin, { type BrandCardData } from '@/components/BrandingAdmin';
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Branding · Admin' };
 
-const FALLBACK: Record<BrandKind, string> = { logo: '/brand/wodejia-logo-horizontal.png', icon: '/brand/wodejia-icon-1024.png', share: '/opengraph-image' };
+const FALLBACK: Record<BrandKind, string> = { logo: '/brand/wodejia-logo-horizontal.png', icon: '/brand/icon.svg', share: '/opengraph-image' };
 const ACCEPT: Record<BrandKind, string> = { logo: 'image/png,image/svg+xml,image/webp', icon: 'image/png', share: 'image/png' };
 
 export default async function AdminBranding() {

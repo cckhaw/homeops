@@ -14,12 +14,13 @@
   --glass-border: rgba(0, 0, 0, 0.08);
   --hairline: rgba(60, 60, 67, 0.16);
   /* Brand blue: always the default, regardless of the accent a user picks (AA contrast with white text) */
-  --brand: 43 91 181;
+  --brand: 31 58 107;
   /* accent (default: the Wodejia brand blue) */
-  --tint: 43 91 181;
+  --tint: 31 58 107;
   /* Logo palette (full-colour logo) */
   --logo-navy: 31 58 107;
   --logo-green: 79 167 115;
+  --logo-mono: var(--tint); /* one-colour logo (app menu): the accent, but plain white in dark mode with the default accent */
   --on-tint: 255 255 255;
   color-scheme: light;
 }
@@ -49,8 +50,8 @@
     --brand: 141 180 245;
     --tint: 141 180 245;
     --on-tint: 0 0 0;
-    --logo-navy: 185 204 245;
-    --logo-green: 111 210 154;
+    --logo-navy: 255 255 255;
+    --logo-green: 255 255 255;
     color-scheme: dark;
   }
 }
@@ -68,8 +69,8 @@
     --brand: 141 180 245;
     --tint: 141 180 245;
     --on-tint: 0 0 0;
-    --logo-navy: 185 204 245;
-    --logo-green: 111 210 154;
+    --logo-navy: 255 255 255;
+    --logo-green: 255 255 255;
     color-scheme: dark;
   }
 
@@ -195,3 +196,8 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']):is(:not([data-accent]), [data-accent='logo']) { --logo-mono: 255 255 255; }
+}
+:root[data-theme='dark']:is(:not([data-accent]), [data-accent='logo']) { --logo-mono: 255 255 255; }
