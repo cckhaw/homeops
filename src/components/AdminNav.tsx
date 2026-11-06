@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, BarChart3, Bug, Menu, Newspaper, ScrollText, Settings, Tags, Users, X, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, BarChart3, Bug, Menu, Newspaper, Palette, ScrollText, Settings, Tags, Users, X, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Logo from './Logo';
 
@@ -11,7 +11,7 @@ type Item = { href: string; label: string; icon: LucideIcon; exact?: boolean; ba
 const GROUPS: { title: string; items: Item[] }[] = [
   { title: 'Overview', items: [{ href: '/admin', label: 'Analytics', icon: BarChart3, exact: true }] },
   { title: 'People', items: [{ href: '/admin/users', label: 'Users', icon: Users }] },
-  { title: 'Content', items: [{ href: '/admin/blog', label: 'Blog', icon: Newspaper, badge: 'scheduled' }, { href: '/admin/brands', label: 'Brands', icon: Tags }] },
+  { title: 'Content', items: [{ href: '/admin/blog', label: 'Blog', icon: Newspaper, badge: 'scheduled' }, { href: '/admin/brands', label: 'Brands', icon: Tags }, { href: '/admin/branding', label: 'Branding', icon: Palette }] },
   { title: 'System', items: [{ href: '/admin/errors', label: 'Errors', icon: Bug, badge: 'errors' }, { href: '/admin/audit', label: 'Audit log', icon: ScrollText }, { href: '/admin/settings', label: 'Site config', icon: Settings }] },
 ];
 const ALL = GROUPS.flatMap((g) => g.items);

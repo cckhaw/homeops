@@ -1,6 +1,6 @@
 # Wodejia
 
-Mobile-first PWA: a digital passport for your home — assets and warranties, seasonal maintenance, receipt scanning, a private document vault, contractors, utility bills and yearly spending, QR labels, multi-home households, a shareable Home Service Passport and a move-out pack. Next.js 15 (App Router) · React 19 · Neon Postgres + Drizzle · NextAuth · Tailwind (Apple HIG styling). Admin portal included.
+Mobile-first PWA: a digital passport for your home — assets and warranties, seasonal maintenance, receipt scanning, a private document vault, contractors, utility bills and yearly spending, QR labels, multi-home households, a shareable Home Service Passport and a move-out pack. Next.js 15 (App Router) · React 19 · Neon Postgres + Drizzle · NextAuth · Tailwind (Apple HIG styling). Admin portal included (analytics, users, blog with scheduling, appliance brands, **branding** — upload your own logo, app icon and share image — errors, audit log, site config).
 
 ## Features
 | Area | What it does |

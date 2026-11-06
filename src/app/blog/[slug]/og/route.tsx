@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { livePostBySlug } from '@/lib/blog';
-import { LogoMark, LOGO_COLOR_FIXED } from '@/components/Logo';
+import { LogoMark, LOGO_COLOR_FIXED } from '@/components/LogoArt';
 
 export const runtime = 'nodejs';
 
