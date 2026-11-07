@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, LayoutDashboard, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, Coffee, PanelLeftClose, PanelLeftOpen, ChevronDown } from 'lucide-react';
+import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, LayoutDashboard, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, CircleHelp, Coffee, PanelLeftClose, PanelLeftOpen, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { SETTINGS_SECTIONS } from './settingsSections';
@@ -147,12 +147,11 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
         </nav>
 
         {/* Pinned footer: owner tools / support, then the three utility buttons */}
-        {(isAdmin || donate) && (
-          <nav className="mt-1 flex shrink-0 flex-col gap-0.5 border-t pt-2 hairline" aria-label="More">
-            {isAdmin && link('/admin', 'Admin portal', ShieldCheck, false, true, true)}
-            {donate && link('/support', 'Buy me a coffee', Coffee, false, true, true)}
-          </nav>
-        )}
+        <nav className="mt-1 flex shrink-0 flex-col gap-0.5 border-t pt-2 hairline" aria-label="Support">
+          {link('/dashboard/help', 'Help & FAQ', CircleHelp, false, true, true)}
+          {donate && link('/support', 'Buy me a coffee', Coffee, false, true, true)}
+          {isAdmin && link('/admin', 'Admin portal', ShieldCheck, false, true, true)}
+        </nav>
         <div className={cn('mt-1 flex shrink-0 gap-1 border-t pt-2 hairline', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
           <div className={cn('flex gap-1', collapsed ? 'flex-col items-center' : 'items-center')}>
             <ThemeToggle tip={collapsed ? { side: 'right' } : { side: 'top', align: 'start' }} />
@@ -191,7 +190,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
       {/* Mobile bottom tab bar */}
       <nav aria-label="Primary" className="glass pb-safe fixed inset-x-0 bottom-0 z-30 flex border-x-0 border-b-0 md:hidden">
         {mobileTabs.map(({ href, label, icon: Icon, ...r }) => {
-          const on = active(href, 'exact' in r ? r.exact : false) || (href === '/dashboard/more' && ['/dashboard/documents', '/dashboard/contractors', '/dashboard/bills', '/dashboard/reports', '/dashboard/pack', '/dashboard/labels', '/dashboard/homes', '/dashboard/settings'].some((p) => path.startsWith(p)));
+          const on = active(href, 'exact' in r ? r.exact : false) || (href === '/dashboard/more' && ['/dashboard/documents', '/dashboard/contractors', '/dashboard/bills', '/dashboard/reports', '/dashboard/pack', '/dashboard/labels', '/dashboard/homes', '/dashboard/settings', '/dashboard/help'].some((p) => path.startsWith(p)));
           return (
             <Link
               key={href}

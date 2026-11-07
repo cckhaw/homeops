@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BarChart3, Building2, ChevronRight, Coffee, FileArchive, FolderLock, HardHat, QrCode, Receipt, Settings, ShieldCheck } from 'lucide-react';
+import { BarChart3, Building2, ChevronRight, CircleHelp, Coffee, FileArchive, FolderLock, HardHat, QrCode, Receipt, Settings, ShieldCheck } from 'lucide-react';
 import { donationsEnabled } from '@/lib/donate';
 import { requireHousehold } from '@/lib/auth';
 import GlassCard from '@/components/GlassCard';
@@ -36,11 +36,14 @@ const GROUPS = [
 export default async function MorePage() {
   const { user } = await requireHousehold();
   const groups = [...GROUPS];
-  const extra = [
-    ...(user.isAdmin ? [{ href: '/admin', label: 'Admin portal', hint: 'Users, blog, branding, site config', icon: ShieldCheck }] : []),
-    ...(donationsEnabled() ? [{ href: '/support', label: 'Buy me a coffee', hint: 'Support Wodejia', icon: Coffee }] : []),
-  ];
-  if (extra.length) groups.push({ title: 'Owner & support', items: extra });
+  groups.push({
+    title: 'Support',
+    items: [
+      { href: '/dashboard/help', label: 'Help & FAQ', hint: 'Answers to common questions', icon: CircleHelp },
+      ...(donationsEnabled() ? [{ href: '/support', label: 'Buy me a coffee', hint: 'Support Wodejia', icon: Coffee }] : []),
+    ],
+  });
+  if (user.isAdmin) groups.push({ title: 'Admin', items: [{ href: '/admin', label: 'Admin portal', hint: 'Users, blog, branding, site config', icon: ShieldCheck }] });
   return (
     <>
       <PageHeader title="More" />
