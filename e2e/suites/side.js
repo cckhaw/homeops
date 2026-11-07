@@ -7,7 +7,7 @@ const assert=(c,m)=>{ if(!c){console.error('FAIL',m);process.exitCode=1}else con
  const box=async(sel)=>p.locator(sel).first().boundingBox();
  const tog=await box('aside button[aria-label="Collapse sidebar"]'), theme=await box('aside button[aria-label*="mode"]'), side=await box('aside'), admin=await box('aside a[href="/admin"]'), coffee=await box('aside a[href="/support"]'), settings=await box('aside a[href="/dashboard/settings"]');
  assert(tog.y>600 && Math.abs(tog.y-theme.y)<3,'collapse button sits on the same row as the day/night toggle, at the bottom');
- assert(tog.x>theme.x && tog.x+tog.width>side.x+side.width-20,'collapse button is right-aligned');
+ const out=await box('aside button[aria-label="Sign out"]'); assert(tog.x>theme.x && tog.x-theme.x<70 && out.x>tog.x && out.x+out.width>side.x+side.width-20 && Math.abs(out.y-tog.y)<3,'order on the bottom row: day/night, collapse, then sign out (right-aligned)');
  assert(await p.locator('aside nav[aria-label=Primary] a[href="/admin"], aside nav[aria-label=Primary] a[href="/support"]').count()===0,'Admin portal / Buy me a coffee are no longer inside the main menu');
  const nav=await box('aside nav[aria-label=Primary]'); assert(admin.y>=nav.y+nav.height-2 && coffee.y>=nav.y+nav.height-2 && admin.y<theme.y && coffee.y<theme.y,'they form a separate group below the (scrollable) main menu, above the toggle row');
  await p.screenshot({path:S+'/side-expanded.png',clip:{x:0,y:0,width:700,height:800}});
@@ -27,9 +27,9 @@ const assert=(c,m)=>{ if(!c){console.error('FAIL',m);process.exitCode=1}else con
  const u=await ctx('user@test.dev'); const up=await u.newPage(); await up.goto(BASE+'/dashboard'); await up.waitForSelector('aside');
  assert(await up.locator('aside a[href="/admin"]').count()===0 && await up.locator('aside a[href="/support"]').count()===1,'non-admin: no Admin link, coffee link still shown');
  await up.screenshot({path:S+'/side-user.png',clip:{x:0,y:0,width:700,height:800}});
- // sign-out icon sits next to the day/night toggle
+ // bottom row: day/night, collapse, sign-out
  { const ubox=async(sel)=>up.locator(sel).first().boundingBox(); const th=await ubox('aside button[aria-label*="mode"]'), so=await ubox('aside button[aria-label="Sign out"]'), co=await ubox('aside button[aria-label="Collapse sidebar"]');
-   assert(Math.abs(so.y-th.y)<3 && so.x>th.x && so.x<co.x && so.x-(th.x+th.width)<12,'sign-out icon is on the bottom row, right next to the day/night toggle');
+   assert(Math.abs(so.y-th.y)<3 && co.x>th.x && co.x-(th.x+th.width)<12 && so.x>co.x,'bottom row order: day/night, collapse, then sign-out');
    assert(so.width>=44&&so.height>=44,'sign-out icon is a full-size tap target');
    await up.click('aside button[aria-label="Collapse sidebar"]'); await up.waitForTimeout(400);
    const th2=await ubox('aside button[aria-label*="mode"]'), so2=await ubox('aside button[aria-label="Sign out"]'); assert(so2.y>th2.y && Math.abs(so2.x-th2.x)<2 && so2.x>=0 && so2.x+so2.width<=77,'collapsed sidebar stacks the sign-out icon under the toggle, inside the rail');

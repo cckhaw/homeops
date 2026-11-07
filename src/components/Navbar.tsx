@@ -155,24 +155,24 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
         <div className={cn('mt-1 flex shrink-0 gap-1 border-t pt-2 hairline', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
           <div className={cn('flex gap-1', collapsed ? 'flex-col items-center' : 'items-center')}>
             <ThemeToggle tip={collapsed ? { side: 'right' } : { side: 'top', align: 'start' }} />
-            <Tip label="Sign out" side={collapsed ? 'right' : 'top'} align="center">
+            <Tip label={collapsed ? 'Expand menu' : 'Collapse menu'} side={collapsed ? 'right' : 'top'} align="center">
               <button
-                type="button"
-                onClick={() => signOut({ callbackUrl: '/' })}
-                aria-label="Sign out"
-                className="grid h-11 w-11 place-items-center rounded-xl text-secondary transition hover:bg-bad/10 hover:text-bad active:scale-90"
+                onClick={onToggle}
+                aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                className="grid h-11 w-11 place-items-center rounded-xl text-secondary transition hover:bg-label/5 active:scale-90"
               >
-                <LogOut className="h-5 w-5" aria-hidden />
+                {collapsed ? <PanelLeftOpen className="h-5 w-5" aria-hidden /> : <PanelLeftClose className="h-5 w-5" aria-hidden />}
               </button>
             </Tip>
           </div>
-          <Tip label={collapsed ? 'Expand menu' : 'Collapse menu'} side={collapsed ? 'right' : 'top'} align="end">
+          <Tip label="Sign out" side={collapsed ? 'right' : 'top'} align="end">
             <button
-              onClick={onToggle}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              className="grid h-11 w-11 place-items-center rounded-xl text-secondary transition hover:bg-label/5 active:scale-90"
+              type="button"
+              onClick={() => signOut({ callbackUrl: '/' })}
+              aria-label="Sign out"
+              className="grid h-11 w-11 place-items-center rounded-xl text-secondary transition hover:bg-bad/10 hover:text-bad active:scale-90"
             >
-              {collapsed ? <PanelLeftOpen className="h-5 w-5" aria-hidden /> : <PanelLeftClose className="h-5 w-5" aria-hidden />}
+              <LogOut className="h-5 w-5" aria-hidden />
             </button>
           </Tip>
         </div>
