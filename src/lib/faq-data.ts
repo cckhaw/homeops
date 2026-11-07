@@ -3,6 +3,9 @@
  * and the in-app Help page. Answers are plain Markdown (see markdown-core.ts). Keep each answer self-contained and direct:
  * it is read out of context by search engines and assistants. Only describe what the product really does.
  */
+/** Date the help content last changed (feeds sitemap.xml). Bump it whenever you edit an answer. */
+export const FAQ_UPDATED = '2026-11-07';
+
 export type Faq = { slug: string; q: string; a: string };
 export type FaqCategory = { slug: string; title: string; blurb: string; seoTitle: string; seoDescription: string; items: Faq[] };
 

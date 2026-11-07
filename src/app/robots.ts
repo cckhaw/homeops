@@ -1,17 +1,11 @@
 import type { MetadataRoute } from 'next';
-import { siteBaseUrl } from '@/lib/donate';
+import { donationsEnabled, siteBaseUrl } from '@/lib/donate';
+import { PRIVATE_PATHS, publicPaths } from '@/lib/site-pages';
 
 export default function robots(): MetadataRoute.Robots {
   const base = siteBaseUrl('http://localhost:3000');
   return {
-    rules: [
-      {
-        userAgent: '*',
-        allow: ['/', '/blog', '/faq', '/privacy', '/terms', '/register', '/login'],
-        // Private areas, tokens, API and one-off pages are never indexed.
-        disallow: ['/dashboard', '/admin', '/api/', '/passport/', '/join/', '/reset-password', '/forgot-password', '/support/thanks'],
-      },
-    ],
+    rules: [{ userAgent: '*', allow: publicPaths(donationsEnabled()), disallow: PRIVATE_PATHS }],
     sitemap: `${base}/sitemap.xml`,
     host: base,
   };

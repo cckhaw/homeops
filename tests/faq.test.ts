@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { FAQ_CATEGORIES, allFaqItems, answerSnippet, faqCategory, faqItem, faqPageLd, faqUrl, plainAnswer, relatedFaqs } from '@/lib/faq';
+import { FAQ_CATEGORIES, FAQ_UPDATED, allFaqItems, answerSnippet, faqCategory, faqItem, faqPageLd, faqUrl, plainAnswer, relatedFaqs } from '@/lib/faq';
 
 const ROUTES = ['/privacy', '/terms', '/register', '/login'];
 
@@ -29,6 +29,11 @@ describe('FAQ content', () => {
         expect(answerSnippet(i.a).length).toBeLessThanOrEqual(158);
       }
     }
+  });
+
+  it('has a valid, not-in-the-future content date for the sitemap', () => {
+    expect(FAQ_UPDATED).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(new Date(FAQ_UPDATED).getTime()).toBeLessThanOrEqual(Date.now() + 86_400_000);
   });
 
   it('only links to pages that exist', () => {
