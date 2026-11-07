@@ -12,6 +12,7 @@ Mobile-first PWA: a digital passport for your home — assets and warranties, se
 | Sharing | Home Service Passport (read-only link, off by default, optional password), owner/admin-only move-out pack (zip + printable summary) |
 | Welcome tour | Seven-slide first-run tour of every feature; replayable from Settings |
 | Homes & people | Many homes per user (icon switcher, searchable when you have more than four), invite links, owner/admin/member roles |
+| Help centre | Public FAQ at `/faq` (8 topics, one page per question, FAQPage + breadcrumb structured data, in the sitemap) and the same content in the app under Help & FAQ; edit it in `src/lib/faq-data.ts` |
 | Blog & branding | Public blog with scheduled publishing and SEO checks, admin menu for posts; admin can upload their own logo, app icon and share image (Admin → Branding) |
 | Account | E-mail + password, 2FA, optional Google / Apple sign-in, data export and account deletion |
 
