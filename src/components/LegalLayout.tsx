@@ -5,7 +5,8 @@ import { ThemeToggle } from './misc';
 import GlassCard from './GlassCard';
 
 export const SUPPORT_EMAIL = 'me@khaw.cc';
-export const LAST_UPDATED = 'November 2026';
+import { LAST_UPDATED } from '@/lib/legal-meta';
+export { LAST_UPDATED };
 
 export type LegalSection = { id: string; title: string };
 

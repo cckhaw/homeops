@@ -38,7 +38,10 @@ const CATS=['getting-started','assets-and-warranties','maintenance-and-reminders
  assert((await a.goto(BASE+'/faq/nope')).status()===404 && (await a.goto(BASE+'/faq/getting-started/nope')).status()===404,'unknown FAQ URLs are 404');
  // sitemap / robots / links
  const sm=await (await a.request.get(BASE+'/sitemap.xml')).text(); assert(sm.includes('/faq<')&&CATS.every(c=>sm.includes('/faq/'+c+'<'))&&sm.includes('/faq/troubleshooting/contact-support'),'the sitemap lists /faq, every category and every question');
- const rb=await (await a.request.get(BASE+'/robots.txt')).text(); assert(/Allow: \/faq/.test(rb),'robots.txt allows /faq');
+ { const locs=[...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map(x=>x[1]); const mods=[...sm.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map(x=>x[1]);
+   assert(new Set(locs).size===locs.length && locs.length===mods.length && mods.every(m=>!Number.isNaN(Date.parse(m)) && Date.parse(m)<=Date.now()+86400000),`the sitemap has ${locs.length} unique URLs, each with a valid last-modified date that is not in the future`);
+   assert(!locs.some(u=>/\/(dashboard|admin|api|passport|join|reset-password|forgot-password|brand-asset)(\/|$)/.test(u)),'and none of them is a private page'); }
+ const rb=await (await a.request.get(BASE+'/robots.txt')).text(); assert(/Allow: \/faq/.test(rb) && /Disallow: \/dashboard/.test(rb) && /Disallow: \/brand-asset\//.test(rb) && /Sitemap: .*sitemap\.xml/.test(rb),'robots.txt allows /faq, blocks private areas and points to the sitemap');
  await a.goto(BASE+'/'); assert(await a.locator('header nav a[href="/faq"]').count()===1 && await a.locator('footer a[href="/faq"]').count()===1,'the front page links to the FAQ in the header and footer');
  await a.goto(BASE+'/blog'); assert(await a.locator('header a[href="/faq"]').count()>=1 && await a.locator('footer a[href="/faq"]').count()===1,'the blog header/footer link to it too');
  await a.goto(BASE+'/faq/getting-started/is-wodejia-free'); assert(await a.locator('main a:has-text("Get started")').count()>=1,'question pages carry a sign-up call to action');

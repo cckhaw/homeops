@@ -1,7 +1,7 @@
-import { FAQ_CATEGORIES, type Faq, type FaqCategory } from './faq-data';
+import { FAQ_CATEGORIES, FAQ_UPDATED, type Faq, type FaqCategory } from './faq-data';
 import { blocksText, parseMarkdown } from './markdown-core';
 
-export { FAQ_CATEGORIES };
+export { FAQ_CATEGORIES, FAQ_UPDATED };
 export type { Faq, FaqCategory };
 
 export const faqCategory = (slug: string) => FAQ_CATEGORIES.find((c) => c.slug === slug);
