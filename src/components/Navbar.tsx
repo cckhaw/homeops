@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, LayoutDashboard, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, CircleHelp, Landmark, Coffee, PanelLeftClose, PanelLeftOpen, ChevronDown } from 'lucide-react';
+import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, LayoutDashboard, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, CircleHelp, Landmark, KeyRound, Coffee, PanelLeftClose, PanelLeftOpen, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { SETTINGS_SECTIONS } from './settingsSections';
@@ -26,6 +26,7 @@ const records = [
   { href: '/dashboard/contractors', label: 'Contractors', icon: HardHat },
   { href: '/dashboard/bills', label: 'Utility bills', icon: Receipt },
   { href: '/dashboard/property', label: 'Property dates', icon: Landmark },
+  { href: '/dashboard/rentals', label: 'Rentals', icon: KeyRound },
   { href: '/dashboard/reports', label: 'Spending', icon: BarChart3 },
   { href: '/dashboard/pack', label: 'Move-out pack', icon: FileArchive },
 ];
@@ -48,7 +49,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
   const [settingsOpen, setSettingsOpen] = useState(onSettings);
   const inRecords = records.some((r) => path === r.href || path.startsWith(r.href + '/'));
   const [recordsOpen, setRecordsOpenState] = useState(true);
-  useEffect(() => { try { const v = localStorage.getItem('wodejia-records'); if (v === '0' || (v === null && window.innerHeight < 860)) setRecordsOpenState(false); } catch {} }, []);
+  useEffect(() => { try { const v = localStorage.getItem('wodejia-records'); if (v === '0' || (v === null && window.innerHeight < 1000)) setRecordsOpenState(false); } catch {} }, []);
   const setRecordsOpen = (v: boolean) => { setRecordsOpenState(v); try { localStorage.setItem('wodejia-records', v ? '1' : '0'); } catch {} };
   useEffect(() => { if (onSettings) setSettingsOpen(true); }, [onSettings]);
   const active = (href: string, exact?: boolean) => (exact ? path === href : path === href || path.startsWith(href + '/'));
@@ -191,7 +192,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
       {/* Mobile bottom tab bar */}
       <nav aria-label="Primary" className="glass pb-safe fixed inset-x-0 bottom-0 z-30 flex border-x-0 border-b-0 md:hidden">
         {mobileTabs.map(({ href, label, icon: Icon, ...r }) => {
-          const on = active(href, 'exact' in r ? r.exact : false) || (href === '/dashboard/more' && ['/dashboard/documents', '/dashboard/contractors', '/dashboard/bills', '/dashboard/property', '/dashboard/reports', '/dashboard/pack', '/dashboard/labels', '/dashboard/homes', '/dashboard/settings', '/dashboard/help'].some((p) => path.startsWith(p)));
+          const on = active(href, 'exact' in r ? r.exact : false) || (href === '/dashboard/more' && ['/dashboard/documents', '/dashboard/contractors', '/dashboard/bills', '/dashboard/property', '/dashboard/rentals', '/dashboard/reports', '/dashboard/pack', '/dashboard/labels', '/dashboard/homes', '/dashboard/settings', '/dashboard/help'].some((p) => path.startsWith(p)));
           return (
             <Link
               key={href}

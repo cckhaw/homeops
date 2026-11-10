@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, date, integer, index, uniqueIndex, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, timestamp, boolean, date, integer, index, uniqueIndex, primaryKey, type AnyPgColumn } from 'drizzle-orm/pg-core';
 
 export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey(),
@@ -111,6 +111,7 @@ export const maintenanceTasks = pgTable(
     frequency: text('frequency').notNull(), // monthly, quarterly, biannually, yearly
     dueDate: date('due_date').notNull(),
     assignedTo: uuid('assigned_to').references(() => profiles.id, { onDelete: 'set null' }),
+    tenancyId: uuid('tenancy_id').references((): AnyPgColumn => tenancies.id, { onDelete: 'cascade' }), // rent / lease reminders created for a tenancy
     completedBy: uuid('completed_by').references(() => profiles.id, { onDelete: 'set null' }),
     status: text('status').default('pending'), // pending, completed
     completedAt: timestamp('completed_at'),
@@ -359,3 +360,72 @@ export const brandAssets = pgTable('brand_assets', {
   updatedBy: uuid('updated_by').references(() => profiles.id, { onDelete: 'set null' }),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
+
+// --- Rentals (landlord mode) ---
+
+/** A tenancy of a home: who rents it, the rent and the lease dates. Rent and lease reminders are ordinary schedule tasks linked by tenancy_id. */
+export const tenancies = pgTable(
+  'tenancies',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    householdId: uuid('household_id').references(() => households.id, { onDelete: 'cascade' }).notNull(),
+    tenantName: text('tenant_name').notNull(),
+    tenantPhone: text('tenant_phone'),
+    tenantEmail: text('tenant_email'),
+    startDate: date('start_date').notNull(),
+    endDate: date('end_date'), // null = rolling / month to month
+    rentCents: integer('rent_cents').notNull(),
+    dueDay: integer('due_day').notNull(), // 1-28
+    depositCents: integer('deposit_cents'),
+    notes: text('notes'),
+    status: text('status').default('active').notNull(), // active | ended
+    endedOn: date('ended_on'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => ({ byHousehold: index('tenancies_household_idx').on(t.householdId, t.status) }),
+);
+
+/** Rent received for one month ('YYYY-MM' of the due date). */
+export const rentPayments = pgTable(
+  'rent_payments',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenancyId: uuid('tenancy_id').references(() => tenancies.id, { onDelete: 'cascade' }).notNull(),
+    period: text('period').notNull(),
+    amountCents: integer('amount_cents').notNull(),
+    paidOn: date('paid_on').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => ({ onePerMonth: uniqueIndex('rent_payments_period_idx').on(t.tenancyId, t.period) }),
+);
+
+/** A move-in, move-out or periodic inspection report with per-room condition items and photos. */
+export const conditionReports = pgTable(
+  'condition_reports',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    householdId: uuid('household_id').references(() => households.id, { onDelete: 'cascade' }).notNull(),
+    tenancyId: uuid('tenancy_id').references(() => tenancies.id, { onDelete: 'set null' }),
+    kind: text('kind').notNull(), // move_in | move_out | inspection
+    inspectedOn: date('inspected_on').notNull(),
+    notes: text('notes'),
+    createdBy: uuid('created_by').references(() => profiles.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (t) => ({ byHousehold: index('condition_reports_household_idx').on(t.householdId) }),
+);
+
+export const conditionItems = pgTable(
+  'condition_items',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    reportId: uuid('report_id').references(() => conditionReports.id, { onDelete: 'cascade' }).notNull(),
+    room: text('room').notNull(),
+    item: text('item').notNull(),
+    condition: text('condition').notNull(), // good | fair | poor | damaged | missing
+    notes: text('notes'),
+    photoUrl: text('photo_url'),
+    sort: integer('sort').default(0).notNull(),
+  },
+  (t) => ({ byReport: index('condition_items_report_idx').on(t.reportId) }),
+);

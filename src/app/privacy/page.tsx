@@ -57,6 +57,7 @@ export default async function PrivacyPage() {
           <li>Your home&apos;s name and, optionally, its address.</li>
           <li>Asset records: names, categories, make, model, serial numbers, install and warranty dates, notes, and service history including provider names and costs.</li>
           <li>Files you upload: receipt photos or PDFs, appliance manuals and photos of your items.</li>
+          <li>If you use Rentals (optional): the tenant&apos;s name, phone number and e-mail address that you enter, the rent and lease dates, payment records and condition-report notes and photos. You are responsible for having a lawful reason to record your tenant\'s details. They are visible only to the home\'s owner and admins and are never shown on a shared Passport.</li>
           <li>Maintenance tasks, their schedules and completion dates, and the members you invite to share a home.</li>
           <li>Records you add in the document vault (titles, categories, expiry dates, notes and the files themselves), your contractors (names, trades and any phone numbers, e-mail addresses or notes you enter), utility bills and amounts, and purchase prices. These are visible to the members of the home they belong to; a contractor you attach to several homes is visible to the members of each of them.</li>
         </ul>

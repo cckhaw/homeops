@@ -9,17 +9,17 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  const fits=async(pg,sel)=>pg.evaluate((s)=>{const e=document.querySelector(s); if(!e) return false; const r=e.getBoundingClientRect(); return r.top>=0&&r.left>=0&&r.bottom<=innerHeight+0.5&&r.right<=innerWidth+0.5;},sel);
 
  // ---------- desktop
- const dc=await sess('admin@test.dev',{width:1440,height:900}); const d=await dc.newPage(); d.on('pageerror',e=>errs.push(e.message));
+ const dc=await sess('admin@test.dev',{width:1440,height:1100}); const d=await dc.newPage(); d.on('pageerror',e=>errs.push(e.message));
  await d.goto(BASE+'/dashboard'); await d.waitForSelector('aside nav[aria-label=Primary]');
  const names=await d.locator('aside nav[aria-label=Primary] > a').allInnerTexts(); 
  assert(names[0].trim()==='Dashboard' && !names.some(n=>n.trim()==='Home'),`the first menu item is "Dashboard", not "Home" (${names.join(', ')})`);
  assert(await d.locator('aside a[href="/dashboard"] svg.lucide-layout-dashboard').count()===1,'it has the dashboard icon');
  assert(await d.locator('aside nav[aria-label=Primary] button:has-text("Records")').count()===1 && await d.locator('aside nav[aria-label=Primary] >> text=Account').count()===1,'the menu has Records and Account groups');
  // records collapse
- assert(await d.locator('#records-group a').count()===6,'Records lists six pages');
+ assert(await d.locator('#records-group a').count()===7,'Records lists seven pages');
  await d.click('aside button:has-text("Records")'); assert(await d.locator('#records-group').count()===0 || !(await d.locator('#records-group a').first().isVisible().catch(()=>false)),'Records collapses');
  await d.reload(); await d.waitForSelector('aside nav[aria-label=Primary]'); await d.waitForTimeout(300); assert(await d.locator('#records-group').count()===0,'and stays collapsed on reload');
- await d.click('aside button:has-text("Records")'); assert(await d.locator('#records-group a').count()===6,'and opens again');
+ await d.click('aside button:has-text("Records")'); assert(await d.locator('#records-group a').count()===7,'and opens again');
  await d.goto(BASE+'/dashboard/documents'); await d.waitForSelector('#records-group'); assert(await d.locator('#records-group a[aria-current=page]').count()===1,'the Records group is open on a Records page, with the page highlighted');
  // tooltips on the three footer icons
  const tipOf=async(label)=>{ const b=d.locator(`aside button[aria-label="${label}"]`).first(); await b.hover(); await d.waitForTimeout(700); const t=b.locator('xpath=following-sibling::span[@data-tip]'); const tt=(await t.count())? t : b.locator('xpath=ancestor::span[contains(@class,"group/tip")]/span[@data-tip]'); return {text:(await tt.first().innerText()).trim(), shown:(await tt.first().evaluate(e=>getComputedStyle(e).opacity))==='1', box:await tt.first().boundingBox()}; };
@@ -34,7 +34,7 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  await d.locator('aside a[href="/dashboard/settings"]').scrollIntoViewIfNeeded(); assert(await fits(d,'aside a[href="/dashboard/settings"]'),'and Settings can be scrolled to');
  await d.screenshot({path:S+'/menu-short.png',clip:{x:0,y:0,width:420,height:600}});
  // collapsed rail tooltips
- await d.setViewportSize({width:1440,height:900}); await d.click('aside button[aria-label="Collapse sidebar"]'); await d.waitForTimeout(500);
+ await d.setViewportSize({width:1440,height:1100}); await d.click('aside button[aria-label="Collapse sidebar"]'); await d.waitForTimeout(500);
  const r1=await tipOf('Sign out'); assert(r1.shown && r1.box.x>=60,'in the icon rail, the tooltip opens to the right of the icon');
  await d.screenshot({path:S+'/menu-rail.png',clip:{x:0,y:0,width:420,height:900}});
  await d.click('aside button[aria-label="Expand sidebar"]');
