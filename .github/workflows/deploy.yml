@@ -19,7 +19,7 @@ env:
   VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID || vars.VERCEL_TEAM_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID || vars.VERCEL_PROJECT_ID }}
   # Public production domain (the raw *.vercel.app URL may sit behind deployment protection).
-  PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://homeops.khaw.cc' }}
+  PRODUCTION_URL: ${{ vars.PRODUCTION_URL || 'https://wodejia.khaw.cc' }}
 
 jobs:
   deploy:
@@ -54,7 +54,7 @@ jobs:
       - name: Verify the deployment is live
         run: |
           for i in $(seq 1 20); do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "$PRODUCTION_URL/manifest.webmanifest" || true)
+            code=$(curl -sL -o /dev/null -w '%{http_code}' "$PRODUCTION_URL/manifest.webmanifest" || true)
             [ "$code" = "200" ] && echo "Live (HTTP 200)" && exit 0
             echo "HTTP $code, retrying..."; sleep 6
           done
