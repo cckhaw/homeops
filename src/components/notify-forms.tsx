@@ -188,8 +188,16 @@ export function TelegramSettings({ configured, linked, enabled }: { configured: 
   const router = useRouter();
   const [msg, setMsg] = useState<FormState>();
   const [link, setLink] = useState<string>();
+  const [qr, setQr] = useState<string>();
+  const [desktop, setDesktop] = useState(false);
   const [pending, run] = useTransition();
   const [on, setOn] = useState(enabled);
+  // Telegram links open the Telegram app, so people on a computer are pointed to their phone or tablet
+  useEffect(() => {
+    const ua = navigator.userAgent;
+    const phoneOrTablet = /Android|iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1); // iPadOS reports itself as a Mac
+    setDesktop(!phoneOrTablet);
+  }, []);
   useEffect(() => setOn(enabled), [enabled]);
   // while a link is waiting to be opened, check every 3 seconds (for up to 5 minutes) whether the connection has happened
   useEffect(() => {
@@ -198,7 +206,7 @@ export function TelegramSettings({ configured, linked, enabled }: { configured: 
     const t = setInterval(() => { router.refresh(); if (++n > 100) clearInterval(t); }, 3000);
     return () => clearInterval(t);
   }, [link, linked, router]);
-  useEffect(() => { if (linked) setLink(undefined); }, [linked]);
+  useEffect(() => { if (linked) { setLink(undefined); setQr(undefined); } }, [linked]);
 
   const head = (
     <div className="flex items-start gap-3">
@@ -223,13 +231,24 @@ export function TelegramSettings({ configured, linked, enabled }: { configured: 
       {!linked ? (
         <div className="space-y-3">
           {!link ? (
-            <AppleButton type="button" disabled={pending} onClick={() => run(async () => { const r = await startTelegramLink(); if (r.error) setMsg({ error: r.error }); else { setMsg(undefined); setLink(r.url); } })}>Connect Telegram</AppleButton>
+            <>
+              <p className="rounded-xl bg-label/5 px-3 py-2 text-[14px]" data-testid="telegram-needs-app">You need the <b>Telegram app on your phone or tablet</b> (free from the App Store or Google Play). {desktop ? 'You are on a computer, so you will get a QR code to scan with your phone.' : ''}</p>
+              <AppleButton type="button" disabled={pending} onClick={() => run(async () => { const r = await startTelegramLink(); if (r.error) setMsg({ error: r.error }); else { setMsg(undefined); setLink(r.url); setQr(r.qr); } })}>Connect Telegram</AppleButton>
+            </>
           ) : (
             <div className="space-y-2 rounded-xl bg-tint/5 p-3" data-testid="telegram-link-box">
-              <p className="text-[14px]">Open this link in Telegram and press <b>Start</b>. It works once and expires in 15 minutes.</p>
+              {desktop ? (
+                <div className="space-y-3" data-testid="telegram-desktop-note">
+                  <p className="rounded-xl bg-warn/10 px-3 py-2 text-[14px] text-label"><b>You are on a computer.</b> Telegram connects from a <b>phone or tablet with the Telegram app installed</b>. Scan this code with your phone&apos;s camera, then press <b>Start</b> in Telegram. Or sign in to Wodejia on your phone and connect from there.</p>
+                  {qr && <div className="mx-auto w-44 rounded-xl bg-white p-2 shadow-sm" data-testid="telegram-qr" role="img" aria-label="QR code to open Telegram on your phone" dangerouslySetInnerHTML={{ __html: qr }} />}
+                  <p className="text-[13px] text-secondary">The code works once and expires in 15 minutes. Already use Telegram Desktop? You can also open the link on this computer.</p>
+                </div>
+              ) : (
+                <p className="text-[14px]" data-testid="telegram-mobile-note">Open this link in Telegram and press <b>Start</b>. It works once and expires in 15 minutes. If Telegram does not open, install the <b>Telegram app</b> from your app store first, then come back and press the button again.</p>
+              )}
               <div className="flex flex-wrap gap-2">
-                <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-tint px-4 text-[17px] font-semibold text-ontint" data-testid="telegram-link"><ExternalLink className="h-4 w-4" aria-hidden />Open Telegram</a>
-                <AppleButton type="button" variant="plain" onClick={() => setLink(undefined)}>Cancel</AppleButton>
+                <a href={link} target="_blank" rel="noopener noreferrer" className={desktop ? 'inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-tint/10 px-4 text-[17px] font-semibold text-tint' : 'inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-tint px-4 text-[17px] font-semibold text-ontint'} data-testid="telegram-link"><ExternalLink className="h-4 w-4" aria-hidden />{desktop ? 'Open on this computer' : 'Open Telegram'}</a>
+                <AppleButton type="button" variant="plain" onClick={() => { setLink(undefined); setQr(undefined); }}>Cancel</AppleButton>
               </div>
               <p className="text-[13px] text-secondary" role="status">Waiting for you to press Start in Telegram…</p>
             </div>

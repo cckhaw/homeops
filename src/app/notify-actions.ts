@@ -12,6 +12,7 @@ import { CODE_TTL_MS, MAX_CODE_ATTEMPTS, codeMatches, hashCode, newCode, sendWha
 import { getPrefs } from '@/lib/prefs';
 import { LINK_TTL_MS, hashToken, linkUrl, newLinkToken, sendTelegram, telegramConfigured } from '@/lib/telegram';
 import { WELCOME_TEXT } from '@/lib/telegram-core';
+import { qrSvg } from '@/lib/qr';
 
 type FormState = { error?: string; ok?: string } | undefined;
 const str = (fd: FormData, k: string, max = 200) => String(fd.get(k) ?? '').trim().slice(0, max);
@@ -134,14 +135,15 @@ export async function removeWhatsapp(): Promise<FormState> {
 // ------------------------------------------------------------------ Telegram
 
 /** Step 1: make a one-time link (valid 15 minutes). Opening it in Telegram and pressing Start connects the chat. */
-export async function startTelegramLink(): Promise<{ error?: string; url?: string }> {
+export async function startTelegramLink(): Promise<{ error?: string; url?: string; qr?: string }> {
   const user = await requireUser();
   if (!telegramConfigured()) return { error: 'Telegram reminders are not set up on this site yet.' };
   const limited = await enforce('tg-link', user.id, 10, 3600);
   if (limited) return { error: limited };
   const token = newLinkToken();
   await db.update(profiles).set({ telegramLinkHash: hashToken(token), telegramLinkExpires: new Date(Date.now() + LINK_TTL_MS) }).where(eq(profiles.id, user.id));
-  return { url: linkUrl(token) };
+  const url = linkUrl(token);
+  return { url, qr: await qrSvg(url) }; // the QR lets a computer user scan the link with their phone
 }
 
 export async function setTelegramReminders(on: boolean): Promise<FormState> {
