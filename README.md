@@ -8,7 +8,7 @@ Deeper guides live in [`docs/`](docs/README.md): [architecture and routes](docs/
 ## Features
 | Area | What it does |
 |---|---|
-| Assets | Make/model/serial, install and warranty dates, photos, receipt + manual storage (private), receipt scanning, 150+ brand logos (admin-managed), QR labels |
+| Assets | Make/model/serial, install and warranty dates, photos, receipt + manual storage (private), receipt scanning, **model-sticker (nameplate) reading**, a **warranty claim helper** (letter, e-mail link, print/PDF, claim-pack zip), 150+ brand logos (admin-managed), QR labels |
 | Maintenance | Climate-aware seasonal checklists (tropical / temperate), recurring tasks, assignment to household members, personal calendar feed (`.ics`) |
 | Reminders | One daily digest by **e-mail** and/or **push notification** (per device); tasks, warranties and expiring documents. WhatsApp: *coming soon* (see below) |
 | Records | Document vault with expiry dates, contractors book (one contractor can cover several homes), utility bills with spike warnings, yearly spending report (CSV) |

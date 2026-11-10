@@ -24,7 +24,7 @@ See the table in the [README](../README.md#environment-variables). Changes to en
 4. The daily digest is sent by the cron at 13:00 UTC to users who have reminders on and something due.
 
 ## Browser end-to-end tests
-`bash e2e/run.sh [suite …]` (needs a local Postgres on port 5544 and Playwright's Chromium). The runner starts the app in dev mode against a throw-away database, temporarily replaces `src/db/index.ts` with a plain `pg` connection and restores it when it exits. If a run is interrupted, restore it with `git checkout -- src/db/index.ts` and empty `.env.local`.
+`bash e2e/run.sh [suite …]` (needs a local Postgres on port 5544 and Playwright's Chromium). The runner also starts a fake Anthropic API (port 4060, selected with `OCR_API_BASE_URL`) for the scan tests. The runner starts the app in dev mode against a throw-away database, temporarily replaces `src/db/index.ts` with a plain `pg` connection and restores it when it exits. If a run is interrupted, restore it with `git checkout -- src/db/index.ts` and empty `.env.local`.
 
 | Suite | Covers |
 |---|---|
@@ -34,7 +34,8 @@ See the table in the [README](../README.md#environment-variables). Changes to en
 | `layout`, `side`, `rel7`, `landing`, `rel8` | Sidebar, responsive layout on desktop/tablet/phone, landing page, blog and admin menu |
 | `rel9` | Admin Branding (upload, validation, apply, reset) |
 | `rel10` | Left menu: Dashboard rename, groups, tooltips, edit-home pencil, desktop/tablet/phone fit |
-| `rel11` | FAQ pages, structured data, sitemap entries, in-app help, Support section |
+| `rel11` | FAQ pages, structured data, sitemap entries, in-app help, Support section, old-domain redirect |
+| `rel12` | Model-sticker scan (against a fake AI server) and the warranty claim helper |
 | `rel2` | Turnstile and Apple sign-in |
 
 Unit tests (`npm test`) cover the pure logic: passwords and crypto, dates, reminders, markdown, blog rules, brand-image validation, FAQ content, sitemap and more.

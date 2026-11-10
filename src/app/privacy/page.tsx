@@ -76,7 +76,7 @@ export default async function PrivacyPage() {
           <li>provide, maintain and secure your household dashboard and shared homes;</li>
           <li>send account e-mails you ask for (confirming your address, resetting your password) and maintenance reminders, but only if you turn reminders on;</li>
           <li>generate your Home Passport link, which you control;</li>
-          <li>read a receipt when you press <em>Scan receipt</em> (the file is sent to our AI provider, Anthropic, solely to extract details such as the product name and dates. Nothing is scanned unless you choose to);</li>
+          <li>read a receipt when you press <em>Scan receipt</em>, or the model sticker of an appliance when you press <em>Read label</em> (the file is sent to our AI provider, Anthropic, solely to extract details such as the product name, model, serial number and dates; a sticker photo is not stored. Nothing is scanned unless you choose to);</li>
           <li>detect and prevent abuse, and meet legal obligations.</li>
         </ul>
         <p>We do not use your data for advertising, profiling, or to train our own models, and we do not sell or rent it to anyone.</p>

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { FAQ_CATEGORIES, FAQ_UPDATED, allFaqItems, answerSnippet, faqCategory, faqItem, faqPageLd, faqUrl, plainAnswer, relatedFaqs } from '@/lib/faq';
 
 const ROUTES = ['/privacy', '/terms', '/register', '/login'];
+const isInternalFaq = (u: string) => /^\/faq\/[a-z0-9-]+\/[a-z0-9-]+$/.test(u);
 
 describe('FAQ content', () => {
   it('has unique, URL-safe slugs', () => {
@@ -37,7 +38,7 @@ describe('FAQ content', () => {
   });
 
   it('only links to pages that exist', () => {
-    for (const { item } of allFaqItems()) for (const m of item.a.matchAll(/\]\((\/[^)]*)\)/g)) expect(ROUTES).toContain(m[1]);
+    for (const { item } of allFaqItems()) for (const m of item.a.matchAll(/\]\((\/[^)]*)\)/g)) expect(ROUTES.includes(m[1]) || (isInternalFaq(m[1]) && !!faqItem(m[1].split('/')[2], m[1].split('/')[3]))).toBe(true);
   });
 
   it('does not promise things that are not built', () => {
