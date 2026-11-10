@@ -52,12 +52,12 @@ export default async function ReportPage({ params: p }: { params: Promise<{ id: 
           )}
         </GlassCard>
       )}
-      <ReportEditor id={id} inspectedOn={rep.inspectedOn} notes={rep.notes} items={items.map((i) => ({ id: i.id, room: i.room, item: i.item, condition: i.condition, notes: i.notes, hasPhoto: !!i.photoUrl }))} />
+      <ReportEditor id={id} inspectedOn={rep.inspectedOn} notes={rep.notes} items={items.map((i) => ({ id: i.id, room: i.room, item: i.item, condition: i.condition, notes: i.notes, hasPhoto: !!i.photoUrl, photoIsPdf: /\.pdf(\?|$)/i.test(i.photoUrl ?? '') }))} />
       {/* print layout: a plain table of everything */}
       <div className="hidden print:block" id="report-print">
         <h2 className="mb-2 text-[20px] font-bold">{title}: {household.name}</h2>
-        <table className="w-full border-collapse text-[12px]"><thead><tr><th className="border p-1 text-left">Room</th><th className="border p-1 text-left">Item</th><th className="border p-1 text-left">Condition</th><th className="border p-1 text-left">Notes</th></tr></thead>
-          <tbody>{items.map((i) => <tr key={i.id}><td className="border p-1">{i.room}</td><td className="border p-1">{i.item}</td><td className="border p-1">{conditionLabel(i.condition)}</td><td className="border p-1">{i.notes ?? ''}{i.photoUrl ? ' (photo)' : ''}</td></tr>)}</tbody></table>
+        <table className="w-full border-collapse text-[12px]"><thead><tr><th className="border p-1 text-left">Room</th><th className="border p-1 text-left">Item</th><th className="border p-1 text-left">Condition</th><th className="border p-1 text-left">Notes</th><th className="border p-1 text-left">Photo</th></tr></thead>
+          <tbody>{items.map((i) => <tr key={i.id}><td className="border p-1">{i.room}</td><td className="border p-1">{i.item}</td><td className="border p-1">{conditionLabel(i.condition)}</td><td className="border p-1">{i.notes ?? ''}</td><td className="border p-1">{i.photoUrl ? (/\.pdf(\?|$)/i.test(i.photoUrl) ? 'PDF attached' : /* eslint-disable-next-line @next/next/no-img-element */ <img src={`/api/condition/${i.id}`} alt={`${i.room} ${i.item}`} style={{ width: 90, height: 68, objectFit: 'cover' }} />) : ''}</td></tr>)}</tbody></table>
         {rep.notes && <p className="mt-3 text-[12px]"><b>Notes:</b> {rep.notes}</p>}
         <p className="mt-8 text-[12px]">Landlord signature: ____________________ &nbsp;&nbsp; Tenant signature: ____________________ &nbsp;&nbsp; Date: __________</p>
       </div>
