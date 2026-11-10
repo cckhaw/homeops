@@ -50,6 +50,11 @@ const CATS=['getting-started','assets-and-warranties','maintenance-and-reminders
  await a.screenshot({path:S+'/faq-question.png'});
  await a.goto(BASE+'/faq'); await a.screenshot({path:S+'/faq-index.png'});
 
+ // ---- the retired domain forwards to the main one; other hosts are untouched
+ { const old=await a.request.get(BASE+'/faq/troubleshooting?x=1',{headers:{host:'homeops.khaw.cc'},maxRedirects:0}); const loc=old.headers()['location']||'';
+   assert(old.status()===308 && /\/faq\/troubleshooting\?x=1$/.test(loc) && !/homeops\.khaw\.cc/.test(loc),`homeops.khaw.cc/... answers 308 to the main domain with path and query kept (${loc})`);
+   const dash=await a.request.get(BASE+'/dashboard',{headers:{host:'homeops.khaw.cc'},maxRedirects:0}); assert(dash.status()===308,'old-domain app links forward too');
+   const same=await a.request.get(BASE+'/faq',{maxRedirects:0}); assert(same.status()===200,'the main address is served normally (no redirect loop)'); }
  // ---- signed in: in-app help + Support group
  const dc=await sess('admin@test.dev',{width:1440,height:900}); const d=await dc.newPage(); d.on('pageerror',e=>errs.push(e.message));
  await d.goto(BASE+'/dashboard/help'); assert(await d.locator('h1:has-text("Help & FAQ")').count()===1 && await d.locator('aside a[href="/dashboard/help"]').count()===1,'in the app, Help & FAQ opens inside the menu layout and the sidebar links to it');
