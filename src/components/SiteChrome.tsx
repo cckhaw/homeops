@@ -5,7 +5,7 @@ import Logo from './Logo';
 import { ThemeToggle } from './misc';
 
 /** Header for public content pages (blog). It never depends on who is visiting, so these pages can be cached and served fast. */
-export function SiteHeader({ active }: { active?: 'blog' | 'faq' }) {
+export function SiteHeader({ active }: { active?: 'blog' | 'faq' | 'tools' }) {
   const link = (href: string, label: string, on?: boolean) => (
     <Link href={href} aria-current={on ? 'page' : undefined} className={on ? 'font-semibold text-label' : 'transition hover:text-label'}>{label}</Link>
   );
@@ -21,6 +21,7 @@ export function SiteHeader({ active }: { active?: 'blog' | 'faq' }) {
           {link('/#features', 'Features')}
           {link('/#how', 'How it works')}
           {link('/blog', 'Blog', active === 'blog')}
+          {link('/tools', 'Free tools', active === 'tools')}
           {link('/faq', 'FAQ', active === 'faq')}
         </nav>
         <div className="flex items-center gap-1.5">
@@ -44,6 +45,8 @@ export function SiteFooter() {
           © {new Date().getFullYear()} Wodejia
           {' · '}
           <Link href="/blog" className="font-semibold text-tint">Blog</Link>
+          {' · '}
+          <Link href="/tools" className="font-semibold text-tint">Free tools</Link>
           {' · '}
           <Link href="/faq" className="font-semibold text-tint">FAQ</Link>
           {' · '}

@@ -6,6 +6,7 @@ import { siteBaseUrl } from '@/lib/donate';
 import { blocksText, parseMarkdown } from '@/lib/markdown-core';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import BlogArticle from '@/components/BlogArticle';
+import NewsletterForm from '@/components/NewsletterForm';
 
 // Incremental static regeneration: the page is cached at the CDN and refreshed every minute (and at once when an admin saves),
 // so a scheduled post appears about a minute after its time. Public pages must not depend on cookies or the visitor.
@@ -90,7 +91,7 @@ export default async function BlogPost({ params }: Props) {
   return (
     <div className="min-h-dvh">
       <SiteHeader active="blog" />
-      <main className="pb-20"><BlogArticle post={post} related={related} /></main>
+      <main className="pb-20"><BlogArticle post={post} related={related} /><div className="mx-auto mt-10 max-w-3xl px-5"><NewsletterForm source="blog" /></div></main>
       <SiteFooter />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld).replace(/</g, '\\u003c') }} />
     </div>

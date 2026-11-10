@@ -13,6 +13,9 @@ export const PUBLIC_PAGES: PublicPage[] = [
   { path: '/', priority: 1, changeFrequency: 'monthly', updated: 'build' },
   { path: '/blog', priority: 0.7, changeFrequency: 'weekly', updated: 'blog' },
   { path: '/faq', priority: 0.8, changeFrequency: 'monthly', updated: 'faq' },
+  { path: '/tools', priority: 0.7, changeFrequency: 'monthly', updated: 'build' },
+  { path: '/tools/aircon-service-cost', priority: 0.7, changeFrequency: 'monthly', updated: 'build' },
+  { path: '/tools/appliance-lifespan', priority: 0.7, changeFrequency: 'monthly', updated: 'build' },
   { path: '/register', priority: 0.8, changeFrequency: 'yearly', updated: 'build' },
   { path: '/login', priority: 0.5, changeFrequency: 'yearly', updated: 'build' },
   { path: '/privacy', priority: 0.4, changeFrequency: 'yearly', updated: 'legal' },
@@ -21,7 +24,7 @@ export const PUBLIC_PAGES: PublicPage[] = [
 ];
 
 /** Paths search engines must never crawl: signed-in areas, tokens, APIs and one-off pages. */
-export const PRIVATE_PATHS = ['/dashboard', '/admin', '/api/', '/passport/', '/join/', '/reset-password', '/forgot-password', '/support/thanks', '/brand-asset/'];
+export const PRIVATE_PATHS = ['/dashboard', '/admin', '/api/', '/passport/', '/join/', '/reset-password', '/forgot-password', '/support/thanks', '/brand-asset/', '/newsletter/'];
 
 export const publicPaths = (donations: boolean) => PUBLIC_PAGES.filter((p) => !p.donationsOnly || donations).map((p) => p.path);
 

@@ -44,6 +44,7 @@ If you change the secret or the domain, press Register webhook again.
 | `rel11` | FAQ pages, structured data, sitemap entries, in-app help, Support section, old-domain redirect |
 | `rel12` | Model-sticker scan (against a fake AI server) and the warranty claim helper |
 | `rel13` | Telegram: connect link, webhook security, digest delivery, blocked chats, admin webhook setup (fake Telegram server on port 4070) |
+| `rel16` | Newsletter sign-up, confirm, admin send and resume, unsubscribe (page, one-click, headers), free tools pages (SEO, calculators) |
 | `rel15` | Rentals: tenancies, rent reminders and arrears, mark rent received, condition reports and move-out comparison, access control |
 | `rel14` | Property dates for Singapore/Malaysia, and the Telegram card when the bot is not configured |
 | `rel2` | Turnstile and Apple sign-in |

@@ -89,6 +89,7 @@ export default async function PrivacyPage() {
           <li><strong>Vercel</strong>: website hosting and file storage (Vercel Blob) for uploaded receipts and manuals.</li>
           <li><strong>Neon</strong>: the encrypted Postgres database that stores your account and household records.</li>
           <li><strong>Resend</strong>: delivers account and reminder e-mails (receives your e-mail address and the message).</li>
+          <li><strong>Newsletter</strong> (only if you subscribe): your e-mail address, when you confirmed and when you unsubscribed. Messages are delivered by Resend. Every newsletter has an unsubscribe link. We keep an unsubscribed address, marked as unsubscribed, so we do not e-mail it again; delete your account or write to us to have it erased.</li>
           <li><strong>Telegram</strong>: only if you connect it. Telegram receives your reminder messages and the chat identifier of the conversation you linked; Wodejia never sees your phone number or other Telegram details. You can disconnect any time in Settings.</li>
           <li><strong>Stripe</strong>: processes optional donations.</li>
           <li><strong>Anthropic</strong>: reads receipts on request (see above).</li>

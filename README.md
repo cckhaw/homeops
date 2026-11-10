@@ -19,6 +19,7 @@ Deeper guides live in [`docs/`](docs/README.md): [architecture and routes](docs/
 | Homes & people | Many homes per user (icon switcher, searchable when you have more than four), invite links, owner/admin/member roles |
 | Help centre | Public FAQ at `/faq` (8 topics, 45 questions, one page per question, FAQPage + breadcrumb structured data) and the same content in the app under Help & FAQ; edit it in `src/lib/faq-data.ts` |
 | SEO | `sitemap.xml` built from one list of public pages plus published posts and FAQ pages with real last-modified dates; `robots.txt` from the same list; canonical URLs, Open Graph, JSON-LD (see [docs/SEO.md](docs/SEO.md)) |
+| Free tools & newsletter | Public, no-login tools for SEO and sign-ups: **air-con service cost calculator** (Singapore/Malaysia) and **appliance lifespan guide and age checker** (`/tools`, with FAQ + structured data). Blog/FAQ/tools **newsletter** with double opt-in, one-click unsubscribe (List-Unsubscribe headers) and an admin composer (Admin → Newsletter: test send, batched send, resume without duplicates) |
 | Blog & branding | Public blog with scheduled publishing and SEO checks, admin menu for posts; admin can upload their own logo, app icon and share image (Admin → Branding) |
 | Account | E-mail + password, 2FA, optional Google / Apple sign-in, data export and account deletion |
 

@@ -5,6 +5,7 @@ import { siteBaseUrl } from '@/lib/donate';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import FaqSearch from '@/components/FaqSearch';
 import { CategoryCard, Cta } from '@/components/FaqPublic';
+import NewsletterForm from '@/components/NewsletterForm';
 
 export const metadata: Metadata = {
   title: 'Help centre & FAQ: home maintenance, warranties, reminders',
@@ -52,6 +53,7 @@ export default function FaqIndex() {
             </div>
           ))}
           <Cta />
+          <div className="mt-10"><NewsletterForm source="faq" /></div>
         </section>
       </main>
       <SiteFooter />

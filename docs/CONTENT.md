@@ -14,6 +14,13 @@
 - After editing answers, bump `FAQ_UPDATED` so the sitemap's `lastmod` is accurate.
 - Describe only what the product really does; check against the code or the privacy policy first.
 
+## Newsletter (Admin → Newsletter)
+- Write in Markdown (headings, **bold**, links, lists). *Start from the latest blog post* pre-fills subject and a link. *Send me a test* mails only you, through the real template. *Send* goes to confirmed subscribers, up to 300 per press: press again ("Send to the rest") to continue; nobody gets an issue twice.
+- Only people who confirmed from their inbox receive it; every e-mail has an unsubscribe link. Needs `RESEND_API_KEY` and a verified sending domain (`EMAIL_FROM`); check your Resend plan's daily and per-second limits before large sends.
+
+## Free tools
+The air-con price ranges, usage assumptions and appliance lifespans are in `src/lib/tools-core.ts` as plain tables. They are indicative 2026 market ranges and rules of thumb: review them once or twice a year, update the numbers and the matching FAQ text on the page, and the unit tests will tell you if a change breaks the maths.
+
 ## Welcome tour
 `src/components/WelcomeTour.tsx` (`SLIDES`). Shown once after first sign-in; replayable from Settings → Profile. Keep it to a handful of slides and update it when a major feature ships.
 

@@ -106,6 +106,7 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
             <a href="#how" className="transition hover:text-label">How it works</a>
             <a href="#private" className="transition hover:text-label">Privacy</a>
             <Link href="/blog" className="transition hover:text-label">Blog</Link>
+            <Link href="/tools" className="transition hover:text-label">Free tools</Link>
             <Link href="/faq" className="transition hover:text-label">FAQ</Link>
           </nav>
           <div className="flex items-center gap-1.5">
@@ -276,6 +277,8 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
             © {new Date().getFullYear()} Wodejia
             {' · '}
             <Link href="/blog" className="font-semibold text-tint">Blog</Link>
+            {' · '}
+            <Link href="/tools" className="font-semibold text-tint">Free tools</Link>
             {' · '}
             <Link href="/faq" className="font-semibold text-tint">FAQ</Link>
             {' · '}

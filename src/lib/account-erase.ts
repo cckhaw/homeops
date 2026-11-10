@@ -1,7 +1,7 @@
 import 'server-only';
 import { and, asc, eq, ne } from 'drizzle-orm';
 import { db } from '@/db';
-import { assets, householdMembers, households, loginTokens, profiles } from '@/db/schema';
+import { assets, householdMembers, households, loginTokens, newsletterSubscribers, profiles } from '@/db/schema';
 import { deleteBlobs } from '@/lib/blob';
 import { listMemberships } from '@/lib/household';
 
@@ -31,6 +31,7 @@ export async function eraseAccount(user: { id: string; email: string }) {
     }
   }
   await deleteBlobs(fileUrls);
+  await db.delete(newsletterSubscribers).where(eq(newsletterSubscribers.email, user.email.toLowerCase()));
   await db.delete(loginTokens).where(eq(loginTokens.email, user.email));
   await db.delete(profiles).where(eq(profiles.id, user.id)); // cascades memberships, reminder logs, invites they created
 }

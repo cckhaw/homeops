@@ -16,14 +16,14 @@ ${cta ? `<p style="margin:24px 0"><a href="${escapeHtml(cta.url)}" style="displa
 }
 
 /** Sends via Resend. Returns false (and logs) on failure; never throws. */
-export async function sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+export async function sendEmail(to: string, subject: string, html: string, opts: { headers?: Record<string, string> } = {}): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
   try {
     const res = await fetch(process.env.RESEND_API_URL ?? 'https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: process.env.EMAIL_FROM ?? 'Wodejia <onboarding@resend.dev>', to, subject, html }),
+      body: JSON.stringify({ from: process.env.EMAIL_FROM ?? 'Wodejia <onboarding@resend.dev>', to, subject, html, ...(opts.headers ? { headers: opts.headers } : {}) }),
     });
     if (!res.ok) console.error('Resend error', res.status, await res.text().catch(() => ''));
     return res.ok;

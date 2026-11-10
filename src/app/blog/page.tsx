@@ -4,6 +4,7 @@ import { livePosts } from '@/lib/blog';
 import { siteBaseUrl } from '@/lib/donate';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import BlogList from '@/components/BlogList';
+import NewsletterForm from '@/components/NewsletterForm';
 
 // Incremental static regeneration: the page is cached at the CDN and refreshed every minute (and at once when an admin saves),
 // so a scheduled post appears about a minute after its time. Public pages must not depend on cookies or the visitor.
@@ -33,6 +34,7 @@ export default async function BlogIndex() {
       <SiteHeader active="blog" />
       <main>
         <BlogList />
+        <section className="mx-auto max-w-6xl px-5 pb-10"><NewsletterForm source="blog" /></section>
         <section className="mx-auto max-w-6xl px-5 pb-20">
           <div className="rounded-[28px] bg-tint px-6 py-12 text-center text-ontint sm:px-12">
             <h2 className="text-balance text-[28px] font-bold leading-tight tracking-tight sm:text-[36px]">Put the advice on autopilot.</h2>

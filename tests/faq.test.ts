@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { FAQ_CATEGORIES, FAQ_UPDATED, allFaqItems, answerSnippet, faqCategory, faqItem, faqPageLd, faqUrl, plainAnswer, relatedFaqs } from '@/lib/faq';
 
-const ROUTES = ['/privacy', '/terms', '/register', '/login'];
+const ROUTES = ['/privacy', '/terms', '/register', '/login', '/tools'];
 const isInternalFaq = (u: string) => /^\/faq\/[a-z0-9-]+\/[a-z0-9-]+$/.test(u);
 
 describe('FAQ content', () => {
