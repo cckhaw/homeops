@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState, useTransition } from 'react';
-import { BellRing, MessageCircle, Smartphone, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { BellRing, ExternalLink, MessageCircle, Send, Smartphone, Trash2 } from 'lucide-react';
 import { useServerForm } from './useServerForm';
 import { Field, Msg } from './forms';
 import AppleButton, { SubmitButton } from './AppleButton';
-import { confirmWhatsapp, removePushDevice, removePushSubscription, removeWhatsapp, savePushSubscription, sendTestPush, setWhatsappReminders, startWhatsappVerification } from '@/app/notify-actions';
+import { confirmWhatsapp, removePushDevice, removePushSubscription, removeTelegram, removeWhatsapp, savePushSubscription, sendTestPush, sendTestTelegram, setTelegramReminders, setWhatsappReminders, startTelegramLink, startWhatsappVerification } from '@/app/notify-actions';
 
 type FormState = { error?: string; ok?: string } | undefined;
 
@@ -176,6 +177,75 @@ export function WhatsappSettings({ configured, number, verified, enabled, awaiti
             </form>
           )}
         </>
+      )}
+      <Msg state={msg} />
+    </div>
+  );
+}
+
+/** Telegram reminders: press Connect → open the link in Telegram → press Start. The page notices the link by itself. */
+export function TelegramSettings({ configured, linked, enabled }: { configured: boolean; linked: boolean; enabled: boolean }) {
+  const router = useRouter();
+  const [msg, setMsg] = useState<FormState>();
+  const [link, setLink] = useState<string>();
+  const [pending, run] = useTransition();
+  const [on, setOn] = useState(enabled);
+  useEffect(() => setOn(enabled), [enabled]);
+  // while a link is waiting to be opened, check every 3 seconds (for up to 5 minutes) whether the connection has happened
+  useEffect(() => {
+    if (!link || linked) return;
+    let n = 0;
+    const t = setInterval(() => { router.refresh(); if (++n > 100) clearInterval(t); }, 3000);
+    return () => clearInterval(t);
+  }, [link, linked, router]);
+  useEffect(() => { if (linked) setLink(undefined); }, [linked]);
+
+  const head = (
+    <div className="flex items-start gap-3">
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-tint/10 text-tint"><Send className="h-5 w-5" aria-hidden /></span>
+      <div className="min-w-0">
+        <p className="text-[17px] font-semibold">Telegram reminders</p>
+        <p className="text-[13px] text-secondary">The same daily reminders as a Telegram message. Free, and no phone number is shared with Wodejia.</p>
+      </div>
+    </div>
+  );
+  if (!configured) {
+    return (
+      <div className="space-y-3" data-testid="telegram-card">
+        {head}
+        <p className="rounded-xl bg-label/5 px-3 py-2 text-[14px] text-secondary" data-testid="telegram-off">Telegram reminders are not set up on this site yet.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-3" data-testid="telegram-card">
+      {head}
+      {!linked ? (
+        <div className="space-y-3">
+          {!link ? (
+            <AppleButton type="button" disabled={pending} onClick={() => run(async () => { const r = await startTelegramLink(); if (r.error) setMsg({ error: r.error }); else { setMsg(undefined); setLink(r.url); } })}>Connect Telegram</AppleButton>
+          ) : (
+            <div className="space-y-2 rounded-xl bg-tint/5 p-3" data-testid="telegram-link-box">
+              <p className="text-[14px]">Open this link in Telegram and press <b>Start</b>. It works once and expires in 15 minutes.</p>
+              <div className="flex flex-wrap gap-2">
+                <a href={link} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-tint px-4 text-[17px] font-semibold text-ontint" data-testid="telegram-link"><ExternalLink className="h-4 w-4" aria-hidden />Open Telegram</a>
+                <AppleButton type="button" variant="plain" onClick={() => setLink(undefined)}>Cancel</AppleButton>
+              </div>
+              <p className="text-[13px] text-secondary" role="status">Waiting for you to press Start in Telegram…</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          <label className="flex min-h-[44px] items-center gap-3 text-[16px]">
+            <input type="checkbox" checked={on} disabled={pending} onChange={(e) => { const v = e.target.checked; setOn(v); run(async () => { const r = await setTelegramReminders(v); setMsg(r); if (r?.error) setOn(!v); }); }} className="h-5 w-5 accent-[rgb(var(--tint))]" />
+            Send my reminders on Telegram
+          </label>
+          <div className="flex flex-wrap gap-3">
+            <AppleButton type="button" variant="secondary" disabled={pending} onClick={() => run(async () => setMsg(await sendTestTelegram()))}>Send a test</AppleButton>
+            <AppleButton type="button" variant="plain" disabled={pending} onClick={() => run(async () => setMsg(await removeTelegram()))}>Disconnect</AppleButton>
+          </div>
+        </div>
       )}
       <Msg state={msg} />
     </div>

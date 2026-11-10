@@ -10,6 +10,8 @@ import { toInternational, maskPhone } from '@/lib/phone';
 import { pushConfigured, sendPushToUser } from '@/lib/push';
 import { CODE_TTL_MS, MAX_CODE_ATTEMPTS, codeMatches, hashCode, newCode, sendWhatsappTemplate, whatsappConfigured } from '@/lib/whatsapp';
 import { getPrefs } from '@/lib/prefs';
+import { LINK_TTL_MS, hashToken, linkUrl, newLinkToken, sendTelegram, telegramConfigured } from '@/lib/telegram';
+import { WELCOME_TEXT } from '@/lib/telegram-core';
 
 type FormState = { error?: string; ok?: string } | undefined;
 const str = (fd: FormData, k: string, max = 200) => String(fd.get(k) ?? '').trim().slice(0, max);
@@ -127,4 +129,46 @@ export async function removeWhatsapp(): Promise<FormState> {
     .where(eq(profiles.id, user.id));
   revalidatePath('/dashboard/settings', 'layout');
   return { ok: 'Your number has been removed.' };
+}
+
+// ------------------------------------------------------------------ Telegram
+
+/** Step 1: make a one-time link (valid 15 minutes). Opening it in Telegram and pressing Start connects the chat. */
+export async function startTelegramLink(): Promise<{ error?: string; url?: string }> {
+  const user = await requireUser();
+  if (!telegramConfigured()) return { error: 'Telegram reminders are not set up on this site yet.' };
+  const limited = await enforce('tg-link', user.id, 10, 3600);
+  if (limited) return { error: limited };
+  const token = newLinkToken();
+  await db.update(profiles).set({ telegramLinkHash: hashToken(token), telegramLinkExpires: new Date(Date.now() + LINK_TTL_MS) }).where(eq(profiles.id, user.id));
+  return { url: linkUrl(token) };
+}
+
+export async function setTelegramReminders(on: boolean): Promise<FormState> {
+  const user = await requireUser();
+  if (on && !user.telegramChatId) return { error: 'Connect Telegram first.' };
+  await db.update(profiles).set({ notifyTelegram: on }).where(eq(profiles.id, user.id));
+  revalidatePath('/dashboard/settings', 'layout');
+  return { ok: on ? 'Telegram reminders are on.' : 'Telegram reminders are off.' };
+}
+
+export async function sendTestTelegram(): Promise<FormState> {
+  const user = await requireUser();
+  if (!telegramConfigured() || !user.telegramChatId) return { error: 'Connect Telegram first.' };
+  const limited = await enforce('tg-test', user.id, 6, 600);
+  if (limited) return { error: limited };
+  const r = await sendTelegram(user.telegramChatId, `${WELCOME_TEXT}\n\n(This is a test message.)`);
+  if (r === 'blocked') {
+    await db.update(profiles).set({ telegramChatId: null, notifyTelegram: false, telegramLinkedAt: null }).where(eq(profiles.id, user.id));
+    revalidatePath('/dashboard/settings', 'layout');
+    return { error: 'Telegram says the chat is closed or the bot was blocked. Connect again to continue.' };
+  }
+  return r === 'sent' ? { ok: 'Test message sent. Check Telegram.' } : { error: 'The message could not be sent. Try again in a moment.' };
+}
+
+export async function removeTelegram(): Promise<FormState> {
+  const user = await requireUser();
+  await db.update(profiles).set({ notifyTelegram: false, telegramChatId: null, telegramLinkedAt: null, telegramLinkHash: null, telegramLinkExpires: null }).where(eq(profiles.id, user.id));
+  revalidatePath('/dashboard/settings', 'layout');
+  return { ok: 'Telegram has been disconnected.' };
 }

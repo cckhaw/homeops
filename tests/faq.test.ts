@@ -43,7 +43,7 @@ describe('FAQ content', () => {
 
   it('does not promise things that are not built', () => {
     const all = allFaqItems().map((x) => x.item.a).join(' ');
-    expect(all).not.toMatch(/telegram|sms reminder/i);
+    expect(all).not.toMatch(/sms reminder|reminders? by sms/i);
     expect(all).not.toMatch(/HomeOps/);
   });
 });

@@ -28,6 +28,12 @@ export const profiles = pgTable('profiles', {
   calendarToken: text('calendar_token').unique(), // secret path for the personal .ics feed
   // WhatsApp reminders: opt-in, number confirmed with a one-time code sent to it
   notifyWhatsapp: boolean('notify_whatsapp').default(false).notNull(),
+  // Telegram reminders: linked by opening a one-time deep link (the token is stored only as a hash)
+  notifyTelegram: boolean('notify_telegram').default(false).notNull(),
+  telegramChatId: text('telegram_chat_id'),
+  telegramLinkedAt: timestamp('telegram_linked_at'),
+  telegramLinkHash: text('telegram_link_hash'),
+  telegramLinkExpires: timestamp('telegram_link_expires'),
   whatsappNumber: text('whatsapp_number'), // international digits, no '+'
   whatsappVerifiedAt: timestamp('whatsapp_verified_at'),
   whatsappCodeHash: text('whatsapp_code_hash'),

@@ -88,6 +88,7 @@ export default async function PrivacyPage() {
           <li><strong>Vercel</strong>: website hosting and file storage (Vercel Blob) for uploaded receipts and manuals.</li>
           <li><strong>Neon</strong>: the encrypted Postgres database that stores your account and household records.</li>
           <li><strong>Resend</strong>: delivers account and reminder e-mails (receives your e-mail address and the message).</li>
+          <li><strong>Telegram</strong>: only if you connect it. Telegram receives your reminder messages and the chat identifier of the conversation you linked; Wodejia never sees your phone number or other Telegram details. You can disconnect any time in Settings.</li>
           <li><strong>Stripe</strong>: processes optional donations.</li>
           <li><strong>Anthropic</strong>: reads receipts on request (see above).</li>
           <li><strong>Apple</strong>: optional &ldquo;Sign in with Apple&rdquo;. Apple tells us your name (first time only) and an e-mail address, which may be Apple&apos;s private relay address if you choose to hide yours.</li>

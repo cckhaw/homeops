@@ -22,26 +22,28 @@ Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS (Apple HIG sty
 
 **Public (not indexed):** `/forgot-password`, `/reset-password`, `/join/[token]` (household invite), `/passport/[token]` (shared Home Service Passport), `/support/thanks`
 
-**Signed in (`/dashboard/…`):** home dashboard, `assets` (+ `[id]`, `[id]/label`, `[id]/claim`), `schedule`, `household`, `passport`, `documents`, `contractors`, `bills`, `reports` (spending), `pack` (move-out pack), `labels` (QR labels), `homes` (switch, edit with the pencil, add), `help` (FAQ in the app), `more` (phone hub), `settings/{profile,appearance,notifications,security,privacy}`
+**Signed in (`/dashboard/…`):** home dashboard, `assets` (+ `[id]`, `[id]/label`, `[id]/claim`), `schedule`, `household`, `passport`, `documents`, `contractors`, `bills`, `property` (SG/MY property dates), `reports` (spending), `pack` (move-out pack), `labels` (QR labels), `homes` (switch, edit with the pencil, add), `help` (FAQ in the app), `more` (phone hub), `settings/{profile,appearance,notifications,security,privacy}`
 
 **Admin (`/admin/…`, admins only):** analytics, `users`, `blog` (+ scheduling), `brands` (appliance brand logos), `branding` (site logo, icon, share image), `errors`, `audit`, `settings` (site config)
 
-**Route handlers (`/api/…`):** auth, `ocr` (receipt scan, and `mode=label` for the model sticker), `claim/[assetId]` (warranty claim pack zip), `files/[assetId]/[kind]` and `documents/[id]` (private file proxies), `export`, `pack`, `report`, `calendar/[token]/[file]` (ICS feed), `cron/reminders`, `donate`, `passport/[id]`, `health/*`. Also `/brand-asset/[kind]` (uploaded logo/icon/share image), `/icons/[size]`, `/favicon.ico`, `/opengraph-image`, `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`.
+**Route handlers (`/api/…`):** auth, `ocr` (receipt scan, and `mode=label` for the model sticker), `claim/[assetId]` (warranty claim pack zip), `files/[assetId]/[kind]` and `documents/[id]` (private file proxies), `export`, `pack`, `report`, `calendar/[token]/[file]` (ICS feed), `cron/reminders`, `telegram/webhook`, `donate`, `passport/[id]`, `health/*`. Also `/brand-asset/[kind]` (uploaded logo/icon/share image), `/icons/[size]`, `/favicon.ico`, `/opengraph-image`, `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`.
 
 ## Data model (Postgres, `src/db/schema.ts`)
 | Area | Tables |
 |---|---|
 | People and homes | `profiles`, `households`, `household_members` (owner/admin/member), `household_invites` (7-day links), `login_tokens` (e-mail confirm / reset) |
 | Home records | `assets`, `service_records`, `maintenance_tasks`, `task_reminders`, `asset_reminders`, `documents`, `document_reminders`, `utility_bills`, `contractors`, `contractor_homes` (one contractor, several homes) |
-| Notifications | `push_subscriptions` (one row per device) |
+| Notifications | `push_subscriptions` (one row per device); Telegram link columns on `profiles` (`telegram_chat_id`, one-time `telegram_link_hash`) |
 | Content and branding | `blog_posts` (status + `publish_at` for scheduling), `brand_assets` (uploaded logo/icon/share image, base64), `brands` (appliance brands) |
 | Platform | `site_settings` (key/value site config), `rate_limits`, `error_log`, `audit_log` |
 
 ## Main flows
 - **Access control.** Every signed-in page calls `requireHousehold()`/`requireUser()`; actions re-check the role (`owner`/`admin` manage a home). Admin pages call `requireAdmin()`. Files are served only through proxy routes that check household membership; storage is private.
-- **Reminders.** A daily Vercel Cron (`vercel.json`, 13:00 UTC) calls `/api/cron/reminders`. `src/lib/digest-core.ts` builds one channel-neutral digest per user (tasks, warranties, expiring documents), `src/lib/reminders.ts` sends it by e-mail and Web Push. WhatsApp is built but off (`WHATSAPP_ENABLED`).
+- **Reminders.** A daily Vercel Cron (`vercel.json`, 13:00 UTC) calls `/api/cron/reminders`. `src/lib/digest-core.ts` builds one channel-neutral digest per user (tasks, warranties, expiring documents), `src/lib/reminders.ts` sends it by e-mail, Web Push and Telegram. WhatsApp is built but off (`WHATSAPP_ENABLED`).
 - **Receipt and sticker scanning.** `POST /api/ocr` (`mode=receipt` or `mode=label`) sends the image to Anthropic only when the user presses Scan or Read label, rate-limited per minute and per day. Prompts and result cleaning live in `src/lib/ocr-core.ts` (unit-tested); sticker photos are never stored.
 - **Warranty claims.** `src/lib/claim-core.ts` builds the letter from the asset's saved facts (pure, unit-tested); `ClaimBuilder` shows it live; `/api/claim/[assetId]` zips the letter with the saved receipt, manual and photo for members of the home. Nothing is sent by Wodejia.
+- **Telegram.** Settings creates a one-time token (only its hash is stored, 15 minutes); the user opens `t.me/<bot>?start=<token>` and presses Start; Telegram calls `/api/telegram/webhook` (checked with the secret header) which links the chat. Messages are sent through `src/lib/telegram.ts`; a chat that blocked the bot is unlinked automatically. Pure helpers (tokens, commands, message text) are in `telegram-core.ts`.
+- **Property dates.** `src/lib/property-core.ts` holds the region templates and validation; `addPropertyReminders` turns ticked items into ordinary repeating `maintenance_tasks`, so reminders, calendar feed and Schedule work unchanged.
 - **Caching.** Public pages (blog, FAQ, landing) are static or ISR (`revalidate = 60`) and carry no per-visitor data, so the CDN can serve them. Signed-in pages are dynamic. The root layout reads the uploaded logo/icon from the database through a tagged cache that admin changes clear.
 - **Theme.** Day/night and accent colour are stored in the browser and applied before first paint (`THEME_INIT_SCRIPT`). The logo turns white in dark mode through CSS variables.
 - **Branding.** Admin uploads are validated from the file bytes (`src/lib/brand-core.ts`), stored in `brand_assets` and served from `/brand-asset/[kind]?v=<revision>` with immutable caching. Removing an upload returns to the built-in artwork.

@@ -5,7 +5,8 @@ import { requireHousehold } from '@/lib/auth';
 import GlassCard from '@/components/GlassCard';
 import PageHeader from '@/components/PageHeader';
 import { CalendarFeed, ReminderForm } from '@/components/security-forms';
-import { PushSettings, WhatsappSettings } from '@/components/notify-forms';
+import { PushSettings, TelegramSettings, WhatsappSettings } from '@/components/notify-forms';
+import { telegramConfigured } from '@/lib/telegram';
 import { emailConfigured } from '@/lib/email';
 import { siteBaseUrl } from '@/lib/donate';
 import { vapidPublicKey } from '@/lib/push';
@@ -21,6 +22,7 @@ export default async function NotificationsPage() {
       <PageHeader title="Notifications" subtitle="Choose how Wodejia reminds you about tasks, warranties and documents." />
       <GlassCard><ReminderForm on={user.notifyReminders} lead={user.reminderLeadDays} warranty={user.warrantyLeadDays} emailReady={emailConfigured()} /></GlassCard>
       <GlassCard><PushSettings publicKey={vapidPublicKey()} devices={devices.map((d) => ({ id: d.id, label: d.label, createdAt: d.createdAt.toISOString() }))} /></GlassCard>
+      <GlassCard><TelegramSettings configured={telegramConfigured()} linked={!!user.telegramChatId} enabled={user.notifyTelegram} /></GlassCard>
       <GlassCard><WhatsappSettings configured={whatsappConfigured()} number={user.whatsappNumber} verified={!!user.whatsappVerifiedAt} enabled={user.notifyWhatsapp} awaitingCode={!!user.whatsappCodeHash} /></GlassCard>
       <GlassCard><CalendarFeed token={user.calendarToken} baseUrl={siteBaseUrl('http://localhost:3000')} /></GlassCard>
     </>

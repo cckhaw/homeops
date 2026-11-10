@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, LayoutDashboard, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, CircleHelp, Coffee, PanelLeftClose, PanelLeftOpen, ChevronDown } from 'lucide-react';
+import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, LayoutDashboard, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, CircleHelp, Landmark, Coffee, PanelLeftClose, PanelLeftOpen, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { SETTINGS_SECTIONS } from './settingsSections';
@@ -25,6 +25,7 @@ const records = [
   { href: '/dashboard/documents', label: 'Documents', icon: FolderLock },
   { href: '/dashboard/contractors', label: 'Contractors', icon: HardHat },
   { href: '/dashboard/bills', label: 'Utility bills', icon: Receipt },
+  { href: '/dashboard/property', label: 'Property dates', icon: Landmark },
   { href: '/dashboard/reports', label: 'Spending', icon: BarChart3 },
   { href: '/dashboard/pack', label: 'Move-out pack', icon: FileArchive },
 ];
@@ -190,7 +191,7 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
       {/* Mobile bottom tab bar */}
       <nav aria-label="Primary" className="glass pb-safe fixed inset-x-0 bottom-0 z-30 flex border-x-0 border-b-0 md:hidden">
         {mobileTabs.map(({ href, label, icon: Icon, ...r }) => {
-          const on = active(href, 'exact' in r ? r.exact : false) || (href === '/dashboard/more' && ['/dashboard/documents', '/dashboard/contractors', '/dashboard/bills', '/dashboard/reports', '/dashboard/pack', '/dashboard/labels', '/dashboard/homes', '/dashboard/settings', '/dashboard/help'].some((p) => path.startsWith(p)));
+          const on = active(href, 'exact' in r ? r.exact : false) || (href === '/dashboard/more' && ['/dashboard/documents', '/dashboard/contractors', '/dashboard/bills', '/dashboard/property', '/dashboard/reports', '/dashboard/pack', '/dashboard/labels', '/dashboard/homes', '/dashboard/settings', '/dashboard/help'].some((p) => path.startsWith(p)));
           return (
             <Link
               key={href}
