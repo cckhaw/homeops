@@ -9,7 +9,7 @@
 | `/manifest.webmanifest` | `src/app/manifest.ts` | PWA install data |
 
 ## What the sitemap contains
-- **Static public pages** from `PUBLIC_PAGES` in `src/lib/site-pages.ts` (home, blog, FAQ, register, login, privacy, terms, and `/support` only when donations are configured).
+- **Static public pages** from `PUBLIC_PAGES` in `src/lib/site-pages.ts` (home, blog, FAQ, the free tools, register, login, privacy, terms, and `/support` only when donations are configured).
 - **Blog:** every *published* post and each category that has posts. Drafts and scheduled posts are never listed, and a scheduled post appears about a minute after its publish time.
 - **FAQ:** the index, every topic and every question.
 - **`lastmod` is the real content date**, so search engines can trust it: a post's last edit; `FAQ_UPDATED` (`src/lib/faq-data.ts`) for the help centre; `LEGAL_UPDATED_ISO` (`src/lib/legal-meta.ts`) for privacy/terms; the build date for the landing, sign-up and sign-in pages; for `/blog` and category pages, the newest post inside them.
@@ -21,6 +21,7 @@
 | Add or edit a **blog post** in Admin → Blog | Nothing. Sitemap, RSS and category pages update on their own |
 | Edit an **FAQ answer** or add a question | Edit `src/lib/faq-data.ts` and bump `FAQ_UPDATED` to today. The topic page, question page, sitemap and structured data all follow |
 | Change the **Privacy Policy or Terms** | Update `LAST_UPDATED` and `LEGAL_UPDATED_ISO` in `src/lib/legal-meta.ts` |
+| Add a **free tool** | Add the page under `src/app/tools/<slug>`, its entry in `src/lib/tools-pages.ts` and in `PUBLIC_PAGES`; use `ToolPage` so title, FAQ and structured data match the other tools |
 | Add a **private** route | Add its prefix to `PRIVATE_PATHS` in `src/lib/site-pages.ts` (and keep it out of `PUBLIC_PAGES`) |
 
 `npm test` fails if the sitemap lists a duplicate URL, a private path, a page robots would block, or an invalid date.

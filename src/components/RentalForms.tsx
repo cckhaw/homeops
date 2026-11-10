@@ -16,7 +16,7 @@ export function TenancyForm({ initial = {}, onDone }: { initial?: TenancyValues;
   const { state, pending, formProps, formKey } = useServerForm(initial.id ? updateTenancy.bind(null, initial.id) : addTenancy, { resetOnSuccess: !initial.id });
   void onDone;
   return (
-    <form {...formProps} key={formKey} noValidate className="space-y-3">
+    <form key={formKey} {...formProps} noValidate className="space-y-3">
       <Field label="Tenant name"><input name="tenantName" required maxLength={120} defaultValue={initial.tenantName ?? ''} className="input" autoComplete="off" /></Field>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label="Phone (optional)"><input name="tenantPhone" maxLength={40} defaultValue={initial.tenantPhone ?? ''} className="input" inputMode="tel" /></Field>

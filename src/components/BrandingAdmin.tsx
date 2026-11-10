@@ -62,7 +62,7 @@ export default function BrandCard({ d }: { d: BrandCardData }) {
         ))}
       </div>
 
-      <form {...up.formProps} key={up.formKey} className="mt-4 flex flex-wrap items-center gap-3" encType="multipart/form-data">
+      <form key={up.formKey} {...up.formProps} className="mt-4 flex flex-wrap items-center gap-3" encType="multipart/form-data">
         <input type="hidden" name="kind" value={d.kind} />
         <input
           ref={input}

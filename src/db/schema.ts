@@ -429,3 +429,26 @@ export const conditionItems = pgTable(
   },
   (t) => ({ byReport: index('condition_items_report_idx').on(t.reportId) }),
 );
+
+// --- Newsletter (double opt-in) ---
+
+export const newsletterSubscribers = pgTable('newsletter_subscribers', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  email: text('email').notNull().unique(), // lower-case
+  status: text('status').default('pending').notNull(), // pending | subscribed | unsubscribed
+  source: text('source'), // where they signed up: blog, faq, tools, footer
+  confirmedAt: timestamp('confirmed_at'),
+  unsubscribedAt: timestamp('unsubscribed_at'),
+  lastIssueId: uuid('last_issue_id'), // the last issue sent to this person (a send can be resumed without duplicates)
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const newsletterIssues = pgTable('newsletter_issues', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  subject: text('subject').notNull(),
+  bodyMd: text('body_md').notNull(),
+  createdBy: uuid('created_by').references(() => profiles.id, { onDelete: 'set null' }),
+  sentCount: integer('sent_count').default(0).notNull(),
+  lastSentAt: timestamp('last_sent_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
