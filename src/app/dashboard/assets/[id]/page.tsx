@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { and, asc, desc, eq } from 'drizzle-orm';
-import { ArrowLeft, BookOpen, FileText, QrCode, Trash2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, FileText, QrCode, ShieldAlert, Trash2 } from 'lucide-react';
 import { db } from '@/db';
 import { assets, maintenanceTasks, serviceRecords } from '@/db/schema';
 import { contractorsForHome } from '@/lib/contractors';
@@ -81,6 +81,7 @@ export default async function AssetDetail({ params: p }: { params: Promise<{ id:
           {asset.receiptUrl ? <AppleButton href={`/api/files/${asset.id}/receipt`} variant="secondary"><FileText className="h-4 w-4" aria-hidden /> Receipt</AppleButton> : <span className="text-[15px] text-secondary">No receipt uploaded.</span>}
           {asset.manualUrl && <AppleButton href={`/api/files/${asset.id}/manual`} variant="secondary"><BookOpen className="h-4 w-4" aria-hidden /> Manual</AppleButton>}
           <AppleButton href={`/dashboard/assets/${asset.id}/label`} variant="secondary"><QrCode className="h-4 w-4" aria-hidden /> QR label</AppleButton>
+          <AppleButton href={`/dashboard/assets/${asset.id}/claim`} variant="secondary"><ShieldAlert className="h-4 w-4" aria-hidden /> Claim warranty</AppleButton>
         </GlassCard>
       </Section>
 

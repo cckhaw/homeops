@@ -22,11 +22,11 @@ Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS (Apple HIG sty
 
 **Public (not indexed):** `/forgot-password`, `/reset-password`, `/join/[token]` (household invite), `/passport/[token]` (shared Home Service Passport), `/support/thanks`
 
-**Signed in (`/dashboard/…`):** home dashboard, `assets` (+ `[id]`, `[id]/label`), `schedule`, `household`, `passport`, `documents`, `contractors`, `bills`, `reports` (spending), `pack` (move-out pack), `labels` (QR labels), `homes` (switch, edit with the pencil, add), `help` (FAQ in the app), `more` (phone hub), `settings/{profile,appearance,notifications,security,privacy}`
+**Signed in (`/dashboard/…`):** home dashboard, `assets` (+ `[id]`, `[id]/label`, `[id]/claim`), `schedule`, `household`, `passport`, `documents`, `contractors`, `bills`, `reports` (spending), `pack` (move-out pack), `labels` (QR labels), `homes` (switch, edit with the pencil, add), `help` (FAQ in the app), `more` (phone hub), `settings/{profile,appearance,notifications,security,privacy}`
 
 **Admin (`/admin/…`, admins only):** analytics, `users`, `blog` (+ scheduling), `brands` (appliance brand logos), `branding` (site logo, icon, share image), `errors`, `audit`, `settings` (site config)
 
-**Route handlers (`/api/…`):** auth, `ocr` (receipt scan), `files/[assetId]/[kind]` and `documents/[id]` (private file proxies), `export`, `pack`, `report`, `calendar/[token]/[file]` (ICS feed), `cron/reminders`, `donate`, `passport/[id]`, `health/*`. Also `/brand-asset/[kind]` (uploaded logo/icon/share image), `/icons/[size]`, `/favicon.ico`, `/opengraph-image`, `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`.
+**Route handlers (`/api/…`):** auth, `ocr` (receipt scan, and `mode=label` for the model sticker), `claim/[assetId]` (warranty claim pack zip), `files/[assetId]/[kind]` and `documents/[id]` (private file proxies), `export`, `pack`, `report`, `calendar/[token]/[file]` (ICS feed), `cron/reminders`, `donate`, `passport/[id]`, `health/*`. Also `/brand-asset/[kind]` (uploaded logo/icon/share image), `/icons/[size]`, `/favicon.ico`, `/opengraph-image`, `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`.
 
 ## Data model (Postgres, `src/db/schema.ts`)
 | Area | Tables |
@@ -40,7 +40,8 @@ Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS (Apple HIG sty
 ## Main flows
 - **Access control.** Every signed-in page calls `requireHousehold()`/`requireUser()`; actions re-check the role (`owner`/`admin` manage a home). Admin pages call `requireAdmin()`. Files are served only through proxy routes that check household membership; storage is private.
 - **Reminders.** A daily Vercel Cron (`vercel.json`, 13:00 UTC) calls `/api/cron/reminders`. `src/lib/digest-core.ts` builds one channel-neutral digest per user (tasks, warranties, expiring documents), `src/lib/reminders.ts` sends it by e-mail and Web Push. WhatsApp is built but off (`WHATSAPP_ENABLED`).
-- **Receipt scanning.** `POST /api/ocr` sends the image to Anthropic only when the user presses Scan, rate-limited per minute and per day.
+- **Receipt and sticker scanning.** `POST /api/ocr` (`mode=receipt` or `mode=label`) sends the image to Anthropic only when the user presses Scan or Read label, rate-limited per minute and per day. Prompts and result cleaning live in `src/lib/ocr-core.ts` (unit-tested); sticker photos are never stored.
+- **Warranty claims.** `src/lib/claim-core.ts` builds the letter from the asset's saved facts (pure, unit-tested); `ClaimBuilder` shows it live; `/api/claim/[assetId]` zips the letter with the saved receipt, manual and photo for members of the home. Nothing is sent by Wodejia.
 - **Caching.** Public pages (blog, FAQ, landing) are static or ISR (`revalidate = 60`) and carry no per-visitor data, so the CDN can serve them. Signed-in pages are dynamic. The root layout reads the uploaded logo/icon from the database through a tagged cache that admin changes clear.
 - **Theme.** Day/night and accent colour are stored in the browser and applied before first paint (`THEME_INIT_SCRIPT`). The logo turns white in dark mode through CSS variables.
 - **Branding.** Admin uploads are validated from the file bytes (`src/lib/brand-core.ts`), stored in `brand_assets` and served from `/brand-asset/[kind]?v=<revision>` with immutable caching. Removing an upload returns to the built-in artwork.

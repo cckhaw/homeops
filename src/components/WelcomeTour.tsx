@@ -8,7 +8,7 @@ import { markWelcomeSeen } from '@/app/security-actions';
 import { cn } from '@/lib/utils';
 
 const SLIDES = [
-  { icon: Package, title: 'Your home, documented', body: 'Add appliances and equipment with brand, model, warranty and photos. Snap a receipt and Wodejia reads the details for you. Print QR labels to stick on each item and scan them to jump straight to its record.' },
+  { icon: Package, title: 'Your home, documented', body: 'Add appliances and equipment with brand, model, warranty and photos. Snap a receipt, or the model sticker, and Wodejia reads the details for you. Print QR labels to stick on each item and scan them to jump straight to its record.' },
   { icon: BellRing, title: 'Never miss maintenance', body: 'Seasonal checklists for your climate repeat on their own when you tick them off. Get one daily digest by e-mail or push notification for tasks, warranties and documents about to expire — switch them on in Settings.' },
   { icon: FolderLock, title: 'Records, bills and spending', body: 'Keep insurance, title deeds and other papers in a private document vault with expiry dates. Track utility bills (with spike warnings) and download a yearly report of what the home really costs you.' },
   { icon: HardHat, title: 'Trusted contractors', body: 'Save your plumber, electrician and aircon technician once, tap to call or message, and mark which of your homes each one covers.' },

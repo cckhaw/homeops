@@ -54,3 +54,24 @@ try {
 } catch (e) {
   console.error('push mock not started', e.message);
 }
+
+// Anthropic Messages API (4060): answers receipt and nameplate scans. Records requests in anthropic.json.
+const an = out + '/anthropic.json';
+fs.writeFileSync(an, '[]');
+http.createServer((q, r) => {
+  let b = '';
+  q.on('data', (d) => (b += d));
+  q.on('end', () => {
+    let body = {};
+    try { body = JSON.parse(b); } catch {}
+    const prompt = JSON.stringify(body.messages || []);
+    const label = /rating plate/.test(prompt);
+    try { const all = JSON.parse(fs.readFileSync(an)); all.push({ url: q.url, key: q.headers['x-api-key'], mode: label ? 'label' : 'receipt' }); fs.writeFileSync(an, JSON.stringify(all)); } catch {}
+    const unreadable = /UNREADABLE/.test(process.env.MOCK_AI || '') ;
+    const result = label
+      ? { name: 'Inverter air conditioner', category: 'Air Conditioner', make: 'Daikin', model: 'Model: FTKM25VAVMV', serialNumber: 'S/N G123456', manufactureDate: '2024-05' }
+      : { name: 'Fridge', category: 'Refrigerator', make: 'LG', model: 'GN-B392', serialNumber: null, purchaseDate: '2026-01-15', warrantyMonths: 24, vendor: 'Courts', total: 1299 };
+    r.setHeader('content-type', 'application/json');
+    r.end(JSON.stringify({ id: 'msg_test', type: 'message', role: 'assistant', model: body.model || 'test', content: [{ type: 'text', text: unreadable ? 'sorry, cannot read' : JSON.stringify(result) }], stop_reason: 'end_turn', stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } }));
+  });
+}).listen(4060);

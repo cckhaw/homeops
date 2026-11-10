@@ -7,6 +7,7 @@ import { canonicalBrand } from '@/lib/brands';
 import { useBrands } from './BrandsProvider';
 import { usePrefs } from './PrefsProvider';
 import { Sheet } from './misc';
+import { labelSummary } from '@/lib/ocr-core';
 import { useServerForm } from './useServerForm';
 import IconPicker from './IconPicker';
 import AppleButton, { SubmitButton } from './AppleButton';
@@ -75,6 +76,10 @@ export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: strin
   const [hasFile, setHasFile] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanMsg, setScanMsg] = useState<{ error?: string; ok?: string }>();
+  const labelRef = useRef<HTMLInputElement>(null);
+  const [hasLabel, setHasLabel] = useState(false);
+  const [labelBusy, setLabelBusy] = useState(false);
+  const [labelMsg, setLabelMsg] = useState<{ error?: string; ok?: string }>();
   const set = (k: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setV((p) => ({ ...p, [k]: e.target.value }));
 
@@ -107,6 +112,37 @@ export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: strin
     }
   }
 
+  /** Reads the model sticker (rating plate). The photo is only read, never saved. The sticker is the best source for model and serial number, so those overwrite earlier guesses. */
+  async function readLabel() {
+    const file = labelRef.current?.files?.[0];
+    if (!file) return;
+    setLabelBusy(true);
+    setLabelMsg(undefined);
+    try {
+      const body = new FormData();
+      body.set('mode', 'label');
+      body.set('label', await compressImage(file));
+      const res = await fetch('/api/ocr', { method: 'POST', body });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Scan failed');
+      const summary = labelSummary(data);
+      if (!summary) throw new Error('We could not read a model or serial number. Try a sharper, closer photo of the sticker.');
+      setV((p) => ({
+        ...p,
+        name: p.name || data.name || '',
+        category: !p.name && (CATEGORIES as readonly string[]).includes(data.category) ? data.category : p.category,
+        make: canonicalBrand(brands, data.make) || data.make || p.make,
+        model: data.model || p.model,
+        serialNumber: data.serialNumber || p.serialNumber,
+      }));
+      setLabelMsg({ ok: summary });
+    } catch (e) {
+      setLabelMsg({ error: e instanceof Error ? e.message : 'Scan failed' });
+    } finally {
+      setLabelBusy(false);
+    }
+  }
+
   return (
     <form {...formProps}
       className="space-y-4"
@@ -132,6 +168,30 @@ export function AssetForm({ assetId, initial = {}, hasPhoto }: { assetId?: strin
               Scan receipt
             </AppleButton>
             <Msg state={scanMsg} />
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-2xl bg-label/5 p-4">
+        <Field label="Photo of the model sticker (optional — we can read the model and serial number)">
+          <input
+            ref={labelRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            aria-label="Photo of the model sticker"
+            onChange={(e) => { setHasLabel(!!e.target.files?.length); setLabelMsg(undefined); }}
+            className="file-input"
+          />
+        </Field>
+        <p className="mt-1 text-[13px] text-secondary">The sticker is on the back or side of most appliances. This photo is only read; it is not saved.</p>
+        {hasLabel && (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <AppleButton type="button" variant="secondary" onClick={readLabel} disabled={labelBusy}>
+              {labelBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <ScanLine className="h-4 w-4" aria-hidden />}
+              Read label
+            </AppleButton>
+            <Msg state={labelMsg} />
           </div>
         )}
       </div>
