@@ -206,10 +206,12 @@ export async function toggleTask(taskId: string) {
       .set({ status: 'completed', completedAt: new Date(), completedBy: user.id })
       .where(eq(maintenanceTasks.id, taskId));
     // Roll the schedule forward from the later of due date / today so it never lands in the past.
-    const base = task.dueDate > todayISO() ? task.dueDate : todayISO();
+    // (rent and lease reminders keep their exact due day: they roll from the due date, not from today)
+    const base = task.tenancyId || task.dueDate > todayISO() ? task.dueDate : todayISO();
     await db.insert(maintenanceTasks).values({
       householdId: household.id,
       assetId: task.assetId,
+      tenancyId: task.tenancyId,
       title: task.title,
       frequency: task.frequency,
       assignedTo: task.assignedTo, // the next occurrence stays with the same person
