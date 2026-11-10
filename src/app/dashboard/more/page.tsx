@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BarChart3, Building2, ChevronRight, CircleHelp, Coffee, FileArchive, FolderLock, HardHat, QrCode, Receipt, Settings, ShieldCheck } from 'lucide-react';
+import { BarChart3, Building2, ChevronRight, CircleHelp, Coffee, Landmark, FileArchive, FolderLock, HardHat, QrCode, Receipt, Settings, ShieldCheck } from 'lucide-react';
 import { donationsEnabled } from '@/lib/donate';
 import { requireHousehold } from '@/lib/auth';
 import GlassCard from '@/components/GlassCard';
@@ -14,6 +14,7 @@ const GROUPS = [
       { href: '/dashboard/documents', label: 'Document vault', hint: 'Insurance, mortgage, deeds', icon: FolderLock },
       { href: '/dashboard/contractors', label: 'Contractors', hint: 'Plumber, electrician, …', icon: HardHat },
       { href: '/dashboard/bills', label: 'Utility bills', hint: 'Track spend, spot spikes', icon: Receipt },
+      { href: '/dashboard/property', label: 'Property dates', hint: 'Quit rent, property tax, condo fees', icon: Landmark },
       { href: '/dashboard/reports', label: 'Spending', hint: 'Yearly report', icon: BarChart3 },
     ],
   },

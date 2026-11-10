@@ -6,6 +6,8 @@ import { emailConfigured, emailLayout, escapeHtml, sendEmail } from '@/lib/email
 import { digestOneLine, pushPayload, whenExpiry, whenTask, type DigestItem } from '@/lib/digest-core';
 import { pushConfigured, sendPushToUser } from '@/lib/push';
 import { sendWhatsappTemplate, whatsappConfigured } from '@/lib/whatsapp';
+import { sendTelegram, telegramConfigured } from '@/lib/telegram';
+import { telegramDigest } from '@/lib/telegram-core';
 import { siteBaseUrl } from '@/lib/donate';
 import { DEFAULT_LOCALE, isSupportedLocale } from '@/lib/locale';
 import { pickWarranties, shouldRemindTask, type WarrantyCandidate } from '@/lib/reminder-rules';
@@ -25,11 +27,12 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
     .where(
       opts.onlyUserId
         ? eq(profiles.id, opts.onlyUserId)
-        : or(eq(profiles.notifyReminders, true), and(eq(profiles.notifyWhatsapp, true), isNotNull(profiles.whatsappVerifiedAt)), pushUsers.length ? inArray(profiles.id, pushUsers) : undefined),
+        : or(eq(profiles.notifyReminders, true), and(eq(profiles.notifyWhatsapp, true), isNotNull(profiles.whatsappVerifiedAt)), and(eq(profiles.notifyTelegram, true), isNotNull(profiles.telegramChatId)), pushUsers.length ? inArray(profiles.id, pushUsers) : undefined),
     );
   let emails = 0;
   let pushes = 0;
   let whatsapps = 0;
+  let telegrams = 0;
   let totalItems = 0;
   let totalTasks = 0;
   let totalWarranties = 0;
@@ -132,8 +135,15 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
     const sentEmail = emailOn ? await sendEmail(user.email, `Wodejia: ${subjectParts.join(' and ')}`, html) : false;
     const waOn = whatsappConfigured() && !!user.whatsappNumber && !!user.whatsappVerifiedAt && user.notifyWhatsapp;
     const sentWa = waOn ? await sendWhatsappTemplate(user.whatsappNumber!, 'reminder', digestOneLine(items)) : false;
+    let sentTg = false;
+    if (telegramConfigured() && user.notifyTelegram && user.telegramChatId) {
+      const r = await sendTelegram(user.telegramChatId, telegramDigest(items, base));
+      sentTg = r === 'sent';
+      if (r === 'blocked') await db.update(profiles).set({ notifyTelegram: false, telegramChatId: null, telegramLinkedAt: null }).where(eq(profiles.id, user.id)); // they blocked the bot: stop trying
+    }
     const pushed = pushConfigured() ? (await sendPushToUser(user.id, pushPayload(items, base))).sent : 0;
-    if (!sentEmail && !sentWa && !pushed) continue;
+    if (!sentEmail && !sentWa && !pushed && !sentTg) continue;
+    if (sentTg) telegrams++;
     if (sentWa) whatsapps++;
     if (pushed) pushes++;
     if (sentEmail) emails++;
@@ -151,5 +161,5 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
       if (docMarks.length) await db.insert(documentReminders).values(docMarks).onConflictDoNothing();
     }
   }
-  return { users: users.length, emails, push: pushes, whatsapp: whatsapps, tasks: totalTasks, warranties: totalWarranties, documents: totalDocs, items: totalItems };
+  return { users: users.length, emails, push: pushes, whatsapp: whatsapps, telegram: telegrams, tasks: totalTasks, warranties: totalWarranties, documents: totalDocs, items: totalItems };
 }

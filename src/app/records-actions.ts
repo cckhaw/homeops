@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { and, eq, inArray, notInArray } from 'drizzle-orm';
 import { db } from '@/db';
-import { contractorHomes, contractors, documents, utilityBills } from '@/db/schema';
+import { contractorHomes, contractors, documents, maintenanceTasks, utilityBills } from '@/db/schema';
 import { requireHousehold } from '@/lib/auth';
 import { listMemberships } from '@/lib/household';
 import { coversAny } from '@/lib/contractors';
@@ -13,6 +13,8 @@ import { isDocumentCategory } from '@/lib/documents-core';
 import { isUtilityKind, monthStart } from '@/lib/utilities-core';
 import { parseCurrencyToCents } from '@/lib/utils';
 import { getPrefs } from '@/lib/prefs';
+import { todayISO } from '@/lib/utils';
+import { validatePicks } from '@/lib/property-core';
 
 type FormState = { error?: string; ok?: string } | undefined;
 
@@ -161,4 +163,20 @@ export async function deleteBill(id: string) {
   if (!UUID.test(id)) return;
   await db.delete(utilityBills).where(and(eq(utilityBills.id, id), eq(utilityBills.householdId, household.id)));
   refresh();
+}
+
+/** Adds the ticked property reminders (quit rent, assessment tax, property tax, condo fees, insurance…) to the current home's schedule. Existing pending tasks with the same title are left alone. */
+export async function addPropertyReminders(_: FormState, fd: FormData): Promise<FormState> {
+  const { household } = await requireHousehold();
+  const ids = fd.getAll('pick').map(String).slice(0, 20);
+  const picks = ids.map((id) => ({ id, frequency: str(fd, `freq_${id}`, 20), dueDate: str(fd, `due_${id}`, 10) }));
+  const r = validatePicks(picks, todayISO());
+  if (!r.ok) return { error: r.error };
+  const existing = new Set((await db.select({ title: maintenanceTasks.title }).from(maintenanceTasks).where(and(eq(maintenanceTasks.householdId, household.id), eq(maintenanceTasks.status, 'pending')))).map((t) => t.title));
+  const fresh = r.tasks.filter((t) => !existing.has(t.title));
+  if (fresh.length) await db.insert(maintenanceTasks).values(fresh.map((t) => ({ householdId: household.id, title: t.title, frequency: t.frequency, dueDate: t.dueDate })));
+  revalidatePath('/dashboard', 'layout');
+  const skipped = r.tasks.length - fresh.length;
+  if (!fresh.length) return { ok: 'These reminders are already on your schedule.' };
+  return { ok: `Added ${fresh.length} reminder${fresh.length === 1 ? '' : 's'} to your schedule${skipped ? ` (${skipped} already there)` : ''}. You will be reminded before each is due.` };
 }

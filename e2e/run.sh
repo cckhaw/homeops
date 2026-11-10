@@ -80,6 +80,10 @@ node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
 run rel11
 node e2e/setup.js --seed >/dev/null && start $MAIL ANTHROPIC_API_KEY=sk-test OCR_API_BASE_URL=http://localhost:4060 && mark_seen
 run rel12
+node e2e/setup.js --seed >/dev/null && start $MAIL TELEGRAM_BOT_TOKEN=123:TESTTOKEN TELEGRAM_BOT_USERNAME=WodejiaTestBot TELEGRAM_WEBHOOK_SECRET=tg-secret-test-123 TELEGRAM_API_URL=http://localhost:4070 && mark_seen
+run rel13
+node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
+run rel14
 APPLE_KEY=$(node -e "const c=require('crypto');console.log(c.generateKeyPairSync('ec',{namedCurve:'P-256'}).privateKey.export({type:'pkcs8',format:'pem'}).replace(/\n/g,'\\\\n'))")
 node e2e/setup.js --seed >/dev/null && start $MAIL TURNSTILE_SITE_KEY=1x00000000000000000000AA TURNSTILE_SECRET_KEY=secret TURNSTILE_VERIFY_URL=http://localhost:4030/ APPLE_ID=cc.test.web APPLE_TEAM_ID=TEAM123456 APPLE_KEY_ID=KEY1234567 "APPLE_PRIVATE_KEY=$APPLE_KEY" APPLE_DOMAIN_ASSOCIATION=hello-apple
 mark_seen; run rel2

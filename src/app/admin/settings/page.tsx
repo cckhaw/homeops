@@ -3,6 +3,8 @@ import GlassCard from '@/components/GlassCard';
 import PageHeader from '@/components/PageHeader';
 import { SiteSettingsForm } from '@/components/forms';
 import StorageCheck from '@/components/StorageCheck';
+import TelegramAdmin from '@/components/TelegramAdmin';
+import { telegramConfigured } from '@/lib/telegram';
 
 export const metadata = { title: 'Site config · Admin' };
 
@@ -16,6 +18,8 @@ export default async function AdminSettings() {
       </GlassCard>
       <h2 className="mb-2 mt-8 px-1 text-[22px] font-bold">File storage</h2>
       <GlassCard><StorageCheck /></GlassCard>
+      <h2 className="mb-2 mt-8 px-1 text-[22px] font-bold">Telegram reminders</h2>
+      <GlassCard><TelegramAdmin configured={telegramConfigured()} /></GlassCard>
     </>
   );
 }

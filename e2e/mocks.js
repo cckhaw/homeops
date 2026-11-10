@@ -75,3 +75,23 @@ http.createServer((q, r) => {
     r.end(JSON.stringify({ id: 'msg_test', type: 'message', role: 'assistant', model: body.model || 'test', content: [{ type: 'text', text: unreadable ? 'sorry, cannot read' : JSON.stringify(result) }], stop_reason: 'end_turn', stop_sequence: null, usage: { input_tokens: 1, output_tokens: 1 } }));
   });
 }).listen(4060);
+
+// Telegram Bot API (4070): records calls in telegram.json. Chats whose id ends in 666 behave as if they blocked the bot.
+const tg = out + '/telegram.json';
+fs.writeFileSync(tg, '[]');
+let tgWebhook = '';
+http.createServer((q, r) => {
+  let b = '';
+  q.on('data', (d) => (b += d));
+  q.on('end', () => {
+    let body = {};
+    try { body = JSON.parse(b); } catch {}
+    const method = (q.url || '').split('/').pop();
+    try { const all = JSON.parse(fs.readFileSync(tg)); all.push({ method, ...body }); fs.writeFileSync(tg, JSON.stringify(all)); } catch {}
+    r.setHeader('content-type', 'application/json');
+    if (method === 'sendMessage' && String(body.chat_id).endsWith('666')) { r.statusCode = 403; return r.end('{"ok":false,"error_code":403,"description":"Forbidden: bot was blocked by the user"}'); }
+    if (method === 'setWebhook') tgWebhook = body.url || '';
+    if (method === 'getWebhookInfo') return r.end(JSON.stringify({ ok: true, result: { url: tgWebhook, pending_update_count: 0 } }));
+    r.end('{"ok":true,"result":true}');
+  });
+}).listen(4070);

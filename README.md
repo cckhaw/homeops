@@ -10,8 +10,8 @@ Deeper guides live in [`docs/`](docs/README.md): [architecture and routes](docs/
 |---|---|
 | Assets | Make/model/serial, install and warranty dates, photos, receipt + manual storage (private), receipt scanning, **model-sticker (nameplate) reading**, a **warranty claim helper** (letter, e-mail link, print/PDF, claim-pack zip), 150+ brand logos (admin-managed), QR labels |
 | Maintenance | Climate-aware seasonal checklists (tropical / temperate), recurring tasks, assignment to household members, personal calendar feed (`.ics`) |
-| Reminders | One daily digest by **e-mail** and/or **push notification** (per device); tasks, warranties and expiring documents. WhatsApp: *coming soon* (see below) |
-| Records | Document vault with expiry dates, contractors book (one contractor can cover several homes), utility bills with spike warnings, yearly spending report (CSV) |
+| Reminders | One daily digest by **e-mail**, **push notification** (per device) and/or **Telegram**; tasks, warranties and expiring documents. WhatsApp: *coming soon* (see below) |
+| Records | **Property dates** for Singapore and Malaysia (quit rent, assessment tax, IRAS property tax, condo/MCST fees, insurance, loan) added to the schedule as repeating tasks, document vault with expiry dates, contractors book (one contractor can cover several homes), utility bills with spike warnings, yearly spending report (CSV) |
 | Sharing | Home Service Passport (read-only link, off by default, optional password), owner/admin-only move-out pack (zip + printable summary) |
 | Welcome tour | Seven-slide first-run tour of every feature; replayable from Settings → Profile |
 | App layout | Left menu with Dashboard, Assets, Schedule, Household, Passport, a collapsible Records group and an Account group (My homes, Settings with five pages); slim icon rail (default on tablets); phone tab bar + More hub (Records, Share and print, Account, Support) |
@@ -25,10 +25,11 @@ Deeper guides live in [`docs/`](docs/README.md): [architecture and routes](docs/
 | Channel | Status | Setup |
 |---|---|---|
 | E-mail | Live | `RESEND_API_KEY`, `EMAIL_FROM` — users switch it on in Settings |
+| Telegram | Live once the bot is configured | Create a bot with @BotFather, set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` (no @) and `TELEGRAM_WEBHOOK_SECRET` (any random string), redeploy, then press **Register webhook** in Admin → Site config. Users connect from Settings → Notifications with a one-time link; no phone number is shared. |
 | Push notifications | Live | Generate keys with `npx web-push generate-vapid-keys`, set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`. Users turn it on per device in Settings (iPhone/iPad: add Wodejia to the Home Screen first) |
 | WhatsApp | **Coming soon** — built but switched off | Needs a Meta WhatsApp Business account and two approved templates. The Settings card shows "Coming soon" and no numbers are collected until `WHATSAPP_ENABLED=1` and the credentials below are set |
 
-Messaging options being considered next: a **Telegram** bot (free, no business verification) and optional **SMS** (paid per message). The digest code is channel-neutral (`src/lib/digest-core.ts`, `src/lib/reminders.ts`), so another channel is one more sender.
+Another option being considered is **SMS** (paid per message). The digest code is channel-neutral (`src/lib/digest-core.ts`, `src/lib/reminders.ts`), so another channel is one more sender.
 
 ## Local development
 ```bash
@@ -48,6 +49,7 @@ npm run dev
 | `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | optional | Free Cloudflare Turnstile CAPTCHA on register / forgot-password, and on login after repeated failures. Off when unset. Rate limiting works regardless. Add **every domain you serve the site on** to the widget's hostname list in Cloudflare, otherwise the widget shows "Unable to connect to website". |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | optional | Web Push notifications (turned on per device in Settings). Generate the pair with `npx web-push generate-vapid-keys`; `VAPID_SUBJECT` is `mailto:you@yourdomain`. |
 | `WHATSAPP_ENABLED`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_ID` | optional — **coming soon, off by default** | WhatsApp reminders via the Meta WhatsApp Business **Cloud API**. Does nothing unless `WHATSAPP_ENABLED=1` *and* the token and phone number ID (permanent system-user token) are set. Needs two approved message templates, each with **one** body variable: `wodejia_code` (category *Authentication*, e.g. "Your Wodejia verification code is {{1}}") and `wodejia_reminder` (category *Utility*, body just `{{1}}`). Names can be changed with `WHATSAPP_CODE_TEMPLATE` / `WHATSAPP_REMINDER_TEMPLATE`; language with `WHATSAPP_LANG` (default `en`). |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` | optional | Reminders on Telegram (see the channel table above). `TELEGRAM_API_URL` exists only for the test suite. |
 | `ADMIN_EMAILS` | recommended | Comma-separated emails promoted to admin on sign-in |
 | `RESEND_API_KEY`, `EMAIL_FROM` | yes (recommended) | Sends account-confirmation, forgot-password and reminder e-mails. Verify your sending domain in Resend; `EMAIL_FROM` must use it. Without it, sign-up works without e-mail confirmation and admin promotion/reset/reminders are unavailable. |
 | `CRON_SECRET` | for reminders | Authorises the daily `/api/cron/reminders` Vercel Cron job |

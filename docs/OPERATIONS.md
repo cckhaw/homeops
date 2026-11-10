@@ -17,6 +17,13 @@ Edit `src/db/schema.ts`, run `npm run db:generate` (or `npx drizzle-kit generate
 ## Environment checklist
 See the table in the [README](../README.md#environment-variables). Changes to environment variables apply only after a new deployment.
 
+## Setting up Telegram reminders
+1. In Telegram, message **@BotFather**, send `/newbot`, and copy the bot token and the bot's username.
+2. In Vercel (Production) set `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` (without the @) and `TELEGRAM_WEBHOOK_SECRET` (any random string of letters, digits, `_` or `-`), then redeploy.
+3. Sign in as admin, open **Admin → Site config → Telegram reminders** and press **Register webhook**, then **Check webhook** (it should say healthy). The webhook address comes from `NEXTAUTH_URL`, so that must be your https main domain.
+4. As a user: **Settings → Notifications → Connect Telegram**, open the link, press Start, then **Send a test**.
+If you change the secret or the domain, press Register webhook again.
+
 ## Testing push notifications
 1. Set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` (a pair from `npx web-push generate-vapid-keys`) and `VAPID_SUBJECT` (`mailto:…`) for Production, then redeploy. Do not regenerate the pair later or existing devices stop receiving.
 2. Sign in, open **Settings → Notifications → Turn on for this device**, allow notifications, press **Send a test**.
@@ -36,6 +43,8 @@ See the table in the [README](../README.md#environment-variables). Changes to en
 | `rel10` | Left menu: Dashboard rename, groups, tooltips, edit-home pencil, desktop/tablet/phone fit |
 | `rel11` | FAQ pages, structured data, sitemap entries, in-app help, Support section, old-domain redirect |
 | `rel12` | Model-sticker scan (against a fake AI server) and the warranty claim helper |
+| `rel13` | Telegram: connect link, webhook security, digest delivery, blocked chats, admin webhook setup (fake Telegram server on port 4070) |
+| `rel14` | Property dates for Singapore/Malaysia, and the Telegram card when the bot is not configured |
 | `rel2` | Turnstile and Apple sign-in |
 
 Unit tests (`npm test`) cover the pure logic: passwords and crypto, dates, reminders, markdown, blog rules, brand-image validation, FAQ content, sitemap and more.
