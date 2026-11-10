@@ -1,6 +1,6 @@
 'use client';
 
-import { Printer, Trash2 } from 'lucide-react';
+import { Download, ExternalLink, FileText, Printer, Trash2 } from 'lucide-react';
 import { useServerForm } from './useServerForm';
 import { Field, Msg } from './forms';
 import AppleButton, { SubmitButton } from './AppleButton';
@@ -8,7 +8,7 @@ import { ConfirmButton } from './misc';
 import { deleteReport, saveReport } from '@/app/rental-actions';
 import { CONDITIONS } from '@/lib/rental-core';
 
-export type EditorItem = { id: string; room: string; item: string; condition: string; notes: string | null; hasPhoto: boolean };
+export type EditorItem = { id: string; room: string; item: string; condition: string; notes: string | null; hasPhoto: boolean; photoIsPdf?: boolean };
 
 const TONE: Record<string, string> = { good: 'border-ok/40', fair: 'border-label/20', poor: 'border-warn/60', damaged: 'border-bad/60', missing: 'border-bad/60' };
 
@@ -38,11 +38,21 @@ export default function ReportEditor({ id, inspectedOn, notes, items }: { id: st
                   </div>
                   <div className="mt-2 flex flex-wrap items-center gap-3 text-[13px]">
                     {i.hasPhoto && (
-                      <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={`/api/condition/${i.id}`} alt={`${room} ${i.item}`} className="h-16 w-16 rounded-lg object-cover ring-1 ring-black/10" />
-                        <label className="flex items-center gap-1.5 text-secondary"><input type="checkbox" name={`rmphoto_${i.id}`} className="h-4 w-4" /> Remove photo</label>
-                      </>
+                      <div className="flex w-full flex-wrap items-center gap-3" data-testid="item-photo">
+                        {i.photoIsPdf ? (
+                          <span className="inline-flex min-h-[44px] items-center gap-2 rounded-lg bg-label/5 px-3 text-[14px] font-medium"><FileText className="h-4 w-4" aria-hidden />PDF attached</span>
+                        ) : (
+                          <a href={`/api/condition/${i.id}`} target="_blank" rel="noopener noreferrer" aria-label={`View photo: ${room} ${i.item}`} data-testid="photo-link" className="block shrink-0 overflow-hidden rounded-lg ring-1 ring-black/10 transition hover:opacity-90">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={`/api/condition/${i.id}`} alt={`${room} ${i.item}`} className="h-24 w-24 object-cover" />
+                          </a>
+                        )}
+                        <span className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                          <a href={`/api/condition/${i.id}`} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center gap-1 font-semibold text-tint"><ExternalLink className="h-4 w-4" aria-hidden />{i.photoIsPdf ? 'Open file' : 'View full size'}</a>
+                          <a href={`/api/condition/${i.id}?download=1`} className="inline-flex min-h-[44px] items-center gap-1 font-semibold text-tint"><Download className="h-4 w-4" aria-hidden />Download</a>
+                          <label className="flex min-h-[44px] items-center gap-1.5 text-secondary"><input type="checkbox" name={`rmphoto_${i.id}`} className="h-4 w-4" /> Remove</label>
+                        </span>
+                      </div>
                     )}
                     <input type="file" name={`photo_${i.id}`} accept="image/*,application/pdf" className="file-input min-w-0 flex-1" aria-label={`${room} ${i.item}: photo`} />
                   </div>

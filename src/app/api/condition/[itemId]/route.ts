@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** A condition-report photo, for members of the home that owns the report. Photos have no public link. */
-export async function GET(_: Request, { params }: { params: Promise<{ itemId: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ itemId: string }> }) {
   const { itemId } = await params;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
@@ -20,5 +20,5 @@ export async function GET(_: Request, { params }: { params: Promise<{ itemId: st
   if (!row?.url || !(await isMember(user.id, row.home))) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   const file = await openBlob(row.url).catch(() => null);
   if (!file) return NextResponse.json({ error: 'File unavailable' }, { status: 404 });
-  return new Response(file.stream, { headers: { 'Content-Type': file.blob.contentType || 'application/octet-stream', 'Content-Disposition': 'inline', 'Cache-Control': 'private, max-age=300', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "sandbox; default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'" } });
+  return new Response(file.stream, { headers: { 'Content-Type': file.blob.contentType || 'application/octet-stream', 'Content-Disposition': new URL(req.url).searchParams.get('download') === '1' ? 'attachment' : 'inline', 'Cache-Control': 'private, max-age=300', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': "sandbox; default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'" } });
 }

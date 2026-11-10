@@ -67,6 +67,16 @@ const png=()=>{const ih=Buffer.alloc(13);ih.writeUInt32BE(8,0);ih.writeUInt32BE(
  await p.setInputFiles('input[aria-label="Living room Walls and paint: photo"]',S+'/r15/room.png'); await p.click('button:has-text("Save report")'); await p.getByText(/File storage is not configured/).waitFor(); assert(true,'adding a photo without file storage gives the standard "not configured" message instead of failing silently');
  // remove an item
  await p.reload(); await p.check('input[aria-label="Remove Laundry rack"]'); await p.click('button:has-text("Save report")'); await p.getByText('Report saved.').waitFor(); assert((await q("select count(*)::int n from condition_items where report_id=$1",[moveInId]))[0].n===seeded,'an item can be removed');
+ // viewing saved photos and files (storage itself is not available here, so two items get stored links directly)
+ const two=await q("select id,room,item from condition_items where report_id=$1 order by sort limit 2",[moveInId]);
+ await q("update condition_items set photo_url='https://blob.example/condition/wall.jpg' where id=$1",[two[0].id]); await q("update condition_items set photo_url='https://blob.example/condition/inspection-scan.pdf' where id=$1",[two[1].id]);
+ await p.reload(); const ph2=p.getByTestId('item-photo'); assert(await ph2.count()===2,'items with a saved photo or file show it on the report');
+ const lk=p.getByTestId('photo-link').first(); assert((await lk.getAttribute('href'))===`/api/condition/${two[0].id}` && (await lk.getAttribute('target'))==='_blank' && (await lk.locator('img').getAttribute('src'))===`/api/condition/${two[0].id}` && /View photo/.test(await lk.getAttribute('aria-label')),'a photo is a thumbnail that opens full size in a new tab');
+ const t0=await ph2.nth(0).innerText(), t1=await ph2.nth(1).innerText(); assert(/View full size/.test(t0) && /Download/.test(t0) && /PDF attached/.test(t1) && /Open file/.test(t1) && await ph2.nth(1).locator('img').count()===0,'a PDF is shown as a file with Open and Download (not a broken image)');
+ assert((await ph2.nth(0).locator('a:has-text("Download")').getAttribute('href'))===`/api/condition/${two[0].id}?download=1`,'Download links ask the server for an attachment');
+ assert(/2 photos/.test(await p.getByTestId('report-summary').innerText()),'the summary counts them');
+ await p.emulateMedia({media:'print'}); assert(await p.locator(`#report-print img[src="/api/condition/${two[0].id}"]`).isVisible() && /PDF attached/.test(await p.locator('#report-print').innerText()),'the printed report includes the photos (and notes PDFs)'); await p.emulateMedia({media:'screen'});
+ await q("update condition_items set photo_url=null where report_id=$1",[moveInId]);
  // print layout
  await p.emulateMedia({media:'print'}); assert(await p.locator('#report-print').isVisible() && !(await p.locator('form[novalidate]').first().isVisible()) && /Landlord signature/.test(await p.locator('#report-print').innerText()),'print view shows a clean table with signature lines (forms hidden)'); await p.emulateMedia({media:'screen'});
 
