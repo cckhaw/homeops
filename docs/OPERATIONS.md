@@ -12,7 +12,7 @@ Edit `src/db/schema.ts`, run `npm run db:generate` (or `npx drizzle-kit generate
 - The Vercel project can serve several domains (currently `wodejia.khaw.cc`, `homeops.khaw.cc` and the `*.vercel.app` address).
 - **`NEXTAUTH_URL` must be your main domain.** It sets sign-in callbacks, e-mail links, canonical URLs, the sitemap host and share images.
 - When the main domain changes, update: `NEXTAUTH_URL`; the Google and Apple sign-in redirect URLs (`<domain>/api/auth/callback/google`, the Apple Services ID return URL and domain verification); the Stripe return URLs if donations are on; **the Cloudflare Turnstile widget's hostname list** (a hostname missing there shows "Unable to connect to website" in the CAPTCHA); and the Resend sending domain (`EMAIL_FROM`) if it changes.
-- Redirect the retired domain to the main one in the Vercel domain settings.
+- **Old domain redirect:** requests to `homeops.khaw.cc` are forwarded (308, path and query kept) to the host in `NEXTAUTH_URL` by `src/middleware.ts` (`src/lib/domain-redirect.ts`; the retired host is listed in `OLD_HOSTS` and in the middleware matcher). Nothing is redirected if `NEXTAUTH_URL` is unset or points at the old host, so it cannot loop. Alternatively set the redirect on the domain itself in Vercel (Project → Domains → homeops.khaw.cc → Redirect to wodejia.khaw.cc); once that is in place the code redirect is redundant and can be removed.
 
 ## Environment checklist
 See the table in the [README](../README.md#environment-variables). Changes to environment variables apply only after a new deployment.
