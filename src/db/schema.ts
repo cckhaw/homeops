@@ -26,6 +26,9 @@ export const profiles = pgTable('profiles', {
   welcomeSeenAt: timestamp('welcome_seen_at'),
   checklistDismissedAt: timestamp('checklist_dismissed_at'),
   calendarToken: text('calendar_token').unique(), // secret path for the personal .ics feed
+  // Demo visitors: each demo sign-in gets its own throw-away account with sample data, deleted after `demoExpiresAt`
+  isDemo: boolean('is_demo').default(false).notNull(),
+  demoExpiresAt: timestamp('demo_expires_at'),
   // WhatsApp reminders: opt-in, number confirmed with a one-time code sent to it
   notifyWhatsapp: boolean('notify_whatsapp').default(false).notNull(),
   // Telegram reminders: linked by opening a one-time deep link (the token is stored only as a hash)

@@ -24,7 +24,7 @@ Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS (Apple HIG sty
 
 **Signed in (`/dashboard/…`):** home dashboard, `assets` (+ `[id]`, `[id]/label`, `[id]/claim`), `schedule`, `household`, `passport`, `documents`, `contractors`, `bills`, `property` (SG/MY property dates), `rentals` (+ `rentals/reports/[id]`), `reports` (spending), `pack` (move-out pack), `labels` (QR labels), `homes` (switch, edit with the pencil, add), `help` (FAQ in the app), `more` (phone hub), `settings/{profile,appearance,notifications,security,privacy}`
 
-**Admin (`/admin/…`, admins only):** analytics, `users`, `blog` (+ scheduling), `newsletter`, `brands` (appliance brand logos), `branding` (site logo, icon, share image), `errors`, `audit`, `settings` (site config)
+**Admin (`/admin/…`, admins only):** analytics, `users`, `blog` (+ scheduling), `newsletter`, `brands` (appliance brand logos), `branding` (site logo, icon, share image), `demo` (demo login and sandboxes), `errors`, `audit`, `settings` (site config)
 
 **Route handlers (`/api/…`):** auth, `ocr` (receipt scan, and `mode=label` for the model sticker), `claim/[assetId]` (warranty claim pack zip), `condition/[itemId]` (condition-report photo proxy), `files/[assetId]/[kind]` and `documents/[id]` (private file proxies), `export`, `pack`, `report`, `calendar/[token]/[file]` (ICS feed), `cron/reminders`, `telegram/webhook`, `newsletter/unsubscribe` (one-click), `donate`, `passport/[id]`, `health/*`. Also `/brand-asset/[kind]` (uploaded logo/icon/share image), `/icons/[size]`, `/favicon.ico`, `/opengraph-image`, `/sitemap.xml`, `/robots.txt`, `/manifest.webmanifest`.
 

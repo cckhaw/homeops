@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { count, desc, eq, ilike, or } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { ChevronRight, Search } from 'lucide-react';
 import { db } from '@/db';
 import { householdMembers, profiles } from '@/db/schema';
@@ -30,7 +30,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
     })
     .from(profiles)
     .leftJoin(householdMembers, eq(householdMembers.userId, profiles.id))
-    .where(q ? or(ilike(profiles.email, like), ilike(profiles.fullName, like)) : undefined)
+    .where(q ? and(eq(profiles.isDemo, false), or(ilike(profiles.email, like), ilike(profiles.fullName, like))) : eq(profiles.isDemo, false))
     .groupBy(profiles.id)
     .orderBy(desc(profiles.createdAt))
     .limit(200);

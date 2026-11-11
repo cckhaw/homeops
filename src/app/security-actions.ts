@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache';
 import { and, eq, gt } from 'drizzle-orm';
 import QRCode from 'qrcode';
 import { db } from '@/db';
+import { demoGuard } from '@/lib/demo';
 import { households, loginTokens, profiles } from '@/db/schema';
 import {
   burnToken, createVerifiedProfile, findProfileByEmail, isEmail, issueToken, normalizeEmail, peekToken, setPassword,
@@ -146,6 +147,7 @@ async function checkCurrentPassword(userId: string, password: string): Promise<b
 }
 
 export async function changePassword(_: FormState, fd: FormData): Promise<FormState> {
+  { const demo = await demoGuard('Changing the password'); if (demo) return demo as never; }
   const user = await requireUser();
   const next = str(fd, 'password', 200);
   if (next !== str(fd, 'confirm', 200)) return { error: 'The new passwords do not match.' };
@@ -158,6 +160,7 @@ export async function changePassword(_: FormState, fd: FormData): Promise<FormSt
 }
 
 export async function beginTwoFactor(): Promise<{ error?: string; secret?: string; qr?: string }> {
+  { const demo = await demoGuard('Two-factor sign-in'); if (demo) return demo as never; }
   const user = await requireUser();
   if (user.totpEnabled) return { error: 'Two-factor authentication is already on.' };
   const secret = generateTotpSecret();
@@ -167,6 +170,7 @@ export async function beginTwoFactor(): Promise<{ error?: string; secret?: strin
 }
 
 export async function confirmTwoFactor(code: string): Promise<{ error?: string; recoveryCodes?: string[] }> {
+  { const demo = await demoGuard('Two-factor sign-in'); if (demo) return demo as never; }
   const user = await requireUser();
   if (user.totpEnabled || !user.totpSecret) return { error: 'Start setup first.' };
   const step = verifyTotp(decryptSecret(user.totpSecret), code, null);
@@ -178,6 +182,7 @@ export async function confirmTwoFactor(code: string): Promise<{ error?: string; 
 }
 
 export async function disableTwoFactor(password: string, code: string): Promise<{ error?: string; ok?: boolean }> {
+  { const demo = await demoGuard('Two-factor sign-in'); if (demo) return demo as never; }
   const user = await requireUser();
   if (!user.totpEnabled || !user.totpSecret) return { error: 'Two-factor authentication is not on.' };
   if (user.passwordHash && !(await checkCurrentPassword(user.id, password))) return { error: 'Your password is incorrect.' };
@@ -240,6 +245,7 @@ export async function saveReminderSettings(_: FormState, fd: FormData): Promise<
 }
 
 export async function sendTestReminder(): Promise<FormState> {
+  { const demo = await demoGuard('Reminder e-mails'); if (demo) return demo as never; }
   const user = await requireUser();
   const channels = [emailConfigured() && 'e-mail', pushConfigured() && 'push', whatsappConfigured() && user.notifyWhatsapp && user.whatsappVerifiedAt && 'WhatsApp'].filter(Boolean);
   if (!channels.length) return { error: 'No reminder channel is available yet: e-mail is not set up on this site, and push / WhatsApp are not turned on.' };
@@ -306,6 +312,7 @@ export async function unlockPassport(token: string, _: FormState, fd: FormData):
  *   the leaving user's membership and account are removed.
  */
 export async function deleteMyAccount(_: FormState, fd: FormData): Promise<FormState> {
+  { const demo = await demoGuard('Deleting the account'); if (demo) return demo as never; }
   const user = await requireUser();
   if (str(fd, 'confirm', 20).trim() !== 'DELETE') return { error: 'Type DELETE (in capitals) to confirm.' };
   if (user.passwordHash && !(await checkCurrentPassword(user.id, str(fd, 'password', 200)))) {

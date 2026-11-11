@@ -7,6 +7,7 @@ import { BrandsProvider } from '@/components/BrandsProvider';
 import { getBrands } from '@/lib/brand-store';
 import { PrefsProvider } from '@/components/PrefsProvider';
 import { getPrefs } from '@/lib/prefs';
+import DemoBanner from '@/components/DemoBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <PrefsProvider prefs={prefs}>
       <AccentScope />
       <AppShell isAdmin={!!user.isAdmin} homes={homes} activeId={household.id} donate={donationsEnabled()}>
+        {user.isDemo && <DemoBanner />}
         {children}
       </AppShell>
       <LiveRefresh />
