@@ -45,6 +45,8 @@ run() { # run <suite>   (bash e2e/run.sh side rel3  runs only those)
 }
 
 node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
-run rel17
+run rel8
+node e2e/setup.js --seed >/dev/null && start $MAIL && mark_seen
+run rel16
 echo; [ $FAILED = 0 ] && echo SUBSET PASSED || echo SUBSET FAILED
 exit $FAILED

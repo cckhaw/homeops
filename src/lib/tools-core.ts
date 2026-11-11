@@ -104,3 +104,90 @@ export function lifeStatus(l: Lifespan, age: number): LifeResult {
   if (a >= l.min * 0.7) return { state: 'mid', pct, headline: 'Mid to late life', advice: 'Look after it and it should reach the typical range. Watch for the warning signs below.', yearsLeftLow: left(l.min), yearsLeftHigh: left(l.max) };
   return { state: 'early', pct, headline: 'Plenty of life left', advice: 'Regular cleaning and servicing are the best way to reach the top of the range.', yearsLeftLow: left(l.min), yearsLeftHigh: left(l.max) };
 }
+
+// ---------------------------------------------------------------- Warranty expiry
+const pad = (n: number) => String(n).padStart(2, '0');
+const isoOf = (d: Date) => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+const parseISO = (s: string) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : null; };
+
+/** Purchase date plus N months; a 31 Jan purchase with 1 month ends 28/29 Feb (never spills into March). */
+export function addMonthsISO(iso: string, months: number): string | null {
+  const d = parseISO(iso);
+  if (!d) return null;
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + Math.round(months));
+  const last = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, last));
+  return isoOf(d);
+}
+
+export type WarrantyState = 'active' | 'ending' | 'expired';
+export type WarrantyResult = { endISO: string; daysLeft: number; state: WarrantyState; headline: string; advice: string };
+
+/** Where a warranty stands today. "Ending" = 60 days or fewer left. The warranty is valid through the end date itself. */
+export function warrantyStatus(purchaseISO: string, months: number, todayISO: string): WarrantyResult | null {
+  const end = addMonthsISO(purchaseISO, months);
+  const t = parseISO(todayISO), e = end ? parseISO(end) : null;
+  if (!end || !t || !e || !(months > 0)) return null;
+  const daysLeft = Math.round((e.getTime() - t.getTime()) / 86_400_000);
+  if (daysLeft < 0) return { endISO: end, daysLeft, state: 'expired', headline: `Expired ${-daysLeft} day${daysLeft === -1 ? '' : 's'} ago`, advice: 'Repairs are now at your own cost unless the seller offers goodwill or you bought an extended plan. Ask politely anyway: for failures soon after expiry, some brands help.' };
+  if (daysLeft <= 60) return { endISO: end, daysLeft, state: 'ending', headline: daysLeft === 0 ? 'Expires today' : `Ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`, advice: 'Use the time left: check the appliance thoroughly now, and report any fault in writing before the end date, keeping the receipt and photos.' };
+  return { endISO: end, daysLeft, state: 'active', headline: `Covered for ${daysLeft} more days`, advice: 'Keep the receipt and warranty card together. Set a reminder about two months before the end date to run a full check.' };
+}
+
+// ---------------------------------------------------------------- Repair or replace
+export type RepairVerdict = 'repair' | 'replace' | 'consider';
+export type RepairInput = { age: number; lifespanMax: number; repairCost: number; newPrice: number; underWarranty?: boolean };
+export type RepairResult = { verdict: RepairVerdict; ratioPct: number; agePct: number; headline: string; reasons: string[] };
+
+/**
+ * The "50% rule" adjusted for age: repair when it costs under about a third of a new one on a younger appliance;
+ * replace when the repair is half or more of the new price, or the appliance is past its lifespan and the repair is a big share.
+ */
+export function repairOrReplace(i: RepairInput): RepairResult | null {
+  if (!(i.newPrice > 0) || !(i.repairCost >= 0) || !(i.lifespanMax > 0) || i.age < 0) return null;
+  const ratio = i.repairCost / i.newPrice;
+  const agePct = Math.min(150, Math.round((i.age / i.lifespanMax) * 100));
+  const ratioPct = Math.round(ratio * 100);
+  const reasons: string[] = [`The repair costs ${ratioPct}% of a new one.`, `The appliance has used ${agePct}% of its longest typical lifespan.`];
+  if (i.underWarranty) return { verdict: 'repair', ratioPct, agePct, headline: 'Repair it: the warranty should cover this', reasons: [...reasons, 'It is under warranty, so claim first and avoid paying yourself.'] };
+  let verdict: RepairVerdict;
+  if (ratio >= 0.5 || (agePct >= 100 && ratio >= 0.3)) verdict = 'replace';
+  else if (ratio <= 0.25 || (agePct < 60 && ratio < 0.4)) verdict = 'repair';
+  else verdict = 'consider';
+  if (agePct >= 100) reasons.push('It is past its typical lifespan, so the next fault is likelier.');
+  else if (agePct < 60) reasons.push('It is still young, which favours repairing it.');
+  if (ratio >= 0.5) reasons.push('A repair at half the price of a new one rarely makes sense.');
+  const headline = verdict === 'repair' ? 'Repair it' : verdict === 'replace' ? 'Replace it' : 'Close call: lean on the details';
+  return { verdict, ratioPct, agePct, headline, reasons };
+}
+
+// ---------------------------------------------------------------- Air-con electricity cost
+export type PowerRegion = 'SG' | 'MY';
+export const POWER_REGIONS: { id: PowerRegion; label: string; symbol: string; tariff: number }[] = [
+  { id: 'SG', label: 'Singapore', symbol: 'S$', tariff: 0.3 },
+  { id: 'MY', label: 'Malaysia', symbol: 'RM', tariff: 0.5 },
+];
+/** Typical electrical input per horsepower of cooling at full load (kW). Inverter units draw less on average. */
+const KW_PER_HP = { inverter: 0.62, standard: 0.85 } as const;
+export type PowerInput = { hp: number; hoursPerDay: number; daysPerMonth: number; inverter: boolean; tariff: number; units: number };
+export type PowerResult = { kwhMonth: number; costMonth: number; costYear: number; kwhYear: number; savingInverterYear: number; savingOneDegreeYear: number };
+
+/** Rough running cost. A compressor cycles off once the room is cool, so we count 70% of the hours at full draw. */
+export function airconRunningCost(i: PowerInput): PowerResult | null {
+  if (!(i.hp > 0) || !(i.hoursPerDay > 0) || !(i.daysPerMonth > 0) || !(i.tariff >= 0) || !(i.units >= 1)) return null;
+  const duty = 0.7;
+  const kwh = (kw: number) => kw * i.hp * Math.min(24, i.hoursPerDay) * Math.min(31, i.daysPerMonth) * duty * Math.floor(i.units);
+  const month = kwh(i.inverter ? KW_PER_HP.inverter : KW_PER_HP.standard);
+  const r2 = (n: number) => Math.round(n * 100) / 100;
+  const year = month * 12;
+  return {
+    kwhMonth: Math.round(month),
+    costMonth: r2(month * i.tariff),
+    kwhYear: Math.round(year),
+    costYear: r2(year * i.tariff),
+    savingInverterYear: i.inverter ? 0 : r2((kwh(KW_PER_HP.standard) - kwh(KW_PER_HP.inverter)) * 12 * i.tariff),
+    savingOneDegreeYear: r2(year * i.tariff * 0.06), // about 6% less energy per degree the thermostat is raised
+  };
+}

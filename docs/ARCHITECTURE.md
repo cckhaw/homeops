@@ -18,7 +18,7 @@ Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS (Apple HIG sty
 | `docs/` | This documentation |
 
 ## Routes
-**Public (indexable):** `/` landing · `/tools`, `/tools/aircon-service-cost`, `/tools/appliance-lifespan` · `/blog`, `/blog/[slug]`, `/blog/category/[category]`, `/blog/rss.xml` · `/faq`, `/faq/[category]`, `/faq/[category]/[slug]` · `/privacy`, `/terms` · `/register`, `/login` · `/support` (only when donations are configured)
+**Public (indexable):** `/` landing · `/tools`, `/tools/aircon-service-cost`, `/tools/appliance-lifespan`, `/tools/warranty-expiry-calculator`, `/tools/repair-or-replace`, `/tools/aircon-electricity-cost` · `/blog`, `/blog/[slug]`, `/blog/category/[category]`, `/blog/rss.xml` · `/faq`, `/faq/[category]`, `/faq/[category]/[slug]` · `/privacy`, `/terms` · `/register`, `/login` · `/support` (only when donations are configured)
 
 **Public (not indexed):** `/newsletter/confirm`, `/newsletter/unsubscribe`, `/forgot-password`, `/reset-password`, `/join/[token]` (household invite), `/passport/[token]` (shared Home Service Passport), `/support/thanks`
 

@@ -16,7 +16,7 @@ const AIRCON='how-often-service-aircon-singapore-malaysia', WARRANTY='home-appli
  const future=new Date(Date.now()+7*86400000).toISOString(); await q("update blog_posts set publish_at=$2 where slug=$1",[WARRANTY,future]); await q("update blog_posts set publish_at=now() - interval '1 hour' where slug=$1",[AIRCON]);
 
  await a.goto(BASE+'/blog'); assert(/blog/i.test(await a.title()) && await a.locator('h1').count()===1,'the blog index loads');
- assert(await a.locator('[data-testid=post-card]:has-text("air-con")').count()===1,'the air-con article is listed');
+ assert(await a.locator('[data-testid=post-card]:has-text("How often should you service")').count()===1,'the air-con article is listed');
  assert(await a.locator('[data-testid=post-card]:has-text("Warranty Checklist")').count()===0,'the scheduled warranty checklist is NOT listed yet');
  const r1=await a.goto(BASE+'/blog/'+WARRANTY); assert(r1.status()===404,'its page returns 404 before its time');
  assert(!(await (await a.request.get(BASE+'/sitemap.xml')).text()).includes(WARRANTY) && !(await (await a.request.get(BASE+'/blog/rss.xml')).text()).includes(WARRANTY),'it is missing from the sitemap and RSS feed too');
@@ -52,7 +52,7 @@ const AIRCON='how-often-service-aircon-singapore-malaysia', WARRANTY='home-appli
  assert(/<h1[^>]*>How often should you service your air-con/.test(html) && /Wash the filters yourself every 2–4 weeks/.test(html) && !/<script[^>]*>[^<]*alert/.test(html),'the full article text is in the server-rendered HTML (no JavaScript needed to index it)');
  assert(/aircon/i.test(html) && /air-con/i.test(html),'both spellings searchers use ("aircon" and "air-con") appear in the content');
  const cat=await a.goto(BASE+'/blog/category/maintenance'); assert(cat.status()===200 && await a.locator('h1:has-text("Maintenance guides")').count()===1 && /\/blog\/category\/maintenance$/.test(await a.locator('link[rel=canonical]').getAttribute('href')),'the Maintenance category has its own indexable page with its own canonical URL');
- assert((await a.goto(BASE+'/blog/category/nonsense')).status()===404 && (await a.goto(BASE+'/blog/category/money')).status()===404,'unknown or empty categories are 404, not thin pages');
+ assert((await a.goto(BASE+'/blog/category/nonsense')).status()===404 && (await a.goto(BASE+'/blog/category/product-updates')).status()===404,'unknown or empty categories are 404, not thin pages');
  assert((await (await a.request.get(BASE+'/sitemap.xml')).text()).includes('/blog/category/maintenance'),'the sitemap lists the category page');
  assert((await a.request.get(BASE+'/blog/'+AIRCON.toUpperCase())).status()===404,'URLs are lowercase only (no duplicate-content variants)');
 
@@ -62,10 +62,10 @@ const AIRCON='how-often-service-aircon-singapore-malaysia', WARRANTY='home-appli
  const adm=await sess('admin@test.dev'); const p=await adm.newPage(); p.on('pageerror',e=>errs.push(e.message));
 
  // ---------------- admin: list
- await p.goto(BASE+'/admin/blog'); assert(await p.locator('[data-testid=admin-post]').count()>=2 && /Scheduled/.test(await p.locator('[data-testid=admin-post]:has-text("Warranty Checklist")').innerText()) && /Published/.test(await p.locator('[data-testid=admin-post]:has-text("air-con")').innerText()),'the list shows the air-con post as Published and the checklist as Scheduled');
+ await p.goto(BASE+'/admin/blog'); assert(await p.locator('[data-testid=admin-post]').count()>=2 && /Scheduled/.test(await p.locator('[data-testid=admin-post]:has-text("Warranty Checklist")').innerText()) && /Published/.test(await p.locator('[data-testid=admin-post]:has-text("How often should you service")').innerText()),'the list shows the air-con post as Published and the checklist as Scheduled');
  assert(await p.locator('[data-testid=admin-post]:has-text("Warranty Checklist")').innerText().then(t=>/Goes live .* SGT/.test(t)),'the scheduled post shows when it goes live (Singapore time)');
  assert(+(await p.locator('[data-testid=count-scheduled]').innerText())>=1,'the Scheduled tile counts it');
- await p.click('a:has([data-testid=count-scheduled])'); await p.waitForTimeout(500); assert((await p.locator('[data-testid=admin-post]').count())>=1 && await p.locator('[data-testid=admin-post]:has-text("air-con")').count()===0,'filtering by Scheduled hides published posts');
+ await p.click('a:has([data-testid=count-scheduled])'); await p.waitForTimeout(500); assert((await p.locator('[data-testid=admin-post]').count())>=1 && await p.locator('[data-testid=admin-post]:has-text("How often should you service")').count()===0,'filtering by Scheduled hides published posts');
  assert(await p.locator('aside a[href="/admin/blog"] >> text=/^\\d+$/').count()>=0 && /Blog/.test(await p.locator('aside[aria-label=Admin] nav').innerText()),'the sidebar has a Blog entry');
 
  // ---------------- admin: create a draft
