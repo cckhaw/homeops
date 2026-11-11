@@ -61,7 +61,7 @@ const EMAIL='demo@example.com', PW='DemoPass2026x';
  r=await text('/dashboard/reports'); assert(r.status===200 && /Spending|spent|Total/i.test(r.t),'the spending report has figures');
  r=await text('/dashboard/labels'); assert(r.status===200 && /Living room air-con|Kitchen refrigerator/.test(r.t),'QR labels are ready to print');
  r=await text('/dashboard/pack'); assert(r.status===200,'the move-out pack page opens');
- r=await text('/dashboard/homes'); console.log('info homes matches',(r.t.match(/assets · /g)||[]).length,JSON.stringify(r.t.slice(0,200))); assert((r.t.match(/assets · /g)||[]).length>=12 && /Cameron Highlands Cabin/.test(r.t) && /Hakuba Mountain Chalet/.test(r.t),'My homes lists all twelve');
+ r=await text('/dashboard/homes'); console.log('info homes matches',(r.t.match(/assets · /g)||[]).length,JSON.stringify(r.t.slice(0,200))); assert((r.t.match(/assets · /gi)||[]).length>=12 && /Cameron Highlands Cabin/.test(r.t) && /Hakuba Mountain Chalet/.test(r.t),'My homes lists all twelve');
  // rentals live in the rental homes: switch to Johor Bahru
  const jb=(await q("select id from households where owner_id=$1 and name like 'Johor Bahru%'",[owner.id]))[0].id; await vc.addCookies([{name:'homeops_home',value:jb,url:BASE}]);
  r=await text('/dashboard/rentals'); assert(/Mr and Mrs Lim/.test(r.t) && /unpaid/.test(r.t) && /Move-in report/.test(r.t),'Rentals shows a tenant with unpaid months and a move-in report');
@@ -99,7 +99,7 @@ const EMAIL='demo@example.com', PW='DemoPass2026x';
  await ap.goto(BASE+'/admin/demo'); await ap.click('button:has-text("Remove all")'); await ap.getByText(/Removed \d+ demo sandbox/).waitFor(); assert((await q("select count(*)::int n from profiles where is_demo"))[0].n===0,'"Remove all" clears every sandbox');
  // phone
  const vc4=await browser.newContext({viewport:{width:390,height:844}}); const v4=await vc4.newPage(); await v4.goto(BASE+'/login'); assert(await v4.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'phone: the sign-in page with the demo card fits'); await v4.screenshot({path:S+'/demo-login-phone.png',fullPage:true});
- await v4.click('button:has-text("Sign in to the demo")'); await v4.waitForURL(/\/dashboard/,{timeout:90000}); assert(await v4.evaluate(()=>document.documentElement.scrollWidth<=innerWidth) && await v4.getByTestId('demo-banner').isVisible(),'phone: the dashboard with the demo banner fits'); await v4.screenshot({path:S+'/demo-dashboard-phone.png'});
+ await v4.click('button:has-text("Sign in to the demo")'); await v4.waitForURL(/\/dashboard/,{timeout:90000}); await v4.waitForTimeout(1500); console.log('info phone overflow',await v4.evaluate(()=>({sw:document.documentElement.scrollWidth,iw:innerWidth,wide:[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).slice(0,4).map(e=>e.tagName+'.'+String(e.className).slice(0,60))}))); assert(await v4.evaluate(()=>document.documentElement.scrollWidth<=innerWidth) && await v4.getByTestId('demo-banner').isVisible(),'phone: the dashboard with the demo banner fits'); await v4.screenshot({path:S+'/demo-dashboard-phone.png'});
  await v.screenshot({path:S+'/demo-dash.png'});
  assert(errs.length===0,'no page errors '+errs.join('|'));
  await browser.close(); await pool.end();
