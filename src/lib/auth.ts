@@ -16,6 +16,7 @@ import { clientIpFrom } from '@/lib/rate-limit-core';
 import { appleClientSecretFromEnv, appleConfigured } from '@/lib/apple';
 import { peekRateLimit, rateLimit } from '@/lib/rate-limit';
 import { turnstileEnabled, verifyTurnstile } from '@/lib/turnstile';
+import { MAX_ACTIVE_SANDBOXES, activeSandboxes, createDemoSandbox, getDemoConfig, isDemoLogin } from '@/lib/demo';
 
 export const googleEnabled = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 export const appleEnabled = appleConfigured();
@@ -65,6 +66,18 @@ async function authorizeCredentials(credentials: Record<'email' | 'password' | '
   // Per-address throttle on top of the per-account lockout (which only protects accounts that exist).
   const ip = clientIpFrom(reqHeaders);
   if (!(await rateLimit('login-ip', ip, 40, 600)).ok) throw new Error('RATE_LIMITED');
+
+  // The demo: the admin-configured e-mail and password open a private sandbox with sample data (never a real account).
+  const demoCfg = await getDemoConfig();
+  if (demoCfg.enabled && email === demoCfg.email && !(await findProfileByEmail(email))) {
+    if (!(await isDemoLogin(email, password))) {
+      await rateLimit('login-fail-ip', ip, 1_000_000, 900);
+      throw new Error('INVALID');
+    }
+    if (!(await rateLimit('demo-create', ip, 8, 3600)).ok) throw new Error('RATE_LIMITED');
+    if ((await activeSandboxes()) >= MAX_ACTIVE_SANDBOXES) throw new Error('DEMO_BUSY');
+    return createDemoSandbox(demoCfg.hours);
+  }
 
   const profile = await findProfileByEmail(email);
   if (profile?.lockedUntil && profile.lockedUntil > new Date()) {
@@ -158,6 +171,7 @@ export const getCurrentUser = cache(async (): Promise<Profile | null> => {
   const [profile] = await db.select().from(profiles).where(eq(profiles.email, email));
   // A password change/reset bumps sessionVersion, which signs out every older session.
   if (!profile || profile.suspendedAt || session?.sv !== profile.sessionVersion) return null;
+  if (profile.isDemo && profile.demoExpiresAt && profile.demoExpiresAt < new Date()) return null; // a finished demo is signed out
   return profile;
 });
 

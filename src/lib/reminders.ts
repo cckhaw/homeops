@@ -27,7 +27,7 @@ export async function sendReminderDigests(opts: { onlyUserId?: string; force?: b
     .where(
       opts.onlyUserId
         ? eq(profiles.id, opts.onlyUserId)
-        : or(eq(profiles.notifyReminders, true), and(eq(profiles.notifyWhatsapp, true), isNotNull(profiles.whatsappVerifiedAt)), and(eq(profiles.notifyTelegram, true), isNotNull(profiles.telegramChatId)), pushUsers.length ? inArray(profiles.id, pushUsers) : undefined),
+        : and(eq(profiles.isDemo, false), or(eq(profiles.notifyReminders, true), and(eq(profiles.notifyWhatsapp, true), isNotNull(profiles.whatsappVerifiedAt)), and(eq(profiles.notifyTelegram, true), isNotNull(profiles.telegramChatId)), pushUsers.length ? inArray(profiles.id, pushUsers) : undefined)),
     );
   let emails = 0;
   let pushes = 0;

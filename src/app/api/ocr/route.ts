@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { getCurrentUser } from '@/lib/auth';
 import { enforce } from '@/lib/rate-limit';
+import { demoGuard } from '@/lib/demo';
 import { LABEL_PROMPT, RECEIPT_PROMPT, cleanLabel, cleanReceipt, isScanMode } from '@/lib/ocr-core';
 
 export const runtime = 'nodejs';
@@ -13,6 +14,9 @@ const MAX_BYTES = 8 * 1024 * 1024;
 export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
+
+  const demo = await demoGuard('Scanning');
+  if (demo) return NextResponse.json({ error: demo.error }, { status: 403 });
 
   // Each scan costs money: a short burst limit and a daily cap per user.
   const limited = (await enforce('ocr-minute', user.id, 6, 60)) ?? (await enforce('ocr-day', user.id, 60, 86_400));

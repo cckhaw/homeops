@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { count, gte, sql } from 'drizzle-orm';
+import { and, count, eq, gte, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { assets, errorLog, households, maintenanceTasks, profiles } from '@/db/schema';
 import { getLimits } from '@/lib/settings';
@@ -8,18 +8,21 @@ import GlassCard from '@/components/GlassCard';
 import PageHeader from '@/components/PageHeader';
 import AppleButton from '@/components/AppleButton';
 
+/** Demo visitors (and their sample homes) are not real usage. */
+const realHome = sql`owner_id not in (select id from profiles where is_demo)`;
+
 export default async function AdminHome() {
   const since = new Date(Date.now() - 29 * 86_400_000);
   since.setHours(0, 0, 0, 0);
   const [[u], [h], [a], [t], signups, limits, [openErrors]] = await Promise.all([
-    db.select({ n: count() }).from(profiles),
-    db.select({ n: count() }).from(households),
-    db.select({ n: count() }).from(assets),
-    db.select({ n: count() }).from(maintenanceTasks).where(sql`${maintenanceTasks.status} = 'completed'`),
+    db.select({ n: count() }).from(profiles).where(eq(profiles.isDemo, false)),
+    db.select({ n: count() }).from(households).where(realHome),
+    db.select({ n: count() }).from(assets).where(sql`${assets.householdId} in (select id from households where ${realHome})`),
+    db.select({ n: count() }).from(maintenanceTasks).where(and(sql`${maintenanceTasks.status} = 'completed'`, sql`${maintenanceTasks.householdId} in (select id from households where ${realHome})`)),
     db
       .select({ day: sql<string>`to_char(${profiles.createdAt}, 'YYYY-MM-DD')`, n: count() })
       .from(profiles)
-      .where(gte(profiles.createdAt, since))
+      .where(and(gte(profiles.createdAt, since), eq(profiles.isDemo, false)))
       .groupBy(sql`to_char(${profiles.createdAt}, 'YYYY-MM-DD')`),
     getLimits(),
     db.select({ n: count() }).from(errorLog).where(sql`${errorLog.resolvedAt} is null`),

@@ -5,6 +5,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { and, count, eq, gt, ne } from 'drizzle-orm';
 import { db } from '@/db';
+import { demoGuard } from '@/lib/demo';
 import {
   assets,
   contractorHomes,
@@ -290,6 +291,7 @@ export async function deleteTask(taskId: string) {
 const canManage = (role: string) => role === 'owner' || role === 'admin';
 
 export async function createInvite() {
+  { const demo = await demoGuard('Inviting people'); if (demo) return demo as never; }
   const { user, household, role } = await requireHousehold();
   if (!canManage(role)) return;
   await db.insert(householdInvites).values({

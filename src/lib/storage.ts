@@ -1,5 +1,6 @@
 import 'server-only';
 import { blobConfigured, putBlob } from '@/lib/blob';
+import { demoGuard } from '@/lib/demo';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'application/pdf'];
@@ -12,6 +13,8 @@ const NOT_CONFIGURED = 'File storage is not configured yet (connect a Vercel Blo
 /** Uploads a user file (receipt / manual) to private storage. Returns url=null when no file was supplied. */
 export async function uploadFile(file: File | null, folder: string): Promise<UploadResult> {
   if (!file || file.size === 0) return { url: null };
+  const demo = await demoGuard('File upload');
+  if (demo) return { url: null, error: demo.error };
   if (file.size > MAX_BYTES) return { url: null, error: 'Files must be under 10 MB.' };
   if (!ALLOWED.includes(file.type)) return { url: null, error: 'Upload a JPG, PNG, WebP, HEIC or PDF file.' };
   if (!blobConfigured()) return { url: null, error: NOT_CONFIGURED };

@@ -54,6 +54,7 @@ const loginErrors: Record<string, string> = {
   CredentialsSignin: 'Incorrect e-mail or password.',
   RATE_LIMITED: 'Too many attempts from this network. Please wait a few minutes and try again.',
   CAPTCHA_REQUIRED: 'Please complete the security check, then sign in again.',
+  DEMO_BUSY: 'The demo is very busy right now. Please try again in a few minutes.',
 };
 
 export function LoginForm({ callbackUrl, notice, captchaSiteKey }: { callbackUrl: string; notice?: string | null; captchaSiteKey?: string | null }) {

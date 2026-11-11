@@ -45,6 +45,7 @@ If you change the secret or the domain, press Register webhook again.
 | `rel12` | Model-sticker scan (against a fake AI server) and the warranty claim helper |
 | `rel13` | Telegram: connect link, webhook security, digest delivery, blocked chats, admin webhook setup (fake Telegram server on port 4070) |
 | `rel16` | Newsletter sign-up, confirm, admin send and resume, unsubscribe (page, one-click, headers), free tools pages (SEO, calculators) |
+| `rel17` | Demo mode: admin settings and validation, public card and homepage button, per-visitor sandbox with twelve homes, guard rails, isolation, expiry and clean-up |
 | `rel15` | Rentals: tenancies, rent reminders and arrears, mark rent received, condition reports and move-out comparison, access control |
 | `rel14` | Property dates for Singapore/Malaysia, and the Telegram card when the bot is not configured |
 | `rel2` | Turnstile and Apple sign-in |
@@ -54,3 +55,7 @@ Unit tests (`npm test`) cover the pure logic: passwords and crypto, dates, remin
 ## Housekeeping
 - **Repository name:** the GitHub repository is still called `homeops`. Renaming it (Settings → General) is safe for Vercel but check the deploy workflow's secrets and any hard-coded names first.
 - **Browser storage keys** keep their old `homeops-` prefix (theme, sidebar). Renaming them would reset every user's saved preferences, so they stay.
+
+## Demo mode
+
+Admin → Demo: switch it on, choose a demo e-mail and password (8–64 characters; a real account's e-mail is refused) and how long a sandbox lives (default 24 h). Anyone signing in with those credentials gets a private, freshly seeded account ("Alex Tan (Demo)") with twelve homes covering every feature (see `src/lib/demo-core.ts`). Optional "show hint" prints the credentials on the sign-in page and adds a "Try the live demo" button to the homepage. Uploads, OCR scans, notifications, invites, password changes and account deletion are switched off for demo accounts; demo accounts are never e-mailed and are excluded from Admin analytics and Users. Expired sandboxes are removed by the daily reminders cron, or via Admin → Demo (Remove expired / Remove all). At most 150 sandboxes exist at once.

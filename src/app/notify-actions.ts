@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { and, eq } from 'drizzle-orm';
 import { db } from '@/db';
+import { demoGuard } from '@/lib/demo';
 import { profiles, pushSubscriptions } from '@/db/schema';
 import { requireUser } from '@/lib/auth';
 import { enforce } from '@/lib/rate-limit';
@@ -22,6 +23,7 @@ const B64URL = /^[A-Za-z0-9_-]{8,200}$/;
 
 /** Called by the browser after the user allows notifications. The same device can only be registered once. */
 export async function savePushSubscription(input: { endpoint: string; p256dh: string; auth: string; label?: string }): Promise<FormState> {
+  { const demo = await demoGuard('Notifications'); if (demo) return demo as never; }
   const user = await requireUser();
   if (!pushConfigured()) return { error: 'Push notifications are not set up on this site yet.' };
   const limited = await enforce('push-sub', user.id, 20, 3600);
@@ -57,6 +59,7 @@ export async function removePushDevice(id: string): Promise<void> {
 }
 
 export async function sendTestPush(): Promise<FormState> {
+  { const demo = await demoGuard('Notifications'); if (demo) return demo as never; }
   const user = await requireUser();
   if (!pushConfigured()) return { error: 'Push notifications are not set up on this site yet.' };
   const limited = await enforce('push-test', user.id, 6, 600);
@@ -70,6 +73,7 @@ export async function sendTestPush(): Promise<FormState> {
 
 /** Step 1: send a 6-digit code to the number. Nothing is switched on until the code comes back. */
 export async function startWhatsappVerification(_: FormState, fd: FormData): Promise<FormState> {
+  { const demo = await demoGuard('WhatsApp reminders'); if (demo) return demo as never; }
   const user = await requireUser();
   if (!whatsappConfigured()) return { error: 'WhatsApp reminders are not set up on this site yet.' };
   const { currency } = await getPrefs().catch(() => ({ currency: 'USD' }));
@@ -96,6 +100,7 @@ export async function startWhatsappVerification(_: FormState, fd: FormData): Pro
 
 /** Step 2: the code proves the number is theirs. Limited to 5 tries per code. */
 export async function confirmWhatsapp(_: FormState, fd: FormData): Promise<FormState> {
+  { const demo = await demoGuard('WhatsApp reminders'); if (demo) return demo as never; }
   const user = await requireUser();
   const code = str(fd, 'code', 12).replace(/\D/g, '');
   if (!user.whatsappNumber || !user.whatsappCodeHash || !user.whatsappCodeExpires) return { error: 'Request a code first.' };
@@ -136,6 +141,7 @@ export async function removeWhatsapp(): Promise<FormState> {
 
 /** Step 1: make a one-time link (valid 15 minutes). Opening it in Telegram and pressing Start connects the chat. */
 export async function startTelegramLink(): Promise<{ error?: string; url?: string; qr?: string }> {
+  { const demo = await demoGuard('Telegram reminders'); if (demo) return demo as never; }
   const user = await requireUser();
   if (!telegramConfigured()) return { error: 'Telegram reminders are not set up on this site yet.' };
   const limited = await enforce('tg-link', user.id, 10, 3600);
@@ -155,6 +161,7 @@ export async function setTelegramReminders(on: boolean): Promise<FormState> {
 }
 
 export async function sendTestTelegram(): Promise<FormState> {
+  { const demo = await demoGuard('Telegram reminders'); if (demo) return demo as never; }
   const user = await requireUser();
   if (!telegramConfigured() || !user.telegramChatId) return { error: 'Connect Telegram first.' };
   const limited = await enforce('tg-test', user.id, 6, 600);

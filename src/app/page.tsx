@@ -10,6 +10,7 @@ import { donationsEnabled } from '@/lib/donate';
 import Logo from '@/components/Logo';
 import { ThemeToggle } from '@/components/misc';
 import AppPreview from '@/components/landing/AppPreview';
+import { getDemoPublic } from '@/lib/demo';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,6 +95,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 export default async function Landing({ searchParams: sp }: { searchParams: Promise<{ deleted?: string }> }) {
   const searchParams = await sp;
   const user = await getCurrentUser();
+  const demo = await getDemoPublic();
   if (user) redirect('/dashboard');
 
   return (
@@ -139,6 +141,7 @@ export default async function Landing({ searchParams: sp }: { searchParams: Prom
             <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <AppleButton href="/register" className="min-w-[230px]">Get started — it&apos;s free</AppleButton>
               <AppleButton href="#features" variant="secondary" className="min-w-[200px]">Explore features</AppleButton>
+              {demo && <AppleButton href="/login#demo" variant="secondary" className="min-w-[200px]" data-testid="try-demo">Try the live demo</AppleButton>}
             </div>
             <ul className="mx-auto mt-8 flex max-w-xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-[13px] text-secondary">
               {['No ads or tracking', 'Works on every device', 'Your data stays yours'].map((t) => (

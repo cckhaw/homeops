@@ -66,7 +66,7 @@ export default async function DashboardPage() {
         <Stat icon={ShieldAlert} label="Warranties ending" value={expiring.length} tone={expiring.length ? 'warn' : undefined} />
       </section>
 
-      <div className="grid items-start gap-x-8 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-x-8 lg:grid-cols-2">
       <section className="mb-8" aria-labelledby="urgent">
         <div className="mb-2 flex items-center justify-between px-1">
           <h2 id="urgent" className="text-[22px] font-bold">Up next</h2>

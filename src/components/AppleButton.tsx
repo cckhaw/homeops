@@ -29,7 +29,7 @@ export default function AppleButton({ variant = 'primary', href, full, className
   const cls = cn(base, variants[variant], full && 'w-full', className);
   if (href) {
     return (
-      <Link href={href} className={cls}>
+      <Link href={href} className={cls} data-testid={(rest as { 'data-testid'?: string })['data-testid']}>
         {children}
       </Link>
     );
