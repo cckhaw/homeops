@@ -1,19 +1,19 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Calculator, Hourglass } from 'lucide-react';
+import { Calculator, Hourglass, ShieldCheck, Wrench, Zap } from 'lucide-react';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import NewsletterForm from '@/components/NewsletterForm';
 import { TOOLS, toolUrl } from '@/lib/tools-pages';
 import { siteBaseUrl } from '@/lib/donate';
 
 export const metadata: Metadata = {
-  title: 'Free home tools: air-con cost calculator and lifespan guide',
-  description: 'Free, no sign-up tools for home owners in Singapore and Malaysia: estimate air-con servicing cost and check how long your appliances should last.',
+  title: 'Free home tools: warranty, repair and air-con calculators',
+  description: 'Free, no sign-up tools for Singapore and Malaysia home owners: warranty expiry, repair or replace, air-con servicing and electricity cost, appliance lifespan.',
   alternates: { canonical: '/tools' },
-  openGraph: { type: 'website', title: 'Free home tools by Wodejia', description: 'Air-con cost calculator and appliance lifespan checker.', url: '/tools' },
+  openGraph: { type: 'website', title: 'Free home tools by Wodejia', description: 'Warranty, repair-or-replace, air-con cost and appliance lifespan tools.', url: '/tools' },
 };
 
-const ICONS = { 'aircon-service-cost': Calculator, 'appliance-lifespan': Hourglass } as const;
+const ICONS = { 'aircon-service-cost': Calculator, 'appliance-lifespan': Hourglass, 'warranty-expiry-calculator': ShieldCheck, 'repair-or-replace': Wrench, 'aircon-electricity-cost': Zap } as const;
 
 export default function ToolsIndex() {
   const base = siteBaseUrl('http://localhost:3000');

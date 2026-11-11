@@ -19,7 +19,7 @@
 - Only people who confirmed from their inbox receive it; every e-mail has an unsubscribe link. Needs `RESEND_API_KEY` and a verified sending domain (`EMAIL_FROM`); check your Resend plan's daily and per-second limits before large sends.
 
 ## Free tools
-The air-con price ranges, usage assumptions and appliance lifespans are in `src/lib/tools-core.ts` as plain tables. They are indicative 2026 market ranges and rules of thumb: review them once or twice a year, update the numbers and the matching FAQ text on the page, and the unit tests will tell you if a change breaks the maths.
+The air-con price ranges, usage assumptions, electricity tariffs and power draw, repair-or-replace thresholds and appliance lifespans are in `src/lib/tools-core.ts` as plain tables. They are indicative 2026 market ranges and rules of thumb: review them once or twice a year, update the numbers and the matching FAQ text on the page, and the unit tests will tell you if a change breaks the maths.
 
 ## Welcome tour
 `src/components/WelcomeTour.tsx` (`SLIDES`). Shown once after first sign-in; replayable from Settings → Profile. Keep it to a handful of slides and update it when a major feature ships.

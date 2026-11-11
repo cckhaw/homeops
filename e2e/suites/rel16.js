@@ -60,8 +60,8 @@ const linkIn=(html,re)=>{ const m=re.exec(html||''); return m&&m[1].replace(/&am
 
  // ---------------- free tools: pages, SEO, calculators
  const sitemap=await (await a.request.get(BASE+'/sitemap.xml')).text(); const robots=await (await a.request.get(BASE+'/robots.txt')).text();
- assert(['/tools<','/tools/aircon-service-cost<','/tools/appliance-lifespan<'].every(u=>sitemap.includes(u)) && /Allow: \/tools/.test(robots) && /Disallow: \/newsletter\//.test(robots),'the sitemap lists the tools, robots allows them and blocks /newsletter/ pages');
- for(const [path,h1,needs] of [['/tools','Smarter decisions',2],['/tools/aircon-service-cost','Air-con service cost calculator',5],['/tools/appliance-lifespan','Appliance lifespan guide and age checker',5]]){
+ assert(['/tools<','/tools/aircon-service-cost<','/tools/appliance-lifespan<','/tools/warranty-expiry-calculator<','/tools/repair-or-replace<','/tools/aircon-electricity-cost<'].every(u=>sitemap.includes(u)) && /Allow: \/tools/.test(robots) && /Disallow: \/newsletter\//.test(robots),'the sitemap lists the tools, robots allows them and blocks /newsletter/ pages');
+ for(const [path,h1,needs] of [['/tools','Smarter decisions',2],['/tools/aircon-service-cost','Air-con service cost calculator',5],['/tools/appliance-lifespan','Appliance lifespan guide and age checker',5],['/tools/warranty-expiry-calculator','Warranty expiry calculator',5],['/tools/repair-or-replace','Repair or replace calculator',5],['/tools/aircon-electricity-cost','Air-con electricity cost calculator',5]]){
   const r=await a.goto(BASE+path); const mt=await meta(a); const graph=(mt.ld[0]['@graph']||[]); 
   assert(r.status()===200 && mt.h1.length===1 && mt.h1[0].includes(h1.split(' ')[0]) && mt.canon.endsWith(path) && mt.desc.length>=90 && mt.desc.length<=165 && mt.title.length<=75,`${path}: 200, one H1, canonical, ${mt.desc.length}-character description`);
   if(path!=='/tools') assert(graph.some(n=>n['@type']==='WebApplication'&&n.isAccessibleForFree) && graph.some(n=>n['@type']==='FAQPage'&&n.mainEntity.length===needs) && graph.some(n=>n['@type']==='BreadcrumbList') && await a.locator('details').count()===needs,`${path}: WebApplication + FAQPage (${needs} questions, also visible) + breadcrumb structured data`);
@@ -83,13 +83,30 @@ const linkIn=(html,re)=>{ const m=re.exec(html||''); return m&&m[1].replace(/&am
  await a.selectOption('select[aria-label=Appliance]','fridge'); assert(/10 to 15 years/.test(await a.locator('form[aria-label="Appliance age checker"]').innerText()),'choosing the fridge shows its 10 to 15 year range');
  assert(await a.getByTestId('lifespan-table').locator('tbody tr').count()>=15,'the full lifespan table is on the page for search engines');
  await a.screenshot({path:S+'/tool-lifespan.png',fullPage:true});
+ // new tools: warranty expiry, repair or replace, air-con electricity
+ await a.goto(BASE+'/tools'); assert(await a.locator('main a[href^="/tools/"]').count()===5,'the tools index lists all five tools');
+ await a.goto(BASE+'/tools/warranty-expiry-calculator'); const wr=()=>a.getByTestId('warranty-result').innerText();
+ await a.fill('input[aria-label="Purchase date"]','2024-01-31'); await a.fill('input[aria-label="Warranty months"]','1'); assert(/29 February 2024/.test(await wr()) && /Expired/.test(await wr()),'warranty: 31 Jan 2024 + 1 month ends 29 February 2024 and is shown as expired');
+ const d=new Date(); d.setUTCMonth(d.getUTCMonth()-1); await a.fill('input[aria-label="Purchase date"]',d.toISOString().slice(0,10)); await a.click('button:has-text("2 years")'); assert(/Covered for/.test(await wr()),'a month-old purchase with a 2-year warranty is covered');
+ const e=new Date(); e.setUTCMonth(e.getUTCMonth()-11); await a.fill('input[aria-label="Purchase date"]',e.toISOString().slice(0,10)); await a.click('button:has-text("1 year")'); assert(/Ends in/.test(await wr()),'a warranty ending within about a month shows "Ends in N days"');
+ await a.goto(BASE+'/tools/repair-or-replace'); const vd=()=>a.getByTestId('repair-verdict').innerText();
+ await a.selectOption('select[aria-label=Appliance]','washer'); await a.fill('input[aria-label="Age in years"]','3'); await a.fill('input[aria-label="Repair quote"]','150'); await a.fill('input[aria-label="Price of a new one"]','1000'); assert(/^Repair it$/.test(await vd()),'repair: a cheap fix on a young washer');
+ await a.fill('input[aria-label="Repair quote"]','550'); assert(/Replace it/.test(await vd()),'replace: a repair over half the price of a new one');
+ await a.check('input[aria-label="Still under warranty"]'); assert(/warranty/i.test(await vd()),'under warranty the advice is to claim and repair');
+ await a.goto(BASE+'/tools/aircon-electricity-cost'); const pm=()=>a.getByTestId('power-month').innerText();
+ await a.selectOption('select[aria-label=Country]','SG'); await a.selectOption('select[aria-label="Size in HP"]','1'); await a.fill('input[aria-label="Number of units"]','1'); await a.fill('input[aria-label="Hours per day"]','8'); await a.fill('input[aria-label="Days per month"]','30'); await a.fill('input[aria-label="Price per kWh"]','0.3');
+ assert(/S\$31/.test(await pm()),'a 1 HP inverter for 8 hours a day at S$0.30 costs about S$31 a month');
+ await a.uncheck('input[aria-label="Inverter model"]'); assert(await a.getByTestId('power-saving').count()===1 && !/S\$31 /.test(await pm()),'a non-inverter costs more and shows what an inverter would save');
+ await a.selectOption('select[aria-label=Country]','MY'); assert(/RM/.test(await pm()),'switching to Malaysia uses RM and its default tariff');
+ await a.screenshot({path:S+'/tool-power.png',fullPage:true});
+ for(const [post,tool] of [['how-to-claim-appliance-warranty-singapore-malaysia','/tools/warranty-expiry-calculator'],['repair-or-replace-appliance-guide','/tools/repair-or-replace'],['lower-aircon-electricity-bill-singapore-malaysia','/tools/aircon-electricity-cost']]){ const r=await a.goto(BASE+'/blog/'+post); assert(r.status()===200 && await a.locator(`article a[href="${tool}"]`).count()>=1 && await a.locator('h1').count()===1,`blog: ${post} is published and links to its tool`); }
  // internal links from the blog posts and placements of the sign-up
  await a.goto(BASE+'/blog/how-often-service-aircon-singapore-malaysia'); assert(await a.locator('article a[href="/tools/aircon-service-cost"]').count()>=1 && await form(a).count()===1,'the air-con article links to the calculator and has the sign-up below it');
  await a.goto(BASE+'/faq'); assert(await form(a).count()===1,'the FAQ index has the sign-up too');
  await a.goto(BASE+'/'); assert(await a.locator('header nav a[href="/tools"]').count()===1 && await a.locator('footer a[href="/tools"]').count()===1,'the front page links to the tools');
  // phones
  const mc=await browser.newContext({viewport:{width:360,height:740}}); const mp=await mc.newPage();
- for(const path of ['/tools','/tools/aircon-service-cost','/tools/appliance-lifespan','/blog','/newsletter/confirm?t=x']){ await mp.goto(BASE+path); assert(await mp.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`phone (360px): ${path} fits`); }
+ for(const path of ['/tools','/tools/aircon-service-cost','/tools/appliance-lifespan','/tools/warranty-expiry-calculator','/tools/repair-or-replace','/tools/aircon-electricity-cost','/blog','/newsletter/confirm?t=x']){ await mp.goto(BASE+path); assert(await mp.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`phone (360px): ${path} fits`); }
  await mp.goto(BASE+'/tools/aircon-service-cost'); await mp.screenshot({path:S+'/tool-aircon-phone.png',fullPage:true});
  const adm=await sess('admin@test.dev',{width:390,height:844}); const am=await adm.newPage(); await am.goto(BASE+'/admin/newsletter'); assert(await am.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'phone: Admin → Newsletter fits');
  assert(errs.length===0,'no page errors '+errs.join('|'));
