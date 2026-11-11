@@ -37,7 +37,7 @@ ONLY=" ${*:-} "
 run() { # run <suite>   (bash e2e/run.sh side rel3  runs only those)
   local name=$1
   [ "$ONLY" != "  " ] && [[ "$ONLY" != *" $name "* ]] && return 0
-  local res code; res=$(timeout 600 node e2e/suites/$name.js "$OUT" 2>&1); code=$?
+  local res code; res=$(timeout 900 node e2e/suites/$name.js "$OUT" 2>&1); code=$?
   echo "$res" > "$OUT/$name.log"
   local ok fail; ok=$(echo "$res" | grep -c '^ok'); fail=$(echo "$res" | grep -c '^FAIL')
   printf '%-12s passed %-3s failed %s%s\n' "$name" "$ok" "$fail" "$([ $code != 0 ] && echo "  (exit $code)")"

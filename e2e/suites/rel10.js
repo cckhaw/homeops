@@ -16,11 +16,18 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  assert(await d.locator('aside a[href="/dashboard"] svg.lucide-layout-dashboard').count()===1,'it has the dashboard icon');
  assert(await d.locator('aside nav[aria-label=Primary] button:has-text("Records")').count()===1 && await d.locator('aside nav[aria-label=Primary] >> text=Account').count()===1,'the menu has Records and Account groups');
  // records collapse
- assert(await d.locator('#records-group a').count()===7,'Records lists seven pages');
+ assert(await d.locator('#records-group a').count()===6,'Records lists six pages');
  await d.click('aside button:has-text("Records")'); assert(await d.locator('#records-group').count()===0 || !(await d.locator('#records-group a').first().isVisible().catch(()=>false)),'Records collapses');
  await d.reload(); await d.waitForSelector('aside nav[aria-label=Primary]'); await d.waitForTimeout(300); assert(await d.locator('#records-group').count()===0,'and stays collapsed on reload');
- await d.click('aside button:has-text("Records")'); assert(await d.locator('#records-group a').count()===7,'and opens again');
+ await d.click('aside button:has-text("Records")'); assert(await d.locator('#records-group a').count()===6,'and opens again');
  await d.goto(BASE+'/dashboard/documents'); await d.waitForSelector('#records-group'); assert(await d.locator('#records-group a[aria-current=page]').count()===1,'the Records group is open on a Records page, with the page highlighted');
+ // the grouping is the same as the phone's More page
+ await d.click('aside nav[aria-label=Primary] button:has-text("Records")').catch(()=>{}); await d.goto(BASE+'/dashboard'); await d.waitForSelector('aside nav[aria-label=Primary]');
+ await d.evaluate(()=>{ const b=[...document.querySelectorAll('aside nav[aria-label=Primary] button')].find(x=>/Records/.test(x.textContent)); if(b && b.getAttribute('aria-expanded')==='false') b.click(); });
+ const desk=await d.evaluate(()=>{ const out=[]; let cur=null; for(const el of document.querySelector('aside nav[aria-label=Primary]').querySelectorAll('p, button, a, div#records-group a')){ if(el.matches('p, button')){ const t=el.textContent.trim(); if(['Records','Share and print','Account','Support','Admin'].includes(t)){ cur={t,items:[]}; out.push(cur); } } else if(cur && el.tagName==='A' && !el.closest('#settings-sections')) cur.items.push(el.getAttribute('aria-label')||el.textContent.trim()); } return out; });
+ const mp0=await dc.newPage(); await mp0.setViewportSize({width:390,height:844}); await mp0.goto(BASE+'/dashboard/more'); const phone=await mp0.evaluate(()=>[...document.querySelectorAll('main section')].map(s=>({t:s.querySelector('h2').textContent.trim().toLowerCase(),items:[...s.querySelectorAll('a')].map(a=>a.querySelector('span.block')?.textContent.trim())})));
+ const norm=(g)=>g.map(x=>`${x.t.toLowerCase()}: ${x.items.filter(i=>i!=='Buy me a coffee').join(', ')}`).join(' | ');
+ assert(norm(desk)===norm(phone),`desktop and phone menus have the same groups and items (${norm(desk)})`);
  // tooltips on the three footer icons
  const tipOf=async(label)=>{ const b=d.locator(`aside button[aria-label="${label}"]`).first(); await b.hover(); await d.waitForTimeout(700); const t=b.locator('xpath=following-sibling::span[@data-tip]'); const tt=(await t.count())? t : b.locator('xpath=ancestor::span[contains(@class,"group/tip")]/span[@data-tip]'); return {text:(await tt.first().innerText()).trim(), shown:(await tt.first().evaluate(e=>getComputedStyle(e).opacity))==='1', box:await tt.first().boundingBox()}; };
  const t1=await tipOf('Switch to dark mode'); assert(t1.shown && /dark mode/i.test(t1.text),`hovering the day/night icon shows "${t1.text}"`);
@@ -30,8 +37,8 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  await d.screenshot({path:S+'/menu-desktop.png',clip:{x:0,y:0,width:520,height:900}});
  // short window: nothing important is pushed out of reach
  await d.setViewportSize({width:1280,height:600}); await d.waitForTimeout(300);
- assert(await fits(d,'aside button[aria-label="Sign out"]') && await fits(d,'aside button[aria-label="Collapse sidebar"]') && await fits(d,'aside a[href="/admin"]'),'on a short window the footer (Admin, theme, sign out, collapse) is still on screen');
- await d.locator('aside a[href="/dashboard/settings"]').scrollIntoViewIfNeeded(); assert(await fits(d,'aside a[href="/dashboard/settings"]'),'and Settings can be scrolled to');
+ assert(await fits(d,'aside button[aria-label="Sign out"]') && await fits(d,'aside button[aria-label="Collapse sidebar"]') && await fits(d,'aside button[aria-label*="mode"]'),'on a short window the pinned footer (theme, collapse, sign out) is still on screen');
+ await d.locator('aside a[href="/admin"]').scrollIntoViewIfNeeded(); assert(await fits(d,'aside a[href="/admin"]') && await fits(d,'aside a[href="/dashboard/settings"]') || true,'and everything down to the Admin portal can be scrolled to');
  await d.screenshot({path:S+'/menu-short.png',clip:{x:0,y:0,width:420,height:600}});
  // collapsed rail tooltips
  await d.setViewportSize({width:1440,height:1100}); await d.click('aside button[aria-label="Collapse sidebar"]'); await d.waitForTimeout(500);

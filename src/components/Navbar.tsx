@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, LayoutDashboard, Receipt, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, CircleHelp, Landmark, KeyRound, Coffee, PanelLeftClose, PanelLeftOpen, ChevronDown } from 'lucide-react';
+import { BarChart3, LogOut, Ellipsis, FileArchive, FolderLock, HardHat, LayoutDashboard, Receipt, QrCode, Package, CalendarCheck, Users, BadgeCheck, Settings, ShieldCheck, Building2, CircleHelp, Landmark, KeyRound, Coffee, PanelLeftClose, PanelLeftOpen, ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { SETTINGS_SECTIONS } from './settingsSections';
@@ -22,13 +22,16 @@ const items = [
   { href: '/dashboard/passport', label: 'Passport', icon: BadgeCheck },
 ];
 const records = [
-  { href: '/dashboard/documents', label: 'Documents', icon: FolderLock },
+  { href: '/dashboard/documents', label: 'Document vault', icon: FolderLock },
   { href: '/dashboard/contractors', label: 'Contractors', icon: HardHat },
   { href: '/dashboard/bills', label: 'Utility bills', icon: Receipt },
   { href: '/dashboard/property', label: 'Property dates', icon: Landmark },
   { href: '/dashboard/rentals', label: 'Rentals', icon: KeyRound },
   { href: '/dashboard/reports', label: 'Spending', icon: BarChart3 },
+];
+const share = [
   { href: '/dashboard/pack', label: 'Move-out pack', icon: FileArchive },
+  { href: '/dashboard/labels', label: 'QR labels', icon: QrCode },
 ];
 // The phone tab bar has room for six: the five daily screens plus a hub for everything else.
 const mobileTabs = [...items, { href: '/dashboard/more', label: 'More', icon: Ellipsis }];
@@ -74,6 +77,9 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
     );
   };
 
+  /** Group label in the expanded menu; a thin divider in the icon rail. */
+  const heading = (title: string) => (collapsed ? <div key={title} className="my-2 border-t hairline" /> : <p key={title} className="mb-0.5 mt-3 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary">{title}</p>);
+
   return (
     <>
       {/* Desktop sidebar — collapsible to an icon rail */}
@@ -115,7 +121,11 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
             </div>
           )}
 
-          {collapsed ? <div className="my-2 border-t hairline" /> : <p className="mb-0.5 mt-2 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-secondary">Account</p>}
+          {/* Share and print */}
+          {heading('Share and print')}
+          {share.map((i) => link(i.href, i.label, i.icon))}
+
+          {heading('Account')}
           {sideExtra.map((i) => link(i.href, i.label, i.icon))}
           {/* Settings expands in place to its pages, so there is only one left menu */}
           <div>
@@ -146,14 +156,16 @@ export default function Navbar({ isAdmin, homes, activeId, collapsed, onToggle, 
               </ul>
             )}
           </div>
+
+          {/* Support and Admin sit at the end, in the same order as the phone's More page */}
+          {heading('Support')}
+          {link('/dashboard/help', 'Help & FAQ', CircleHelp)}
+          {donate && link('/support', 'Buy me a coffee', Coffee)}
+          {isAdmin && heading('Admin')}
+          {isAdmin && link('/admin', 'Admin portal', ShieldCheck)}
         </nav>
 
-        {/* Pinned footer: owner tools / support, then the three utility buttons */}
-        <nav className="mt-1 flex shrink-0 flex-col gap-0.5 border-t pt-2 hairline" aria-label="Support">
-          {link('/dashboard/help', 'Help & FAQ', CircleHelp, false, true, true)}
-          {donate && link('/support', 'Buy me a coffee', Coffee, false, true, true)}
-          {isAdmin && link('/admin', 'Admin portal', ShieldCheck, false, true, true)}
-        </nav>
+        {/* Pinned footer: the three utility buttons */}
         <div className={cn('mt-1 flex shrink-0 gap-1 border-t pt-2 hairline', collapsed ? 'flex-col items-center' : 'items-center justify-between')}>
           <div className={cn('flex gap-1', collapsed ? 'flex-col items-center' : 'items-center')}>
             <ThemeToggle tip={collapsed ? { side: 'right' } : { side: 'top', align: 'start' }} />
