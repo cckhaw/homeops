@@ -1,5 +1,6 @@
-// Deletes every Vercel deployment of the project except the newest READY production one.
-// Only run AFTER that deployment is live. Set DRY_RUN=1 to list without deleting.
+// Deletes old Vercel deployments of the project. Keeps the newest READY production one (the live site) plus the
+// KEEP_PREVIOUS (default 2) READY production deployments before it, so a bad release can be rolled back instantly.
+// Only run AFTER the new deployment is live. Set DRY_RUN=1 to list without deleting.
 const { VERCEL_TOKEN, VERCEL_PROJECT_ID } = process.env;
 const TEAM = process.env.VERCEL_TEAM_ID || process.env.VERCEL_ORG_ID;
 const KEEP = process.argv[2] || process.env.KEEP_DEPLOYMENT_ID; // optional explicit deployment id/url to keep
@@ -42,7 +43,14 @@ if (keep.state !== 'READY') {
 }
 console.log(`Keeping ${keep.uid} (${keep.url}) created ${new Date(keep.created).toISOString()}`);
 
-const doomed = all.filter((d) => d.uid !== keep.uid);
+// Keep the last few READY production deployments as instant-rollback targets (Vercel "Instant Rollback" needs one to exist).
+// Everything else (previews, failed and cancelled builds, older production deployments) is deleted. KEEP_PREVIOUS=0 restores "keep only the live one".
+const KEEP_PREVIOUS = Math.max(0, Number.parseInt(process.env.KEEP_PREVIOUS ?? '2', 10) || 0);
+const rollback = all.filter((d) => d.uid !== keep.uid && d.target === 'production' && d.state === 'READY' && d.created < keep.created).slice(0, KEEP_PREVIOUS);
+for (const d of rollback) console.log(`Keeping ${d.uid} (${d.url}) as a rollback target, created ${new Date(d.created).toISOString()}`);
+const spared = new Set([keep.uid, ...rollback.map((d) => d.uid)]);
+
+const doomed = all.filter((d) => !spared.has(d.uid));
 console.log(`${doomed.length} deployment(s) to delete${DRY ? ' (dry run)' : ''}.`);
 let failed = 0;
 for (const d of doomed) {

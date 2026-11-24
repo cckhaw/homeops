@@ -26,9 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
@@ -61,5 +61,9 @@ jobs:
           echo "Deployment did not become healthy" >&2; exit 1
 
       # Runs only after the new production deployment is READY and serving traffic.
-      - name: Delete all previous deployments
-        run: node scripts/cleanup-deployments.mjs "${{ steps.deploy.outputs.url }}"
+      # Keeps the live deployment and the two before it as rollback targets (KEEP_PREVIOUS, see the script).
+      - name: Delete old deployments
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.url }}
+          KEEP_PREVIOUS: ${{ vars.KEEP_PREVIOUS || '2' }}
+        run: node scripts/cleanup-deployments.mjs "$DEPLOY_URL"

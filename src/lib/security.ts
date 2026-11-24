@@ -29,7 +29,15 @@ export function passwordPolicyError(password: string, email?: string): string | 
   return null;
 }
 
-const SCRYPT = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
+// OWASP: N of 32768 (32 MiB at r=8) or more. The cost is stored inside every hash, so raising it only needs a re-hash at the next sign-in.
+const SCRYPT = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
+
+/** True when a stored hash was made with a lower cost (or another format) than today's, so it should be re-hashed after a correct sign-in. */
+export function passwordNeedsRehash(stored: string | null | undefined): boolean {
+  const parts = (stored ?? '').split('$');
+  if (parts.length !== 6 || parts[0] !== 'scrypt') return false;
+  return +parts[1] < SCRYPT.N || +parts[2] < SCRYPT.r || +parts[3] < SCRYPT.p;
+}
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16);

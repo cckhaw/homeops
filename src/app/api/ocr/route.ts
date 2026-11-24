@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { enforce } from '@/lib/rate-limit';
 import { demoGuard } from '@/lib/demo';
 import { LABEL_PROMPT, RECEIPT_PROMPT, cleanLabel, cleanReceipt, isScanMode } from '@/lib/ocr-core';
+import { SNIFF_MIME, sniffFile } from '@/lib/file-sniff';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -34,8 +35,10 @@ export async function POST(req: Request) {
   if (!(file instanceof File) || file.size === 0) return NextResponse.json({ error: mode === 'label' ? 'No photo uploaded' : 'No receipt uploaded' }, { status: 400 });
   if (file.size > MAX_BYTES) return NextResponse.json({ error: 'The file must be under 8 MB' }, { status: 413 });
 
-  const isPdf = file.type === 'application/pdf';
-  if ((isPdf && mode === 'label') || (!isPdf && !IMAGE_TYPES.includes(file.type))) {
+  const real = await sniffFile(file);
+  const realMime = real ? SNIFF_MIME[real] : '';
+  const isPdf = realMime === 'application/pdf';
+  if ((isPdf && mode === 'label') || (!isPdf && !IMAGE_TYPES.includes(realMime))) {
     return NextResponse.json({ error: mode === 'label' ? 'Please use a photo (JPG, PNG or WebP).' : 'Scanning supports JPG, PNG, WebP and PDF receipts.' }, { status: 415 });
   }
   const data = Buffer.from(await file.arrayBuffer()).toString('base64');
@@ -53,7 +56,7 @@ export async function POST(req: Request) {
               ? { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data } }
               : {
                   type: 'image',
-                  source: { type: 'base64', media_type: file.type as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif', data },
+                  source: { type: 'base64', media_type: realMime as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif', data },
                 },
             { type: 'text', text: mode === 'label' ? LABEL_PROMPT : RECEIPT_PROMPT },
           ],
