@@ -14,7 +14,7 @@ Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS (Apple HIG sty
 | `tests/` | Vitest unit tests |
 | `e2e/` | Playwright browser suites and the runner (`e2e/run.sh`) |
 | `public/` | Static files: service worker, brand images (`public/brand/`) |
-| `scripts/` | `migrate.mjs` (build-time migrations), `cleanup-deployments.mjs` (deletes old Vercel deployments after a deploy) |
+| `scripts/` | `migrate.mjs` (build-time migrations), `cleanup-deployments.mjs` (deletes old Vercel deployments after a deploy, keeping the last few for rollback) |
 | `docs/` | This documentation |
 
 ## Routes
@@ -52,3 +52,9 @@ Next.js 15 (App Router) · React 19 · TypeScript · Tailwind CSS (Apple HIG sty
 - **Theme.** Day/night and accent colour are stored in the browser and applied before first paint (`THEME_INIT_SCRIPT`). The logo turns white in dark mode through CSS variables.
 - **Branding.** Admin uploads are validated from the file bytes (`src/lib/brand-core.ts`), stored in `brand_assets` and served from `/brand-asset/[kind]?v=<revision>` with immutable caching. Removing an upload returns to the built-in artwork.
 - **Errors and audit.** Server errors are recorded in `error_log` (Admin → Errors); admin and security actions in `audit_log`.
+
+## Security notes
+- **Headers:** `src/lib/security-headers.js` (used by `next.config.js`) sets HSTS, nosniff, X-Frame-Options, Referrer-Policy, Permissions-Policy on every path and a Content-Security-Policy on pages (not `/api`, whose file routes send their own). Scripts and styles keep `'unsafe-inline'` because Next.js writes inline bootstrap scripts and a nonce would make every public page dynamic. If you add a third-party script, image host or iframe, add it to the CSP there (`rel18` fails on any violation).
+- **Uploads:** `src/lib/file-sniff.ts` identifies JPEG/PNG/WebP/GIF/HEIC/PDF from the first bytes. `uploadFile`, `uploadLogo` and `/api/ocr` use it and label the stored copy with the detected type.
+- **Passwords:** scrypt N=32768. Older hashes still verify and are re-made at the next correct sign-in (`passwordNeedsRehash`). The sign-in CAPTCHA fails closed if Cloudflare is unreachable; other forms fail open.
+- **Reporting:** see `SECURITY.md`.

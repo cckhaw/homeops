@@ -1,7 +1,7 @@
 # Operations
 
 ## Deploying
-Production only (no preview deployments). `.github/workflows/deploy.yml` runs on every push to `main`: typecheck and tests, `vercel deploy --prod` (the build runs `npm run vercel-build`: migrations via `scripts/migrate.mjs`, then `next build`), a health check, then `scripts/cleanup-deployments.mjs` removes every older deployment once the new one is live. Pull requests run `ci.yml` (typecheck, unit tests, build). `audit.yml` runs a weekly dependency audit.
+Production only (no preview deployments). `.github/workflows/deploy.yml` runs on every push to `main`: typecheck and tests, `vercel deploy --prod` (the build runs `npm run vercel-build`: migrations via `scripts/migrate.mjs`, then `next build`), a health check, then `scripts/cleanup-deployments.mjs` removes old deployments once the new one is live, keeping the two previous production deployments as rollback targets (repository variable `KEEP_PREVIOUS`, default 2; set 0 to keep only the live one). Pull requests run `ci.yml` (typecheck, unit tests, build). `audit.yml` runs a weekly dependency audit.
 
 Workflow in practice: branch → pull request → CI green → squash merge → watch the *Deploy to Vercel (Production)* run → check the live site.
 

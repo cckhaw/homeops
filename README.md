@@ -61,7 +61,7 @@ npm run dev
 | `ANTHROPIC_API_KEY` | optional | Receipt OCR (`/api/ocr`) |
 
 ## Deployment (production only)
-`.github/workflows/deploy.yml` runs on push to `main`: typecheck → unit tests → `vercel deploy --prod` (build happens on Vercel, where `npm run vercel-build` applies DB migrations, then builds) → health check → `scripts/cleanup-deployments.mjs` deletes every other deployment. `vercel.json` disables Git-triggered (preview) deployments.
+`.github/workflows/deploy.yml` runs on push to `main`: typecheck → unit tests → `vercel deploy --prod` (build happens on Vercel, where `npm run vercel-build` applies DB migrations, then builds) → health check → `scripts/cleanup-deployments.mjs` deletes old deployments but keeps the live one and the two before it for instant rollback (`KEEP_PREVIOUS`). `vercel.json` disables Git-triggered (preview) deployments.
 
 Schema changes: edit `src/db/schema.ts`, run `npm run db:generate`, commit the new SQL in `drizzle/`.
 

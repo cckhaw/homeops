@@ -11,7 +11,7 @@ import { profiles, type Profile } from '@/db/schema';
 import { createVerifiedProfile, findProfileByEmail, isEmail, normalizeEmail } from '@/lib/accounts';
 import { emailConfigured } from '@/lib/email';
 import { ensureMembership, resolveHomes } from '@/lib/household';
-import { decryptSecret, hashCode, verifyPassword, verifyTotp } from '@/lib/security';
+import { decryptSecret, hashCode, hashPassword, passwordNeedsRehash, verifyPassword, verifyTotp } from '@/lib/security';
 import { clientIpFrom } from '@/lib/rate-limit-core';
 import { appleClientSecretFromEnv, appleConfigured } from '@/lib/apple';
 import { peekRateLimit, rateLimit } from '@/lib/rate-limit';
@@ -86,7 +86,7 @@ async function authorizeCredentials(credentials: Record<'email' | 'password' | '
   }
   // After repeated failures (for this account or from this address) require a CAPTCHA before spending CPU on hashing.
   if (turnstileEnabled() && ((profile?.failedAttempts ?? 0) >= 3 || (await peekRateLimit('login-fail-ip', ip, 900)) >= 6)) {
-    if (!(await verifyTurnstile(credentials?.captcha, ip))) throw new Error('CAPTCHA_REQUIRED');
+    if (!(await verifyTurnstile(credentials?.captcha, ip, { failClosed: true }))) throw new Error('CAPTCHA_REQUIRED');
   }
   const ok = await verifyPassword(password, profile?.passwordHash);
   if (!profile || !ok) {
@@ -94,7 +94,14 @@ async function authorizeCredentials(credentials: Record<'email' | 'password' | '
     if (profile) await registerFailure(profile);
     throw new Error('INVALID');
   }
-  // Correct password from here on.
+  // Correct password from here on. Upgrade an older, cheaper hash now that we hold the plain password (best effort, never blocks sign-in).
+  if (passwordNeedsRehash(profile.passwordHash)) {
+    try {
+      await db.update(profiles).set({ passwordHash: await hashPassword(password) }).where(eq(profiles.id, profile.id));
+    } catch (e) {
+      console.error('Password re-hash failed', e instanceof Error ? e.message : e);
+    }
+  }
   if (profile.suspendedAt) throw new Error('SUSPENDED');
   if (emailConfigured() && !profile.emailVerifiedAt) throw new Error('EMAIL_NOT_VERIFIED');
 
