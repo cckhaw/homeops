@@ -30,7 +30,7 @@ const BASE_HEADERS = [
   { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()' },
 ];
 
-/** Pages only: the file and calendar routes under /api send their own stricter policy. */
+/** Pages only: the file routes (under /api, and /brand-asset) send their own stricter policy. */
 const pageHeaders = (dev) => [{ key: 'Content-Security-Policy', value: CSP(dev) }];
 
 module.exports = { CSP, BASE_HEADERS, pageHeaders };

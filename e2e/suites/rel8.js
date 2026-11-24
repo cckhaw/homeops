@@ -11,7 +11,7 @@ const AIRCON='how-often-service-aircon-singapore-malaysia', WARRANTY='home-appli
 
  // ---------------- the two starter posts
  const seeded=await q("select slug,status,publish_at from blog_posts where slug in ($1,$2) order by publish_at",[AIRCON,WARRANTY]);
- assert(seeded.length===2 && seeded[1].publish_at.toISOString()==='2026-11-13T01:00:00.000Z','both starter posts exist; the warranty checklist is set for 13 Nov 2026, 09:00 Singapore time');
+ assert(seeded.length===2 && seeded.find(x=>x.slug===WARRANTY).publish_at.toISOString()==='2026-11-13T01:00:00.000Z','both starter posts exist; the warranty checklist is set for 13 Nov 2026, 09:00 Singapore time');
  // make the test independent of today's date: force the warranty post into the future for the scheduling checks, then restore
  const future=new Date(Date.now()+7*86400000).toISOString(); await q("update blog_posts set publish_at=$2 where slug=$1",[WARRANTY,future]); await q("update blog_posts set publish_at=now() - interval '1 hour' where slug=$1",[AIRCON]);
 

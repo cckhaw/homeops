@@ -16,7 +16,7 @@ const nextConfig = {
   async headers() {
     return [
       { source: '/:path*', headers: BASE_HEADERS },
-      { source: '/((?!api/).*)', headers: pageHeaders(process.env.NODE_ENV !== 'production') },
+      { source: '/((?!api/|brand-asset/).*)', headers: pageHeaders(process.env.NODE_ENV !== 'production') },
       {
         source: '/sw.js',
         headers: [
