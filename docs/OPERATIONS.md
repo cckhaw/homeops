@@ -59,3 +59,8 @@ Unit tests (`npm test`) cover the pure logic: passwords and crypto, dates, remin
 ## Demo mode
 
 Admin → Demo: switch it on, choose a demo e-mail and password (8–64 characters; a real account's e-mail is refused) and how long a sandbox lives (default 24 h). Anyone signing in with those credentials gets a private, freshly seeded account ("Alex Tan (Demo)") with twelve homes covering every feature (see `src/lib/demo-core.ts`). Optional "show hint" prints the credentials on the sign-in page and adds a "Try the live demo" button to the homepage. Uploads, OCR scans, notifications, invites, password changes and account deletion are switched off for demo accounts; demo accounts are never e-mailed and are excluded from Admin analytics and Users. Expired sandboxes are removed by the daily reminders cron, or via Admin → Demo (Remove expired / Remove all). At most 150 sandboxes exist at once.
+
+## Rotating keys
+- **Sign-in secret (`NEXTAUTH_SECRET`)**: changing it signs everyone out. Do it only if it leaked. If you have not set `DATA_KEYS`, it also makes stored two-factor secrets undecryptable, so set `DATA_KEYS` first (below).
+- **Two-factor encryption (`DATA_KEYS`)**: first set `DATA_KEYS=k1:<32+ random chars>` and redeploy; existing data (old format) keeps working and moves to `k1` at each person's next 2FA sign-in. To rotate later, put the new key first and keep the old one: `DATA_KEYS=k2:<new>,k1:<old>`, redeploy, wait until the data has moved (most active users within weeks), then drop `k1`. Anyone whose secret was still on a dropped key must re-enrol 2FA (recovery codes still work to sign in).
+- **Lint**: `npm run lint` must pass with no warnings. Add a justified `eslint-disable-next-line` comment rather than turning a rule off.

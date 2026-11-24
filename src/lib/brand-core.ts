@@ -16,6 +16,23 @@ export const BRAND_RULES: Record<BrandKind, { label: string; types: ImageInfo['t
 const u32 = (b: Uint8Array, o: number) => ((b[o] << 24) | (b[o + 1] << 16) | (b[o + 2] << 8) | b[o + 3]) >>> 0;
 const sig = (b: Uint8Array, s: number[]) => s.every((v, i) => b[i] === v);
 
+/**
+ * True when the text starts like an SVG document: optional BOM, XML declaration, comments and DOCTYPE, then an <svg> tag.
+ * Walks the prolog with indexOf instead of one big regex, which backtracked badly on crafted input (many unclosed comments).
+ */
+export function looksLikeSvg(text: string): boolean {
+  const s = text.replace(/^\uFEFF/, '');
+  let i = 0;
+  for (;;) {
+    while (i < s.length && /\s/.test(s[i])) i++;
+    if (s.startsWith('<?xml', i)) { const j = s.indexOf('?>', i); if (j < 0) return false; i = j + 2; continue; }
+    if (s.startsWith('<!--', i)) { const j = s.indexOf('-->', i + 4); if (j < 0) return false; i = j + 3; continue; }
+    if (s.slice(i, i + 9).toLowerCase() === '<!doctype') { const j = s.indexOf('>', i); if (j < 0) return false; i = j + 1; continue; }
+    break;
+  }
+  return /^<svg[\s>]/i.test(s.slice(i, i + 6));
+}
+
 /** Reads the image type and size from the file's own bytes (the browser-supplied type is not trusted). */
 export function detectImage(b: Uint8Array): ImageInfo | null {
   if (b.length > 24 && sig(b, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]) && String.fromCharCode(b[12], b[13], b[14], b[15]) === 'IHDR') {
@@ -33,8 +50,7 @@ export function detectImage(b: Uint8Array): ImageInfo | null {
     return { type: 'jpeg', width: null, height: null };
   }
   if (b.length > 12 && String.fromCharCode(...b.slice(0, 4)) === 'RIFF' && String.fromCharCode(...b.slice(8, 12)) === 'WEBP') return { type: 'webp', width: null, height: null };
-  const head = new TextDecoder().decode(b.slice(0, 1024)).replace(/^﻿/, '');
-  if (/^\s*(<\?xml[^>]*\?>\s*)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE svg[^>]*>\s*)?<svg[\s>]/i.test(head)) return { type: 'svg', width: null, height: null };
+  if (looksLikeSvg(new TextDecoder().decode(b.slice(0, 1024)))) return { type: 'svg', width: null, height: null };
   return null;
 }
 

@@ -59,21 +59,64 @@ export async function verifyPassword(password: string, stored: string | null | u
 }
 
 // ---------------------------------------------------------------- Encryption (for the TOTP secret)
+//
+// Keys are versioned so they can be rotated without locking anyone out of two-factor sign-in.
+//  - DATA_KEYS (optional): comma-separated "id:secret" pairs, e.g. "k2:long-random-string,k1:older-string". The FIRST pair encrypts new data;
+//    every pair can decrypt, so an old key stays listed until all data has moved off it (it moves at each user's next 2FA sign-in).
+//    Ids are short names ([a-z0-9_-]); secrets should be 32+ random characters.
+//  - Without DATA_KEYS, data is encrypted with a key derived from NEXTAUTH_SECRET (the original "legacy" format), which still always decrypts.
+// New ciphertext looks like "v2.<id>.<base64>"; the legacy format has no prefix.
 
-const key = () => createHash('sha256').update(`homeops-secrets:${secret()}`).digest();
+const KEY_ID = /^[a-z0-9_-]{1,16}$/;
 
-export function encryptSecret(plain: string): string {
+/** Parses DATA_KEYS into [{ id, key }], newest first. Throws on a malformed entry so a typo cannot silently weaken encryption. */
+export function dataKeys(raw: string | undefined = process.env.DATA_KEYS): { id: string; key: Buffer }[] {
+  if (!raw?.trim()) return [];
+  return raw.split(',').map((pair) => {
+    const i = pair.indexOf(':');
+    const id = pair.slice(0, i).trim(), sec = pair.slice(i + 1).trim();
+    if (i < 1 || !KEY_ID.test(id) || sec.length < 16) throw new Error('DATA_KEYS must look like "id:secret" (id of a-z, 0-9, _ or -; secret of at least 16 characters)');
+    return { id, key: createHash('sha256').update(`wodejia-data-key:${id}:${sec}`).digest() };
+  });
+}
+
+const legacyKey = () => createHash('sha256').update(`homeops-secrets:${secret()}`).digest();
+
+function seal(plain: string, key: Buffer): string {
   const iv = randomBytes(12);
-  const c = createCipheriv('aes-256-gcm', key(), iv);
+  const c = createCipheriv('aes-256-gcm', key, iv);
   const enc = Buffer.concat([c.update(plain, 'utf8'), c.final()]);
   return Buffer.concat([iv, c.getAuthTag(), enc]).toString('base64');
 }
 
-export function decryptSecret(blob: string): string {
-  const buf = Buffer.from(blob, 'base64');
-  const d = createDecipheriv('aes-256-gcm', key(), buf.subarray(0, 12));
+function unseal(b64: string, key: Buffer): string {
+  const buf = Buffer.from(b64, 'base64');
+  const d = createDecipheriv('aes-256-gcm', key, buf.subarray(0, 12));
   d.setAuthTag(buf.subarray(12, 28));
   return Buffer.concat([d.update(buf.subarray(28)), d.final()]).toString('utf8');
+}
+
+export function encryptSecret(plain: string): string {
+  const [current] = dataKeys();
+  return current ? `v2.${current.id}.${seal(plain, current.key)}` : seal(plain, legacyKey());
+}
+
+export function decryptSecret(blob: string): string {
+  if (blob.startsWith('v2.')) {
+    const [, id, ...rest] = blob.split('.');
+    const k = dataKeys().find((x) => x.id === id);
+    if (!k) throw new Error(`The encryption key "${id}" is no longer configured (DATA_KEYS)`);
+    return unseal(rest.join('.'), k.key);
+  }
+  return unseal(blob, legacyKey());
+}
+
+/** True when a stored secret is not under the current key (a legacy blob once DATA_KEYS is set, or an older key id), so it should be re-encrypted. */
+export function secretNeedsReencrypt(blob: string | null | undefined): boolean {
+  if (!blob) return false;
+  const [current] = dataKeys();
+  if (!current) return false;
+  return !blob.startsWith(`v2.${current.id}.`);
 }
 
 // ---------------------------------------------------------------- TOTP (RFC 6238: SHA-1, 6 digits, 30 s)

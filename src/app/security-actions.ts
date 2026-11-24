@@ -51,6 +51,7 @@ export async function registerAccount(_: FormState, fd: FormData): Promise<FormS
 
   if (!emailConfigured()) {
     const password = str(fd, 'password', 200);
+    // eslint-disable-next-line security/detect-possible-timing-attacks -- comparing the user's own two typed entries, not a secret against a guess
     if (password !== str(fd, 'confirm', 200)) return { error: 'The passwords do not match.' };
     const policy = passwordPolicyError(password, email);
     if (policy) return { error: policy };
@@ -118,6 +119,7 @@ export async function completePassword(token: string, _: FormState, fd: FormData
   const row = await peekToken(token);
   if (!row) return { error: 'This link is invalid or has expired. Request a new one.' };
   const password = str(fd, 'password', 200);
+  // eslint-disable-next-line security/detect-possible-timing-attacks -- comparing the user's own two typed entries, not a secret against a guess
   if (password !== str(fd, 'confirm', 200)) return { error: 'The passwords do not match.' };
   const policy = passwordPolicyError(password, row.email);
   if (policy) return { error: policy };
@@ -213,6 +215,17 @@ export async function replayWelcome() {
   const user = await requireUser();
   await db.update(profiles).set({ welcomeSeenAt: null, checklistDismissedAt: null }).where(eq(profiles.id, user.id));
   redirect('/dashboard');
+}
+
+// ------------------------------------------------------------------ Sessions
+
+/** Signs this account out on every device, including this one (bumps the session version that every sign-in cookie carries). */
+export async function signOutEverywhere(): Promise<void> {
+  const user = await requireUser();
+  { const demo = await demoGuard('Signing out of all devices'); if (demo) return; }
+  await db.update(profiles).set({ sessionVersion: user.sessionVersion + 1 }).where(eq(profiles.id, user.id));
+  await audit({ id: user.id, email: user.email }, 'auth.signout_everywhere', 'Signed out of all devices');
+  redirect('/login');
 }
 
 // ------------------------------------------------------------------ Calendar feed

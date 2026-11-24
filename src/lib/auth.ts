@@ -11,7 +11,7 @@ import { profiles, type Profile } from '@/db/schema';
 import { createVerifiedProfile, findProfileByEmail, isEmail, normalizeEmail } from '@/lib/accounts';
 import { emailConfigured } from '@/lib/email';
 import { ensureMembership, resolveHomes } from '@/lib/household';
-import { decryptSecret, hashCode, hashPassword, passwordNeedsRehash, verifyPassword, verifyTotp } from '@/lib/security';
+import { decryptSecret, encryptSecret, hashCode, hashPassword, passwordNeedsRehash, secretNeedsReencrypt, verifyPassword, verifyTotp } from '@/lib/security';
 import { clientIpFrom } from '@/lib/rate-limit-core';
 import { appleClientSecretFromEnv, appleConfigured } from '@/lib/apple';
 import { peekRateLimit, rateLimit } from '@/lib/rate-limit';
@@ -107,9 +107,13 @@ async function authorizeCredentials(credentials: Record<'email' | 'password' | '
 
   if (profile.totpEnabled && profile.totpSecret) {
     if (!code) throw new Error('TWO_FACTOR_REQUIRED');
-    const step = verifyTotp(decryptSecret(profile.totpSecret), code, profile.totpLastStep);
+    const totpPlain = decryptSecret(profile.totpSecret);
+    const step = verifyTotp(totpPlain, code, profile.totpLastStep);
     if (step !== null) {
-      await db.update(profiles).set({ totpLastStep: step }).where(eq(profiles.id, profile.id));
+      // Move the stored secret onto the current encryption key (see DATA_KEYS) while we hold it decrypted.
+      const patch: { totpLastStep: number; totpSecret?: string } = { totpLastStep: step };
+      if (secretNeedsReencrypt(profile.totpSecret)) patch.totpSecret = encryptSecret(totpPlain);
+      await db.update(profiles).set(patch).where(eq(profiles.id, profile.id));
     } else {
       // Not a valid authenticator code: maybe a single-use recovery code.
       const hashes: string[] = profile.recoveryCodes ? JSON.parse(profile.recoveryCodes) : [];
@@ -127,7 +131,8 @@ async function authorizeCredentials(credentials: Record<'email' | 'password' | '
 }
 
 export const authOptions: NextAuthOptions = {
-  session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 30 },
+  // 14 days, renewed (at most once a day) while the account is in use. Shorter than before to limit the damage of a stolen cookie.
+  session: { strategy: 'jwt', maxAge: 60 * 60 * 24 * 14, updateAge: 60 * 60 * 24 },
   pages: { signIn: '/login', error: '/login' },
   cookies: appleCookies,
   providers: [

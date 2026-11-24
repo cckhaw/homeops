@@ -6,7 +6,7 @@ const nextConfig = {
   poweredByHeader: false,
   // The dev-mode status badge (bottom-left) would sit on top of the sidebar's collapse button.
   devIndicators: false,
-  eslint: { ignoreDuringBuilds: true },
+  // Lint runs as its own step (npm run lint, in CI and before every deploy); `next build` also fails on lint errors.
   // Date of this build: the 'last modified' of pages whose content changes with each release (home, sign-up) in sitemap.xml.
   env: { BUILD_DATE: new Date().toISOString() },
   experimental: { serverActions: { bodySizeLimit: '12mb' } },

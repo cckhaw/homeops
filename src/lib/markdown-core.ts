@@ -30,10 +30,13 @@ export function safeHref(href: string): string | null {
   return null;
 }
 
+const MAX_URL = 2048;
+
 export function parseInline(src: string): Inline[] {
   const out: Inline[] = [];
   let i = 0;
   let buf = '';
+  let noLinksLeft = false;
   const flush = () => {
     if (buf) out.push({ t: 'text', v: buf });
     buf = '';
@@ -72,12 +75,14 @@ export function parseInline(src: string): Inline[] {
         continue;
       }
     }
-    if (ch === '[') {
+    if (ch === '[' && !noLinksLeft) {
       const close = src.indexOf('](', i + 1);
+      if (close < 0) noLinksLeft = true; // nothing after this point can close a link, so stop searching for every later "["
       let end = -1;
       if (close > 0) {
-        // the closing ")" is the one that balances the opening, so URLs like /a_(b) work
-        for (let j = close + 2, depth = 1; j < src.length; j++) {
+        // the closing ")" is the one that balances the opening, so URLs like /a_(b) work. The scan is capped so a long run of
+        // unclosed links cannot make parsing quadratic.
+        for (let j = close + 2, depth = 1; j < src.length && j < close + 2 + MAX_URL; j++) {
           if (src[j] === '(') depth++;
           else if (src[j] === ')' && --depth === 0) { end = j; break; }
         }
@@ -102,7 +107,12 @@ export function parseInline(src: string): Inline[] {
 export const inlineText = (c: Inline[]): string => c.map((n) => (n.t === 'text' || n.t === 'code' ? n.v : inlineText(n.c))).join('');
 
 const splitRow = (line: string) => line.trim().replace(/^\|/, '').replace(/\|$/, '').split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, '|'));
-const isTableSep = (line: string) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(line) && line.includes('-');
+// A "---|:---:" separator row. Written as split-and-check so it is linear in the line length (the all-in-one regex was quadratic on long whitespace runs).
+const isTableSep = (line: string) => {
+  const t = line.trim();
+  if (!t.includes('-')) return false;
+  return t.replace(/^\|/, '').replace(/\|$/, '').split('|').every((c) => /^:?-{2,}:?$/.test(c.trim()));
+};
 
 export function parseMarkdown(src: string): Block[] {
   const lines = src.replace(/\r\n?/g, '\n').split('\n');
