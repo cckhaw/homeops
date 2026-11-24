@@ -48,6 +48,17 @@ const q=async(sql,a=[])=>(await pool.query(sql,a)).rows;
  const after=(await q("select password_hash h, session_version sv from profiles where email='vic@test.dev'"))[0]; assert(after.h.startsWith('scrypt$32768$8$1$') && after.h!==oldH,'after a correct sign-in the hash is re-made at N=32768');
  const lc2=await browser.newContext(); const lp2=await lc2.newPage(); await lp2.goto(BASE+'/login'); await lp2.fill('input[type=email]','vic@test.dev'); await lp2.locator('input[type=password]').first().fill('correct horse battery staple'); await lp2.click('form button[type=submit]'); await lp2.waitForURL(/dashboard/,{timeout:30000}); assert(true,'the same password still works with the new hash');
 
+ // ---------------- sessions: shorter lifetime and "sign out of all devices"
+ const ca=await sess('user@test.dev'); const cb=await sess('user@test.dev'); const pa=await ca.newPage(); const pb=await cb.newPage(); watch(pa); watch(pb); pa.on('dialog',d=>d.accept());
+ await pb.goto(BASE+'/dashboard'); assert(/\/dashboard/.test(pb.url()),'a second device is signed in');
+ await pa.goto(BASE+'/dashboard/settings/security'); assert(/up to 14 days/.test(await pa.locator('main').innerText()),'the security page says sessions last up to 14 days');
+ const svBefore=(await q("select session_version v from profiles where email='user@test.dev'"))[0].v;
+ await pa.click('button:has-text("Sign out of all devices")'); await pa.waitForURL(/\/login/,{timeout:20000});
+ assert((await q("select session_version v from profiles where email='user@test.dev'"))[0].v===svBefore+1,'signing out everywhere bumps the session version');
+ await pb.goto(BASE+'/dashboard'); assert(/\/login/.test(pb.url()),'the other device is signed out too');
+ await pa.goto(BASE+'/dashboard'); assert(/\/login/.test(pa.url()),'and so is the device that pressed the button');
+ assert((await q("select count(*)::int n from audit_log where action='auth.signout_everywhere'"))[0].n===1,'the action is written to the audit log');
+
  assert(errs.length===0,'no page errors '+errs.join('|'));
  await browser.close(); await pool.end();
 })().catch(e=>{console.error('FAIL crashed',e);process.exit(1)});

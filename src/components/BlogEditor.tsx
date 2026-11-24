@@ -9,7 +9,6 @@ import { ConfirmButton } from './misc';
 import { deleteBlogPost, saveBlogPost, unpublishBlogPost } from '@/app/blog-actions';
 import { BLOG_CATEGORIES, BLOG_TZ_LABEL, META_DESC_MAX, SEO_TITLE_MAX, searchDescription, searchTitle, seoChecks } from '@/lib/blog-core';
 import { blocksText, parseMarkdown, slugify } from '@/lib/markdown-core';
-import { cn } from '@/lib/utils';
 
 export type EditorPost = { id: string; slug: string; title: string; excerpt: string; seoTitle: string; metaDescription: string; body: string; category: string; tags: string; authorName: string; state: 'draft' | 'scheduled' | 'published'; publishAtLocal: string };
 

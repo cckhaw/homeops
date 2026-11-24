@@ -23,8 +23,9 @@ Out of scope: social engineering, physical attacks, issues in third-party servic
 
 - Passwords hashed with scrypt (per-user salt, cost stored in the hash and upgraded at sign-in), lockout and per-address rate limits, optional two-factor (TOTP with replay protection, single-use recovery codes), session revocation on password change.
 - Security headers on every response (HSTS, Content-Security-Policy with `frame-ancestors 'none'`, `X-Frame-Options`, `nosniff`, Referrer-Policy, Permissions-Policy).
+- Sign-in sessions last 14 days and can all be revoked from Settings; two-factor secrets are encrypted with versioned, rotatable keys.
 - Uploads are identified from their content, not the type the browser reports; stored files are private and served through authorised routes with a sandboxing policy.
-- Weekly dependency audit and a pinned CI toolchain (GitHub Actions pinned to commit SHAs).
+- Weekly dependency audit, security linting in CI, and a pinned CI toolchain (GitHub Actions pinned to commit SHAs).
 
 ## Supported versions
 

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { PROPERTY_TEMPLATES, REGIONS, suggestedDate, templatesFor, type Region } from '@/lib/property-core';
+import { REGIONS, suggestedDate, templatesFor, type Region } from '@/lib/property-core';
 import { FREQUENCIES, FREQUENCY_LABEL } from '@/lib/utils';
 import { useServerForm } from './useServerForm';
 import { SubmitButton } from './AppleButton';

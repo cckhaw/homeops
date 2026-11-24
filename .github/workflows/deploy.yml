@@ -38,6 +38,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Lint (Next.js and security rules)
+        run: npm run lint
+
       - name: Unit tests
         run: npm test
 

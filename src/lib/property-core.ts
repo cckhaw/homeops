@@ -41,7 +41,7 @@ export const templatesFor = (region: Region) => PROPERTY_TEMPLATES.filter((t) =>
 
 /** The first due date to suggest: the next time month/day comes round (today counts), or the 1st of next month. Null when the person must choose. */
 export function suggestedDate(t: PropertyTemplate, today: string): string | null {
-  const [y, m, d] = today.split('-').map(Number);
+  const [y, m] = today.split('-').map(Number);
   if (t.firstOfNextMonth) {
     const nm = m === 12 ? 1 : m + 1;
     return `${m === 12 ? y + 1 : y}-${String(nm).padStart(2, '0')}-01`;
